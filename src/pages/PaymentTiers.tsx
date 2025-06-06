@@ -1,21 +1,18 @@
 
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
-import PaymentTierCard from "@/components/PaymentTierCard";
 import { PAYMENT_TIERS } from "@/config/paymentTiers";
+import PaymentTierCard from "@/components/PaymentTierCard";
+import SubscriptionManager from "@/components/SubscriptionManager";
+import { useSubscription } from "@/hooks/useSubscription";
 
 const PaymentTiers = () => {
   const navigate = useNavigate();
-  const [currentTier, setCurrentTier] = useState<string>('basic'); // This would come from user's account
+  const { currentTier, upgradeToTier } = useSubscription();
 
   const handleSelectTier = (tierId: string) => {
-    console.log(`Selected tier: ${tierId}`);
-    // Here you would integrate with Stripe
-    // For now, just update the current tier
-    setCurrentTier(tierId);
-    localStorage.setItem('userTier', tierId);
+    upgradeToTier(tierId);
   };
 
   return (
@@ -31,47 +28,86 @@ const PaymentTiers = () => {
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back
           </Button>
-          <h1 className="text-3xl font-bold text-white">Choose Your Plan</h1>
+          <h1 className="text-3xl font-bold text-white">Subscription Plans</h1>
+        </div>
+
+        {/* Current Subscription Status */}
+        <div className="mb-12">
+          <SubscriptionManager />
         </div>
 
         {/* Title */}
         <div className="text-center mb-12">
           <h2 className="text-4xl font-bold bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent mb-4">
-            Scale Your Syndication Power 🚀
+            Choose Your Syndication Power
           </h2>
-          <p className="text-xl text-white/80 max-w-2xl mx-auto">
-            Choose the perfect plan to amplify your content across all platforms with our syndication engine
+          <p className="text-xl text-white/80">
+            Scale your content across platforms with our tiered syndication network
           </p>
         </div>
 
-        {/* Pricing Cards */}
-        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto mb-12">
+        {/* Payment Tiers */}
+        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {PAYMENT_TIERS.map((tier, index) => (
             <PaymentTierCard
               key={tier.id}
               tier={tier}
               currentTier={currentTier}
               onSelectTier={handleSelectTier}
-              isPopular={index === 1} // Make the middle tier popular
+              isPopular={index === 1} // Plus tier is popular
             />
           ))}
         </div>
 
         {/* Features Comparison */}
-        <div className="bg-white/10 border border-white/20 rounded-lg p-6 max-w-4xl mx-auto">
-          <h3 className="text-xl font-bold text-white mb-4 text-center">
-            All plans include:
+        <div className="mt-16 max-w-4xl mx-auto">
+          <h3 className="text-2xl font-bold text-white text-center mb-8">
+            Compare All Features
           </h3>
-          <div className="grid md:grid-cols-2 gap-4 text-white/80">
-            <div className="space-y-2">
-              <div>• Multi-platform syndication</div>
-              <div>• Real-time performance tracking</div>
-              <div>• Content optimization tools</div>
-            </div>
-            <div className="space-y-2">
-              <div>• 24/7 campaign monitoring</div>
-              <div>• Automated posting schedules</div>
-              <div>• Basic analytics dashboard</div>
+          <div className="bg-white/10 rounded-lg p-6 backdrop-blur-sm">
+            <div className="overflow-x-auto">
+              <table className="w-full text-white">
+                <thead>
+                  <tr className="border-b border-white/20">
+                    <th className="text-left py-3">Feature</th>
+                    <th className="text-center py-3">Basic</th>
+                    <th className="text-center py-3">Plus</th>
+                    <th className="text-center py-3">Enterprise</th>
+                  </tr>
+                </thead>
+                <tbody className="space-y-2">
+                  <tr className="border-b border-white/10">
+                    <td className="py-3">Syndication Accounts</td>
+                    <td className="text-center py-3">5</td>
+                    <td className="text-center py-3">15</td>
+                    <td className="text-center py-3">50</td>
+                  </tr>
+                  <tr className="border-b border-white/10">
+                    <td className="py-3">Team Seats</td>
+                    <td className="text-center py-3">1</td>
+                    <td className="text-center py-3">5</td>
+                    <td className="text-center py-3">20</td>
+                  </tr>
+                  <tr className="border-b border-white/10">
+                    <td className="py-3">Advanced Analytics</td>
+                    <td className="text-center py-3">✗</td>
+                    <td className="text-center py-3">✓</td>
+                    <td className="text-center py-3">✓</td>
+                  </tr>
+                  <tr className="border-b border-white/10">
+                    <td className="py-3">Boosted Syndication</td>
+                    <td className="text-center py-3">✗</td>
+                    <td className="text-center py-3">✓</td>
+                    <td className="text-center py-3">✓</td>
+                  </tr>
+                  <tr>
+                    <td className="py-3">Custom Add-ons</td>
+                    <td className="text-center py-3">✗</td>
+                    <td className="text-center py-3">✗</td>
+                    <td className="text-center py-3">✓</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
         </div>

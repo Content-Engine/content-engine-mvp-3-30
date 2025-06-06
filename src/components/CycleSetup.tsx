@@ -6,15 +6,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { CycleProfile, Platform } from "@/types/syndication";
-import { getTierFeatures } from "@/config/paymentTiers";
+import { useSubscription } from "@/hooks/useSubscription";
 
 interface CycleSetupProps {
   campaignId: string;
-  userTier: string;
   onSaveCycle: (cycle: Partial<CycleProfile>) => void;
 }
 
-const CycleSetup = ({ campaignId, userTier, onSaveCycle }: CycleSetupProps) => {
+const CycleSetup = ({ campaignId, onSaveCycle }: CycleSetupProps) => {
+  const { getCurrentTier } = useSubscription();
+  const currentTier = getCurrentTier();
+  
   const [duration, setDuration] = useState<7 | 14 | 30>(14);
   const [frequency, setFrequency] = useState<'daily' | '3x-week' | 'weekly'>('3x-week');
   const [platforms, setPlatforms] = useState<Platform[]>([
@@ -24,8 +26,7 @@ const CycleSetup = ({ campaignId, userTier, onSaveCycle }: CycleSetupProps) => {
     { id: 'facebook', name: 'Facebook Reels', enabled: false, accountsAllocated: 0 },
   ]);
 
-  const tierFeatures = getTierFeatures(userTier);
-  const maxAccounts = tierFeatures?.syndicationAccounts || 5;
+  const maxAccounts = currentTier?.features.syndicationAccounts || 5;
   const totalAllocated = platforms.reduce((sum, p) => sum + p.accountsAllocated, 0);
 
   const handlePlatformToggle = (platformId: string) => {
@@ -56,13 +57,15 @@ const CycleSetup = ({ campaignId, userTier, onSaveCycle }: CycleSetupProps) => {
     onSaveCycle(cycle);
   };
 
+  if (!currentTier) return null;
+
   return (
     <Card className="bg-white/10 border-white/20">
       <CardHeader>
         <CardTitle className="text-white flex items-center justify-between">
           Syndication Cycle Setup
           <Badge variant="secondary" className="bg-purple-500 text-white">
-            {userTier.toUpperCase()} Plan
+            {currentTier.name} Plan
           </Badge>
         </CardTitle>
       </CardHeader>

@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
+import PaymentTiers from "./pages/PaymentTiers";
 import CampaignBuilderStep1 from "./pages/CampaignBuilderStep1";
 import CampaignBuilderStep2 from "./pages/CampaignBuilderStep2";
 import CampaignBuilderStep3 from "./pages/CampaignBuilderStep3";

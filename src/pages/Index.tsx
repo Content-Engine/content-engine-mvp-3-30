@@ -21,7 +21,7 @@ const Index = () => {
         </div>
 
         {/* Main Action Cards */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
           {/* Start New Campaign */}
           <Card className="bg-gradient-to-br from-pink-500 to-purple-600 border-0 hover:scale-105 transition-all duration-300 cursor-pointer group" 
                 onClick={() => navigate('/campaign-builder/step-1')}>
@@ -31,6 +31,18 @@ const Index = () => {
               </div>
               <h3 className="text-2xl font-bold text-white mb-2">Start Campaign</h3>
               <p className="text-white/80">Build viral content across all platforms</p>
+            </CardContent>
+          </Card>
+
+          {/* Payment Tiers */}
+          <Card className="bg-gradient-to-br from-green-500 to-emerald-600 border-0 hover:scale-105 transition-all duration-300 cursor-pointer group"
+                onClick={() => navigate('/payment-tiers')}>
+            <CardContent className="p-8 text-center">
+              <div className="bg-white/20 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                <Zap className="h-8 w-8 text-white" />
+              </div>
+              <h3 className="text-2xl font-bold text-white mb-2">Upgrade Plan</h3>
+              <p className="text-white/80">Scale your syndication power</p>
             </CardContent>
           </Card>
 

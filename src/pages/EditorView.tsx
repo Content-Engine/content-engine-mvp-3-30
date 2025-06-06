@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,10 +5,12 @@ import { Badge } from "@/components/ui/badge";
 import { CheckCircle, Clock, Upload, Trophy, Star, Zap } from "lucide-react";
 import { CalendarContent } from "@/types/calendar";
 import { useToast } from "@/hooks/use-toast";
+import DiscordChatModule from "@/components/DiscordChatModule";
 
 const EditorView = () => {
   const { toast } = useToast();
   const [myContent, setMyContent] = useState<CalendarContent[]>([]);
+  const [isChatCollapsed, setIsChatCollapsed] = useState(false);
   const [stats, setStats] = useState({
     totalAssigned: 12,
     completed: 8,
@@ -74,9 +75,12 @@ const EditorView = () => {
   const pendingContent = myContent.filter(item => item.approvalStatus === 'pending');
   const completedContent = myContent.filter(item => item.approvalStatus === 'approved');
 
+  // Get current campaign for Discord integration
+  const currentCampaign = pendingContent.length > 0 ? pendingContent[0].campaignId : undefined;
+
   return (
     <div className="min-h-screen bg-background p-4 md:p-6">
-      <div className="max-w-6xl mx-auto space-y-6">
+      <div className={`max-w-6xl mx-auto space-y-6 transition-all duration-300 ${!isChatCollapsed ? 'md:mr-84' : ''}`}>
         {/* Header */}
         <Card>
           <CardHeader>
@@ -253,6 +257,13 @@ const EditorView = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Discord Chat Module */}
+      <DiscordChatModule
+        isCollapsed={isChatCollapsed}
+        onToggleCollapse={() => setIsChatCollapsed(!isChatCollapsed)}
+        currentCampaign={currentCampaign}
+      />
     </div>
   );
 };

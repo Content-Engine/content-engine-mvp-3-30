@@ -14,6 +14,7 @@ import CampaignBuilderStep4 from "./pages/CampaignBuilderStep4";
 import CampaignBuilderStep5 from "./pages/CampaignBuilderStep5";
 import CampaignsDashboard from "./pages/CampaignsDashboard";
 import PerformanceDashboard from "./pages/PerformanceDashboard";
+import QualityControlPanel from "./pages/QualityControlPanel";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,6 +35,7 @@ const App = () => (
           <Route path="/campaign-builder/step-5" element={<CampaignBuilderStep5 />} />
           <Route path="/campaigns-dashboard" element={<CampaignsDashboard />} />
           <Route path="/performance-dashboard" element={<PerformanceDashboard />} />
+          <Route path="/quality-control" element={<QualityControlPanel />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

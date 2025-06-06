@@ -5,10 +5,17 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useSubscription } from '@/hooks/useSubscription';
 import { PAYMENT_TIERS } from '@/config/paymentTiers';
-import { CreditCard, Settings, Zap } from 'lucide-react';
+import { CreditCard, Settings, Zap, RefreshCw } from 'lucide-react';
 
 const SubscriptionManager = () => {
-  const { currentTier, isLoading, upgradeToTier, cancelSubscription, getCurrentTier } = useSubscription();
+  const { 
+    currentTier, 
+    isLoading, 
+    upgradeToTier, 
+    openCustomerPortal, 
+    getCurrentTier,
+    refreshSubscription 
+  } = useSubscription();
   const [showManagement, setShowManagement] = useState(false);
   
   const currentTierData = getCurrentTier();
@@ -63,16 +70,26 @@ const SubscriptionManager = () => {
               variant="outline"
               onClick={() => setShowManagement(!showManagement)}
               className="flex-1"
+              disabled={isLoading}
             >
               <Settings className="h-4 w-4 mr-2" />
               Manage Subscription
             </Button>
             <Button
               variant="outline"
-              onClick={() => {/* Open billing portal */}}
+              onClick={openCustomerPortal}
+              disabled={isLoading}
             >
               <CreditCard className="h-4 w-4 mr-2" />
-              Billing
+              {isLoading ? 'Loading...' : 'Billing'}
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={refreshSubscription}
+              disabled={isLoading}
+            >
+              <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
             </Button>
           </div>
         </CardContent>

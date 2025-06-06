@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
+import Login from "./pages/Login";
 import PaymentTiers from "./pages/PaymentTiers";
 import CampaignBuilderStep1 from "./pages/CampaignBuilderStep1";
 import CampaignBuilderStep2 from "./pages/CampaignBuilderStep2";
@@ -25,6 +26,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/login" element={<Login />} />
           <Route path="/campaign-builder/step-1" element={<CampaignBuilderStep1 />} />
           <Route path="/campaign-builder/step-2" element={<CampaignBuilderStep2 />} />
           <Route path="/campaign-builder/step-3" element={<CampaignBuilderStep3 />} />

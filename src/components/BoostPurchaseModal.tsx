@@ -1,10 +1,9 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { Lightning, TrendingUp, Users, Clock } from "lucide-react";
+import { Zap, TrendingUp, Users, Clock } from "lucide-react";
 import { QCContent } from "@/types/qc";
 import { useToast } from "@/hooks/use-toast";
 
@@ -82,7 +81,7 @@ const BoostPurchaseModal = ({ isOpen, onClose, content }: BoostPurchaseModalProp
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold flex items-center gap-2">
-            <Lightning className="h-6 w-6 text-orange-500" />
+            <Zap className="h-6 w-6 text-orange-500" />
             Boost This Content
           </DialogTitle>
         </DialogHeader>

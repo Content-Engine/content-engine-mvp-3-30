@@ -1,9 +1,8 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { CheckCircle, XCircle, MessageSquare, Clock, Play, Lightning } from "lucide-react";
+import { CheckCircle, XCircle, MessageSquare, Clock, Play, Zap } from "lucide-react";
 import { QCContent } from "@/types/qc";
 import QCCommentInput from "@/components/QCCommentInput";
 
@@ -173,7 +172,7 @@ const QCContentTable = ({ content, onApproval, onContentClick }: QCContentTableP
                       className="text-orange-600 border-orange-600 hover:bg-orange-50"
                       onClick={() => onContentClick(item)}
                     >
-                      <Lightning className="h-4 w-4" />
+                      <Zap className="h-4 w-4" />
                     </Button>
                     <Button
                       size="sm"

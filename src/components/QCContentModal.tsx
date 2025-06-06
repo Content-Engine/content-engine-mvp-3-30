@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, XCircle, MessageSquare, Calendar, User, ExternalLink, Lightning } from "lucide-react";
+import { CheckCircle, XCircle, MessageSquare, Calendar, User, ExternalLink, Zap } from "lucide-react";
 import { QCContent } from "@/types/qc";
 import QCCommentInput from "@/components/QCCommentInput";
 import BoostPurchaseModal from "@/components/BoostPurchaseModal";
@@ -82,7 +82,7 @@ const QCContentModal = ({ content, isOpen, onClose, onApproval }: QCContentModal
                   className="text-orange-600 border-orange-600 hover:bg-orange-50"
                   onClick={() => setShowBoostModal(true)}
                 >
-                  <Lightning className="h-4 w-4 mr-2" />
+                  <Zap className="h-4 w-4 mr-2" />
                   Boost Post
                 </Button>
               </div>

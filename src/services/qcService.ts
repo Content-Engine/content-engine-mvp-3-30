@@ -26,7 +26,8 @@ export const mockQCContent = async (): Promise<QCContent[]> => {
       autoApproved: false,
       mediaUrl: "/placeholder.svg",
       thumbnailUrl: "/placeholder.svg",
-      timeToApprove: 18
+      timeToApprove: 18,
+      boostStatus: "none"
     },
     {
       id: "qc-2",
@@ -42,7 +43,20 @@ export const mockQCContent = async (): Promise<QCContent[]> => {
       comments: [],
       autoApproved: false,
       mediaUrl: "/placeholder.svg",
-      thumbnailUrl: "/placeholder.svg"
+      thumbnailUrl: "/placeholder.svg",
+      boostStatus: "boosted",
+      boostTier: "standard",
+      boostAmount: 25,
+      boostPurchases: [
+        {
+          id: "boost-1",
+          tier: "standard",
+          amount: 25,
+          purchasedAt: "2024-12-06T09:30:00Z",
+          reach: 18500,
+          status: "active"
+        }
+      ]
     },
     {
       id: "qc-3",
@@ -65,7 +79,8 @@ export const mockQCContent = async (): Promise<QCContent[]> => {
       ],
       autoApproved: false,
       mediaUrl: "/placeholder.svg",
-      thumbnailUrl: "/placeholder.svg"
+      thumbnailUrl: "/placeholder.svg",
+      boostStatus: "none"
     },
     {
       id: "qc-4",
@@ -81,7 +96,10 @@ export const mockQCContent = async (): Promise<QCContent[]> => {
       comments: [],
       autoApproved: true,
       mediaUrl: "/placeholder.svg",
-      thumbnailUrl: "/placeholder.svg"
+      thumbnailUrl: "/placeholder.svg",
+      boostStatus: "scheduled",
+      boostTier: "premium",
+      boostAmount: 50
     },
     {
       id: "qc-5",
@@ -96,7 +114,8 @@ export const mockQCContent = async (): Promise<QCContent[]> => {
       autoApproved: false,
       mediaUrl: "/placeholder.svg",
       thumbnailUrl: "/placeholder.svg",
-      timeToApprove: 42
+      timeToApprove: 42,
+      boostStatus: "none"
     }
   ];
 };

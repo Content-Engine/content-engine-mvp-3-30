@@ -15,6 +15,10 @@ export interface QCContent {
   mediaUrl: string;
   thumbnailUrl: string;
   timeToApprove?: number; // hours remaining
+  boostStatus?: 'none' | 'boosted' | 'scheduled';
+  boostTier?: 'micro' | 'standard' | 'premium';
+  boostAmount?: number;
+  boostPurchases?: BoostPurchase[];
 }
 
 export interface QCComment {
@@ -22,6 +26,15 @@ export interface QCComment {
   authorName: string;
   content: string;
   createdAt: string;
+}
+
+export interface BoostPurchase {
+  id: string;
+  tier: 'micro' | 'standard' | 'premium';
+  amount: number;
+  purchasedAt: string;
+  reach?: number;
+  status: 'active' | 'completed' | 'scheduled';
 }
 
 export interface QCFilters {

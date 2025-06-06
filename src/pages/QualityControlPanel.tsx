@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -67,15 +66,15 @@ const QualityControlPanel = () => {
     setFilteredContent(filtered);
   }, [content, filters]);
 
-  const handleApproval = async (contentId: string, status: 'approved' | 'rejected', comment?: string) => {
+  const handleApproval = async (contentId: string, status: 'approved' | 'rejected' | 'pending', comment?: string) => {
     try {
       setContent(prev => prev.map(item => 
         item.id === contentId 
           ? {
               ...item,
-              approvalStatus: status,
-              approvedBy: 'Current User', // In real app, get from auth
-              approvedAt: new Date().toISOString(),
+              approvalStatus: status === 'pending' ? item.approvalStatus : status,
+              approvedBy: status !== 'pending' ? 'Current User' : item.approvedBy,
+              approvedAt: status !== 'pending' ? new Date().toISOString() : item.approvedAt,
               comments: comment ? [...item.comments, {
                 id: Date.now().toString(),
                 authorName: 'Current User',
@@ -86,14 +85,21 @@ const QualityControlPanel = () => {
           : item
       ));
 
-      toast({
-        title: status === 'approved' ? "Content Approved" : "Content Rejected",
-        description: `Content has been ${status} successfully.`,
-      });
+      if (status !== 'pending') {
+        toast({
+          title: status === 'approved' ? "Content Approved" : "Content Rejected",
+          description: `Content has been ${status} successfully.`,
+        });
+      } else if (comment) {
+        toast({
+          title: "Comment Added",
+          description: "Your comment has been added to the content.",
+        });
+      }
     } catch (error) {
       toast({
         title: "Error",
-        description: `Failed to ${status} content`,
+        description: `Failed to ${status === 'pending' ? 'add comment' : status + ' content'}`,
         variant: "destructive",
       });
     }

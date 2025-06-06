@@ -3,13 +3,13 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { CheckCircle, XCircle, MessageSquare, Clock, Play } from "lucide-react";
+import { CheckCircle, XCircle, MessageSquare, Clock, Play, Lightning } from "lucide-react";
 import { QCContent } from "@/types/qc";
 import QCCommentInput from "@/components/QCCommentInput";
 
 interface QCContentTableProps {
   content: QCContent[];
-  onApproval: (contentId: string, status: 'approved' | 'rejected', comment?: string) => void;
+  onApproval: (contentId: string, status: 'approved' | 'rejected' | 'pending', comment?: string) => void;
   onContentClick: (content: QCContent) => void;
 }
 
@@ -48,6 +48,16 @@ const QCContentTable = ({ content, onApproval, onContentClick }: QCContentTableP
         {status.charAt(0).toUpperCase() + status.slice(1)}
       </Badge>
     );
+  };
+
+  const getBoostBadge = (boostStatus?: string) => {
+    if (boostStatus === 'boosted') {
+      return <Badge className="bg-orange-500 text-white ml-2">🔥 Boosted</Badge>;
+    }
+    if (boostStatus === 'scheduled') {
+      return <Badge className="bg-blue-500 text-white ml-2">⚡ Scheduled</Badge>;
+    }
+    return null;
   };
 
   const getTimeRemaining = (scheduledDate: string, status: string) => {
@@ -111,7 +121,10 @@ const QCContentTable = ({ content, onApproval, onContentClick }: QCContentTableP
                 </TableCell>
                 <TableCell>
                   <div>
-                    <div className="font-medium">{item.title}</div>
+                    <div className="font-medium flex items-center">
+                      {item.title}
+                      {getBoostBadge(item.boostStatus)}
+                    </div>
                     <div className="text-sm text-muted-foreground">{item.accountName}</div>
                   </div>
                 </TableCell>
@@ -157,6 +170,14 @@ const QCContentTable = ({ content, onApproval, onContentClick }: QCContentTableP
                     <Button
                       size="sm"
                       variant="outline"
+                      className="text-orange-600 border-orange-600 hover:bg-orange-50"
+                      onClick={() => onContentClick(item)}
+                    >
+                      <Lightning className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
                       onClick={() => setCommentingId(commentingId === item.id ? null : item.id)}
                     >
                       <MessageSquare className="h-4 w-4" />
@@ -165,7 +186,7 @@ const QCContentTable = ({ content, onApproval, onContentClick }: QCContentTableP
                 </TableCell>
               </TableRow>
               {commentingId === item.id && (
-                <TableRow>
+                <TableRow key={`${item.id}-comment`}>
                   <TableCell colSpan={8}>
                     <QCCommentInput
                       onSubmit={(comment) => handleComment(item.id, comment)}

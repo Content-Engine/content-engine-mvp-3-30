@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -294,6 +293,7 @@ const CalendarDayModal = ({ isOpen, onClose, dayData }: CalendarDayModalProps) =
           onClose={() => setShowBoostModal(false)}
           content={{
             id: selectedContent.id,
+            campaignId: selectedContent.campaignId,
             title: selectedContent.title,
             thumbnailUrl: selectedContent.thumbnailUrl,
             platform: selectedContent.platform,

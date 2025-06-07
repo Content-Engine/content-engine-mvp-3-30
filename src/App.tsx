@@ -20,33 +20,44 @@ import EditorView from "./pages/EditorView";
 import SocialMediaManagerView from "./pages/SocialMediaManagerView";
 import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient();
+// Create a stable query client instance
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/campaign-builder/step-1" element={<CampaignBuilderStep1 />} />
-          <Route path="/campaign-builder/step-2" element={<CampaignBuilderStep2 />} />
-          <Route path="/campaign-builder/step-3" element={<CampaignBuilderStep3 />} />
-          <Route path="/campaign-builder/step-4" element={<CampaignBuilderStep4 />} />
-          <Route path="/campaign-builder/step-5" element={<CampaignBuilderStep5 />} />
-          <Route path="/campaigns-dashboard" element={<CampaignsDashboard />} />
-          <Route path="/performance-dashboard" element={<PerformanceDashboard />} />
-          <Route path="/quality-control" element={<QualityControlPanel />} />
-          <Route path="/calendar" element={<CalendarOverview />} />
-          <Route path="/editor-dashboard" element={<EditorView />} />
-          <Route path="/social-media-manager" element={<SocialMediaManagerView />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/payment-tiers" element={<PaymentTiers />} />
+            <Route path="/campaign-builder/step-1" element={<CampaignBuilderStep1 />} />
+            <Route path="/campaign-builder/step-2" element={<CampaignBuilderStep2 />} />
+            <Route path="/campaign-builder/step-3" element={<CampaignBuilderStep3 />} />
+            <Route path="/campaign-builder/step-4" element={<CampaignBuilderStep4 />} />
+            <Route path="/campaign-builder/step-5" element={<CampaignBuilderStep5 />} />
+            <Route path="/campaigns-dashboard" element={<CampaignsDashboard />} />
+            <Route path="/performance-dashboard" element={<PerformanceDashboard />} />
+            <Route path="/quality-control" element={<QualityControlPanel />} />
+            <Route path="/calendar" element={<CalendarOverview />} />
+            <Route path="/editor-dashboard" element={<EditorView />} />
+            <Route path="/social-media-manager" element={<SocialMediaManagerView />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;

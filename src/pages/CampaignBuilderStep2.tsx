@@ -2,7 +2,10 @@
 import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Upload, X, FileVideo, FileImage } from "lucide-react";
+import { Upload } from "lucide-react";
+import { FileMetadata, generateFileId, calculateViralityScore } from "@/utils/fileUtils";
+import FileCard from "@/components/FileCard";
+import UploadSummaryPanel from "@/components/UploadSummaryPanel";
 
 interface CampaignBuilderStep2Props {
   campaignData: any;
@@ -13,21 +16,33 @@ interface CampaignBuilderStep2Props {
 
 const CampaignBuilderStep2 = ({ campaignData, updateCampaignData, onNext, onPrevious }: CampaignBuilderStep2Props) => {
   const [dragActive, setDragActive] = useState(false);
-  const [uploadedFiles, setUploadedFiles] = useState<File[]>(campaignData.contentFiles || []);
+  const [uploadedFiles, setUploadedFiles] = useState<FileMetadata[]>(campaignData.contentFiles || []);
 
   const handleFiles = useCallback((files: FileList | File[]) => {
     const fileArray = Array.from(files);
+    const bulkUpload = fileArray.length >= 5;
+    
     const validFiles = fileArray.filter(file => {
-      const isValidType = file.type.startsWith('image/') || file.type.startsWith('video/');
-      const isValidSize = file.size <= 100 * 1024 * 1024; // 100MB limit
+      const validTypes = [
+        'image/', 'video/', 'audio/'
+      ];
+      const isValidType = validTypes.some(type => file.type.startsWith(type));
+      const isValidSize = file.size <= 500 * 1024 * 1024; // 500MB limit for enhanced version
       return isValidType && isValidSize;
     });
 
-    if (uploadedFiles.length + validFiles.length <= 3) {
-      const newFiles = [...uploadedFiles, ...validFiles].slice(0, 3);
-      setUploadedFiles(newFiles);
-      updateCampaignData({ contentFiles: newFiles });
-    }
+    const newFileMetadata: FileMetadata[] = validFiles.map(file => ({
+      id: generateFileId(),
+      file,
+      contentType: 'raw',
+      editorNotes: '',
+      assignedEditor: 'unassigned',
+      viralityScore: calculateViralityScore(file, file.name, bulkUpload)
+    }));
+
+    const updatedFiles = [...uploadedFiles, ...newFileMetadata];
+    setUploadedFiles(updatedFiles);
+    updateCampaignData({ contentFiles: updatedFiles });
   }, [uploadedFiles, updateCampaignData]);
 
   const handleDrag = useCallback((e: React.DragEvent) => {
@@ -56,20 +71,25 @@ const CampaignBuilderStep2 = ({ campaignData, updateCampaignData, onNext, onPrev
     }
   };
 
-  const removeFile = (index: number) => {
-    const newFiles = uploadedFiles.filter((_, i) => i !== index);
-    setUploadedFiles(newFiles);
-    updateCampaignData({ contentFiles: newFiles });
+  const updateFileMetadata = (id: string, updates: Partial<FileMetadata>) => {
+    const updatedFiles = uploadedFiles.map(file => 
+      file.id === id ? { ...file, ...updates } : file
+    );
+    setUploadedFiles(updatedFiles);
+    updateCampaignData({ contentFiles: updatedFiles });
   };
 
-  const getFileIcon = (file: File) => {
-    if (file.type.startsWith('video/')) {
-      return <FileVideo className="h-8 w-8 text-blue-400" />;
-    }
-    return <FileImage className="h-8 w-8 text-green-400" />;
+  const removeFile = (id: string) => {
+    const updatedFiles = uploadedFiles.filter(file => file.id !== id);
+    setUploadedFiles(updatedFiles);
+    updateCampaignData({ contentFiles: updatedFiles });
   };
 
-  const canContinue = uploadedFiles.length > 0;
+  const canContinue = uploadedFiles.length > 0 && 
+    uploadedFiles.every(file => 
+      file.contentType !== '' && 
+      file.assignedEditor !== 'unassigned'
+    );
 
   const handleNextClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -104,84 +124,86 @@ const CampaignBuilderStep2 = ({ campaignData, updateCampaignData, onNext, onPrev
           <div className="h-1 w-full bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 rounded-full"></div>
         </div>
         <p className="text-lg text-white/90 glass-card-strong p-4 inline-block">
-          Upload 1-3 video or image files for your campaign
+          Upload video, audio, and image files • Enhanced with Virality Intelligence
         </p>
       </div>
 
-      {/* Upload Area */}
-      <Card className="frosted-glass bg-gradient-to-br from-gray-500/80 to-gray-600/80 border-0 max-w-2xl mx-auto">
-        <CardContent className="p-8">
-          <div
-            className={`border-2 border-dashed rounded-lg p-12 text-center transition-all duration-300 cursor-pointer relative ${
-              dragActive 
-                ? 'border-blue-400 bg-blue-400/10 scale-105' 
-                : 'border-white/30 hover:border-white/50'
-            }`}
-            onDragEnter={handleDrag}
-            onDragLeave={handleDrag}
-            onDragOver={handleDrag}
-            onDrop={handleDrop}
-            onClick={handleUploadClick}
-          >
-            <input
-              id="file-input"
-              type="file"
-              multiple
-              accept="image/*,video/*"
-              onChange={handleFileInput}
-              className="hidden"
-            />
-            
-            <Upload className="h-16 w-16 text-white/70 mx-auto mb-4" />
-            <h3 className="text-2xl font-bold text-white mb-3">
-              {dragActive ? 'Drop files here!' : 'Drop files here or click to browse'}
-            </h3>
-            <p className="text-white/80 mb-6">
-              Supports MP4, MOV, JPG, PNG (Max 3 files, 100MB each)
-            </p>
-            <Button 
-              type="button" 
-              className="glass-button-primary"
-              onClick={handleUploadClick}
-            >
-              Choose Files
-            </Button>
-          </div>
+      <div className="grid lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
+        {/* Main Upload Area */}
+        <div className="lg:col-span-3 space-y-6">
+          {/* Upload Zone */}
+          <Card className="frosted-glass bg-gradient-to-br from-gray-500/80 to-gray-600/80 border-0">
+            <CardContent className="p-8">
+              <div
+                className={`border-2 border-dashed rounded-lg p-12 text-center transition-all duration-300 cursor-pointer relative ${
+                  dragActive 
+                    ? 'border-blue-400 bg-blue-400/10 scale-105' 
+                    : 'border-white/30 hover:border-white/50'
+                }`}
+                onDragEnter={handleDrag}
+                onDragLeave={handleDrag}
+                onDragOver={handleDrag}
+                onDrop={handleDrop}
+                onClick={handleUploadClick}
+              >
+                <input
+                  id="file-input"
+                  type="file"
+                  multiple
+                  accept="image/*,video/*,audio/*"
+                  onChange={handleFileInput}
+                  className="hidden"
+                />
+                
+                <Upload className="h-16 w-16 text-white/70 mx-auto mb-4" />
+                <h3 className="text-2xl font-bold text-white mb-3">
+                  {dragActive ? 'Drop files here!' : 'Drop files here or click to browse'}
+                </h3>
+                <p className="text-white/80 mb-6">
+                  Supports MP4, MOV, MP3, WAV, JPG, PNG (Max 500MB each)
+                </p>
+                <p className="text-blue-400 text-sm mb-4">
+                  💡 Upload 5+ files at once for bonus virality points!
+                </p>
+                <Button 
+                  type="button" 
+                  className="glass-button-primary"
+                  onClick={handleUploadClick}
+                >
+                  Choose Files
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
 
-          {/* Uploaded Files Display */}
+          {/* Uploaded Files Grid */}
           {uploadedFiles.length > 0 && (
-            <div className="mt-6 space-y-3">
-              <h4 className="text-white font-semibold">Uploaded Files ({uploadedFiles.length}/3):</h4>
-              {uploadedFiles.map((file, index) => (
-                <div key={index} className="glass-card-subtle p-3 rounded-lg flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    {getFileIcon(file)}
-                    <div>
-                      <p className="text-white font-medium">{file.name}</p>
-                      <p className="text-white/60 text-sm">{(file.size / 1024 / 1024).toFixed(1)} MB</p>
-                    </div>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      removeFile(index);
-                    }}
-                    className="text-red-400 hover:text-red-300"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              ))}
+            <div className="space-y-4">
+              <h3 className="text-2xl font-bold text-white">
+                Uploaded Files ({uploadedFiles.length})
+              </h3>
+              <div className="grid gap-4">
+                {uploadedFiles.map((fileData) => (
+                  <FileCard
+                    key={fileData.id}
+                    fileData={fileData}
+                    onUpdate={updateFileMetadata}
+                    onRemove={removeFile}
+                  />
+                ))}
+              </div>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+
+        {/* Summary Panel */}
+        <div className="lg:col-span-1">
+          <UploadSummaryPanel files={uploadedFiles} />
+        </div>
+      </div>
 
       {/* Navigation Buttons */}
-      <div className="flex items-center justify-between max-w-2xl mx-auto">
+      <div className="flex items-center justify-between max-w-7xl mx-auto">
         <Button
           variant="ghost"
           onClick={handlePreviousClick}
@@ -196,15 +218,33 @@ const CampaignBuilderStep2 = ({ campaignData, updateCampaignData, onNext, onPrev
           className="glass-button-primary"
           disabled={!canContinue}
         >
-          {canContinue ? 'Continue to Syndication' : 'Upload at least 1 file to continue'}
+          {canContinue ? 'Continue to Syndication' : 
+           uploadedFiles.length === 0 ? 'Upload at least 1 file to continue' :
+           'Complete all assignments to continue'}
         </Button>
       </div>
 
-      {canContinue && (
-        <div className="text-center">
-          <p className="text-green-400 text-sm">
-            ✨ Ready to proceed to syndication options!
-          </p>
+      {/* Status Messages */}
+      {uploadedFiles.length > 0 && (
+        <div className="text-center space-y-2">
+          {canContinue ? (
+            <p className="text-green-400 text-sm">
+              ✨ All files processed and ready for syndication!
+            </p>
+          ) : (
+            <div className="space-y-1">
+              {uploadedFiles.some(f => f.assignedEditor === 'unassigned') && (
+                <p className="text-red-400 text-sm">
+                  ⚠️ Please assign editors to all files before continuing
+                </p>
+              )}
+              {uploadedFiles.some(f => f.contentType === '') && (
+                <p className="text-yellow-400 text-sm">
+                  📝 Please select content types for all files
+                </p>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>

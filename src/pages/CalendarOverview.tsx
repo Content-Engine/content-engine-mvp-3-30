@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { CheckCircle, Clock, XCircle, Zap, Plus, Users, ArrowLeft, ArrowRight, Home, Calendar, CheckSquare, CreditCard } from "lucide-react";
+import { CheckCircle, Clock, XCircle, Zap, Plus, Users, ArrowLeft, ArrowRight } from "lucide-react";
 import { CalendarContent, CalendarFilters, DayData } from "@/types/calendar";
 import { useToast } from "@/hooks/use-toast";
 import CalendarDayModal from "@/components/CalendarDayModal";
@@ -24,13 +24,6 @@ const CalendarOverview = () => {
     editor: 'all',
     boostedOnly: false
   });
-
-  const navigationItems = [
-    { path: '/dashboard', label: 'Dashboard', icon: Home },
-    { path: '/calendar', label: 'Calendar', icon: Calendar },
-    { path: '/qc-panel', label: 'Quality Control', icon: CheckSquare },
-    { path: '/billing', label: 'Billing', icon: CreditCard },
-  ];
 
   // Mock calendar data
   const [calendarData, setCalendarData] = useState<DayData[]>([]);
@@ -133,29 +126,6 @@ const CalendarOverview = () => {
   return (
     <Layout>
       <div className="max-w-7xl mx-auto space-y-6">
-        {/* Main Navigation Toolbar */}
-        <Card>
-          <CardContent className="p-4">
-            <nav className="flex flex-wrap gap-4 items-center justify-center">
-              {navigationItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = location.pathname === item.path;
-                return (
-                  <Button
-                    key={item.path}
-                    variant={isActive ? "secondary" : "ghost"}
-                    onClick={() => navigate(item.path)}
-                    className="text-white/90 hover:text-white"
-                  >
-                    <Icon className="h-4 w-4 mr-2" />
-                    {item.label}
-                  </Button>
-                );
-              })}
-            </nav>
-          </CardContent>
-        </Card>
-
         {/* Header */}
         <Card>
           <CardHeader>

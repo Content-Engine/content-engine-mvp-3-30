@@ -1,7 +1,7 @@
 
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
-import { LogOut, Home, Calendar, CheckSquare, Edit, CreditCard } from 'lucide-react';
+import { LogOut, Home, Calendar, CheckSquare, CreditCard } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 interface LayoutProps {
@@ -17,7 +17,6 @@ const Layout = ({ children }: LayoutProps) => {
     { path: '/dashboard', label: 'Dashboard', icon: Home },
     { path: '/calendar', label: 'Calendar', icon: Calendar },
     { path: '/qc-panel', label: 'Quality Control', icon: CheckSquare },
-    { path: '/editor-dashboard', label: 'Editor View', icon: Edit },
     { path: '/billing', label: 'Billing', icon: CreditCard },
   ];
 

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -35,7 +34,11 @@ const CampaignBuilder = () => {
   const currentStep = parseInt(step || '1');
   const { createCampaign } = useCampaignData();
 
-  console.log('CampaignBuilder rendered, step:', step, 'currentStep:', currentStep);
+  console.log('=== CampaignBuilder Debug ===');
+  console.log('URL step param:', step);
+  console.log('Parsed currentStep:', currentStep);
+  console.log('Step is valid number:', !isNaN(currentStep));
+  console.log('Step in range:', currentStep >= 1 && currentStep <= 5);
 
   const [campaignData, setCampaignData] = useState<CampaignData>({
     name: '',
@@ -115,7 +118,9 @@ const CampaignBuilder = () => {
   };
 
   const renderStep = () => {
-    console.log('Rendering step:', currentStep);
+    console.log('=== Rendering Step ===');
+    console.log('Current step to render:', currentStep);
+    
     const stepProps = {
       campaignData,
       updateCampaignData,
@@ -123,29 +128,45 @@ const CampaignBuilder = () => {
       onPrevious: handlePrevious,
     };
 
-    switch (currentStep) {
-      case 1:
-        return <CampaignBuilderStep1 {...stepProps} />;
-      case 2:
-        return <CampaignBuilderStep2 {...stepProps} />;
-      case 3:
-        return <CampaignBuilderStep3 {...stepProps} />;
-      case 4:
-        return <CampaignBuilderStep4 {...stepProps} />;
-      case 5:
-        return <CampaignBuilderStep5 {...stepProps} onLaunch={handleLaunch} />;
-      default:
-        console.error('Invalid step:', currentStep);
-        return <div className="text-white">Invalid step: {currentStep}</div>;
+    try {
+      switch (currentStep) {
+        case 1:
+          console.log('Rendering Step 1 component');
+          return <CampaignBuilderStep1 {...stepProps} />;
+        case 2:
+          console.log('Rendering Step 2 component');
+          return <CampaignBuilderStep2 {...stepProps} />;
+        case 3:
+          console.log('Rendering Step 3 component');
+          return <CampaignBuilderStep3 {...stepProps} />;
+        case 4:
+          console.log('Rendering Step 4 component');
+          return <CampaignBuilderStep4 {...stepProps} />;
+        case 5:
+          console.log('Rendering Step 5 component');
+          return <CampaignBuilderStep5 {...stepProps} onLaunch={handleLaunch} />;
+        default:
+          console.error('Invalid step in switch:', currentStep);
+          return <div className="text-white text-center p-8">Invalid step: {currentStep}</div>;
+      }
+    } catch (error) {
+      console.error('Error rendering step component:', error);
+      return <div className="text-white text-center p-8">Error loading step component</div>;
     }
   };
 
-  // If step is invalid, redirect to step 1
-  if (currentStep < 1 || currentStep > 5 || isNaN(currentStep)) {
+  // Validate step before rendering
+  if (isNaN(currentStep) || currentStep < 1 || currentStep > 5) {
     console.log('Invalid step detected, redirecting to step 1');
     navigate('/campaign-builder/step-1', { replace: true });
-    return null;
+    return (
+      <Layout>
+        <div className="text-white text-center p-8">Redirecting to step 1...</div>
+      </Layout>
+    );
   }
+
+  console.log('=== Rendering Main Component ===');
 
   return (
     <Layout>
@@ -186,7 +207,9 @@ const CampaignBuilder = () => {
         </div>
 
         {/* Step Content */}
-        {renderStep()}
+        <div className="min-h-[400px]">
+          {renderStep()}
+        </div>
       </div>
     </Layout>
   );

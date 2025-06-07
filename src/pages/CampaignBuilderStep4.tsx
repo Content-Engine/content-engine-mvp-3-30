@@ -5,22 +5,45 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { useNavigate } from "react-router-dom";
 import ProgressBar from "@/components/ProgressBar";
-import { ArrowLeft, ArrowRight, Zap, TrendingUp, Target, Users, Clock, BarChart3, Info, Play } from "lucide-react";
+import { ArrowLeft, ArrowRight, Zap, TrendingUp, Target, Users, Clock, BarChart3, Info, Play, MessageCircle, Eye, Settings } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const boosts = [
   {
     id: "echo-clone",
-    title: "Echo Clone Generator",
-    description: "Smartly remixes and schedules your campaign content for broader, staggered exposure across platforms.",
+    title: "Echo Clone™",
+    description: "Simulated exposure across mirrored networks to increase visibility without platform violations.",
     cost: 49,
-    useCase: "Awareness & Retargeting",
-    kpiImpact: "+25% reach, +15% engagement, 3x repost density",
+    useCase: "Reach Amplification",
+    kpiImpact: "+2,500 to +15,000 Impressions",
     platforms: ["TikTok", "Instagram", "YouTube"],
     timeWindow: "2-4 weeks",
     icon: TrendingUp,
     gradient: "from-purple-500 to-blue-600",
-    metrics: { reach: 25, engagement: 15, conversion: 5 }
+    metrics: { reach: 25, engagement: 15, conversion: 5 },
+    planRestriction: "Pro & Max Plans"
+  },
+  {
+    id: "comment-seeding",
+    title: "Comment Seeding 🧠",
+    description: "Inject curated early comments to guide perception and spark organic engagement.",
+    cost: 0,
+    useCase: "Perceived Virality",
+    kpiImpact: "+34% engagement lift (avg)",
+    platforms: ["TikTok", "Instagram", "YouTube", "Facebook"],
+    timeWindow: "First 2 hours",
+    icon: MessageCircle,
+    gradient: "from-pink-500 to-purple-600",
+    metrics: { reach: 15, engagement: 34, conversion: 18 },
+    hasPreview: true,
+    tiers: {
+      basic: "3 Auto Comments",
+      pro: "10 AI Comments (Tone-based)",
+      max: "Dynamic Threads + A/B Comments"
+    }
   },
   {
     id: "retarget-pulse",
@@ -36,30 +59,18 @@ const boosts = [
     metrics: { reach: 10, engagement: 30, conversion: 20 }
   },
   {
-    id: "fan-loop",
-    title: "Fan Loop Driver",
-    description: "Triggers comment loops using native formats optimized for discussion and reaction.",
-    cost: 29,
-    useCase: "Engagement",
-    kpiImpact: "+45% comments, +33% replies",
-    platforms: ["TikTok", "Instagram"],
-    timeWindow: "1-2 weeks",
-    icon: Users,
-    gradient: "from-pink-500 to-purple-600",
-    metrics: { reach: 8, engagement: 45, conversion: 12 }
-  },
-  {
-    id: "power-launch",
-    title: "Power Launch Window",
-    description: "Posts your best content at algorithmic prime-time hours for your audience segment.",
+    id: "repost-trigger",
+    title: "Repost Trigger Boost",
+    description: "Automatically re-post content if it underperforms in the first 24 hours.",
     cost: 25,
-    useCase: "Conversion",
-    kpiImpact: "+38% CTA clickthroughs, +20% follow rate",
+    useCase: "View Recovery",
+    kpiImpact: "+45% view recovery rate",
     platforms: ["All Platforms"],
-    timeWindow: "Launch week",
+    timeWindow: "24-48 hours",
     icon: Clock,
     gradient: "from-orange-500 to-pink-600",
-    metrics: { reach: 15, engagement: 20, conversion: 38 }
+    metrics: { reach: 20, engagement: 15, conversion: 25 },
+    hasThreshold: true
   },
   {
     id: "syndication-refresh",
@@ -76,10 +87,40 @@ const boosts = [
   }
 ];
 
+const commentSeedingPreviews = {
+  funny: [
+    "This is actually fire 🔥",
+    "Not me watching this 10 times already 😭",
+    "The way this hits different at 3am",
+    "POV: you found your new obsession"
+  ],
+  hype: [
+    "YESSS THIS IS EVERYTHING 🔥🔥🔥",
+    "Finally someone said it!",
+    "This needs to blow up RIGHT NOW",
+    "The talent is UNMATCHED"
+  ],
+  support: [
+    "So proud of you for this 💕",
+    "You never miss with these",
+    "Keep doing what you're doing!",
+    "This deserves all the recognition"
+  ],
+  review: [
+    "Rating this a solid 10/10",
+    "Better than I expected tbh",
+    "This actually changed my mind",
+    "Quality content right here"
+  ]
+};
+
 const CampaignBuilderStep4 = () => {
   const navigate = useNavigate();
   const [selectedBoosts, setSelectedBoosts] = useState<string[]>([]);
-  const [showPreview, setShowPreview] = useState(false);
+  const [showCommentPreview, setShowCommentPreview] = useState(false);
+  const [commentTone, setCommentTone] = useState("funny");
+  const [repostThreshold, setRepostThreshold] = useState("1000");
+  const [userPlan, setUserPlan] = useState("basic"); // This would come from auth context
 
   const handleBoostToggle = (boostId: string) => {
     setSelectedBoosts(prev => 
@@ -90,8 +131,12 @@ const CampaignBuilderStep4 = () => {
   };
 
   const handleNext = () => {
-    // Save selected boosts to localStorage (would be Supabase in production)
-    localStorage.setItem('campaignBoosts', JSON.stringify(selectedBoosts));
+    const boostSettings = {
+      selectedBoosts,
+      commentTone,
+      repostThreshold
+    };
+    localStorage.setItem('campaignBoosts', JSON.stringify(boostSettings));
     navigate('/campaign-builder/step-5');
   };
 
@@ -120,15 +165,13 @@ const CampaignBuilderStep4 = () => {
 
   const roiLevel = getROILevel();
 
-  const getSuggestedBundle = () => {
-    if (selectedBoosts.length === 0) return "Select boosts to see suggestions";
-    if (selectedBoosts.includes("echo-clone") && selectedBoosts.includes("power-launch")) {
-      return "💎 Viral Launch Combo - Perfect for maximum reach!";
+  const getPlanBadgeColor = (plan: string) => {
+    switch (plan) {
+      case "basic": return "bg-gray-500/20 text-gray-300";
+      case "pro": return "bg-blue-500/20 text-blue-300";
+      case "max": return "bg-purple-500/20 text-purple-300";
+      default: return "bg-gray-500/20 text-gray-300";
     }
-    if (selectedBoosts.includes("fan-loop") && selectedBoosts.includes("retarget-pulse")) {
-      return "🔥 Engagement Pro Bundle - Great for community building!";
-    }
-    return "🎯 Custom Mix - Your unique strategy combination!";
   };
 
   return (
@@ -165,10 +208,10 @@ const CampaignBuilderStep4 = () => {
         {/* Step Title */}
         <div className="text-center mb-12">
           <h2 className="text-5xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent mb-4">
-            Supercharge Your Campaign 🚀
+            Boost Your Impact 🚀
           </h2>
           <p className="text-xl text-white/80 max-w-2xl mx-auto">
-            Add powerful boosts to maximize reach and engagement across all platforms
+            Enhance your content's reach, retention, and conversion with powerful post-level enhancements
           </p>
         </div>
 
@@ -179,13 +222,16 @@ const CampaignBuilderStep4 = () => {
             <div className="grid md:grid-cols-2 gap-6 mb-8">
               {boosts.map((boost) => {
                 const IconComponent = boost.icon;
+                const isSelected = selectedBoosts.includes(boost.id);
+                const isRestricted = boost.planRestriction && userPlan === "basic";
+                
                 return (
                   <Card
                     key={boost.id}
                     className={`glass-card cursor-pointer transition-all duration-500 hover:scale-105 hover-glow relative group ${
-                      selectedBoosts.includes(boost.id) ? 'ring-2 ring-purple-400 scale-105 glow-strong' : ''
-                    }`}
-                    onClick={() => handleBoostToggle(boost.id)}
+                      isSelected ? 'ring-2 ring-purple-400 scale-105 glow-strong' : ''
+                    } ${isRestricted ? 'opacity-75' : ''}`}
+                    onClick={() => !isRestricted && handleBoostToggle(boost.id)}
                   >
                     <div className={`absolute inset-0 bg-gradient-to-br ${boost.gradient} opacity-10 rounded-3xl group-hover:opacity-20 transition-opacity`}></div>
                     
@@ -197,15 +243,24 @@ const CampaignBuilderStep4 = () => {
                           </div>
                           <div>
                             <h3 className="text-xl font-bold text-white mb-1">{boost.title}</h3>
-                            <div className="text-2xl font-bold text-purple-400">${boost.cost}</div>
+                            <div className="text-2xl font-bold text-purple-400">
+                              {boost.cost === 0 ? "Included" : `$${boost.cost}`}
+                            </div>
                           </div>
                         </div>
                         
                         <div className="flex flex-col items-end gap-2">
-                          <Switch
-                            checked={selectedBoosts.includes(boost.id)}
-                            onCheckedChange={() => handleBoostToggle(boost.id)}
-                          />
+                          {!isRestricted && (
+                            <Switch
+                              checked={isSelected}
+                              onCheckedChange={() => handleBoostToggle(boost.id)}
+                            />
+                          )}
+                          {isRestricted && (
+                            <Badge className={getPlanBadgeColor("pro")}>
+                              {boost.planRestriction}
+                            </Badge>
+                          )}
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger>
@@ -234,31 +289,106 @@ const CampaignBuilderStep4 = () => {
                           <div className="text-white/70 text-xs mb-1">Expected Impact</div>
                           <div className="text-green-400 font-semibold text-sm">{boost.kpiImpact}</div>
                         </div>
+
+                        {/* Comment Seeding Tiers */}
+                        {boost.id === "comment-seeding" && boost.tiers && (
+                          <div className="glass-subtle rounded-lg p-3">
+                            <div className="text-white/70 text-xs mb-2">Available Tiers</div>
+                            <div className="space-y-1">
+                              {Object.entries(boost.tiers).map(([tier, description]) => (
+                                <div key={tier} className={`text-xs flex justify-between ${userPlan === tier ? 'text-purple-400 font-semibold' : 'text-white/60'}`}>
+                                  <span className="capitalize">{tier}:</span>
+                                  <span>{description}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Repost Threshold Setting */}
+                        {boost.id === "repost-trigger" && isSelected && (
+                          <div className="glass-subtle rounded-lg p-3">
+                            <div className="text-white/70 text-xs mb-2">Repost Threshold</div>
+                            <Select value={repostThreshold} onValueChange={setRepostThreshold}>
+                              <SelectTrigger className="glass-input text-white border-white/20">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent className="glass-modal border-purple-400/30">
+                                <SelectItem value="500">Below 500 views in 24hr</SelectItem>
+                                <SelectItem value="1000">Below 1,000 views in 24hr</SelectItem>
+                                <SelectItem value="2500">Below 2,500 views in 24hr</SelectItem>
+                                <SelectItem value="5000">Below 5,000 views in 24hr</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        )}
                       </div>
 
-                      {boost.id === "echo-clone" && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setShowPreview(true);
-                          }}
-                          className="glass-button w-full mt-4"
-                        >
-                          <Play className="h-4 w-4 mr-2" />
-                          Preview Timeline
-                        </Button>
-                      )}
+                      {/* Action Buttons */}
+                      <div className="mt-4 space-y-2">
+                        {boost.hasPreview && boost.id === "comment-seeding" && (
+                          <Dialog open={showCommentPreview} onOpenChange={setShowCommentPreview}>
+                            <DialogTrigger asChild>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={(e) => e.stopPropagation()}
+                                className="glass-button w-full"
+                              >
+                                <MessageCircle className="h-4 w-4 mr-2" />
+                                Preview Comments
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="glass-modal max-w-2xl border-purple-400/30">
+                              <DialogHeader>
+                                <DialogTitle className="text-white">Comment Seeding Preview</DialogTitle>
+                              </DialogHeader>
+                              
+                              <div className="space-y-4">
+                                <div>
+                                  <label className="text-white/90 text-sm font-medium mb-2 block">Comment Tone</label>
+                                  <Select value={commentTone} onValueChange={setCommentTone}>
+                                    <SelectTrigger className="glass-input text-white border-white/20">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent className="glass-modal border-purple-400/30">
+                                      <SelectItem value="funny">Funny & Casual</SelectItem>
+                                      <SelectItem value="hype">Hype & Energy</SelectItem>
+                                      <SelectItem value="support">Supportive</SelectItem>
+                                      <SelectItem value="review">Review Style</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                
+                                <div>
+                                  <div className="text-white/90 text-sm font-medium mb-3">Preview Comments ({commentTone})</div>
+                                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                                    {commentSeedingPreviews[commentTone as keyof typeof commentSeedingPreviews].map((comment, index) => (
+                                      <div key={index} className="glass-subtle rounded-lg p-3">
+                                        <div className="flex items-start gap-3">
+                                          <div className="w-8 h-8 bg-gradient-to-r from-purple-400 to-blue-400 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                                            U{index + 1}
+                                          </div>
+                                          <div className="text-white/90 text-sm">{comment}</div>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                            </DialogContent>
+                          </Dialog>
+                        )}
 
-                      {selectedBoosts.includes(boost.id) && (
-                        <div className="mt-4 glass-strong rounded-lg p-3 animate-scale-in">
-                          <div className="flex items-center justify-center gap-2 text-white font-bold">
-                            <Zap className="h-5 w-5 text-yellow-400" />
-                            Boost Added!
+                        {isSelected && (
+                          <div className="glass-strong rounded-lg p-3 animate-scale-in">
+                            <div className="flex items-center justify-center gap-2 text-white font-bold">
+                              <Zap className="h-5 w-5 text-yellow-400" />
+                              Boost Added!
+                            </div>
                           </div>
-                        </div>
-                      )}
+                        )}
+                      </div>
                     </CardContent>
                   </Card>
                 );
@@ -286,23 +416,23 @@ const CampaignBuilderStep4 = () => {
             )}
           </div>
 
-          {/* KPI Sidebar */}
+          {/* Boost Summary Sidebar */}
           <div className="lg:w-80 space-y-6">
             <Card className="glass-card animate-fade-in sticky top-8">
               <CardContent className="p-6">
                 <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
                   <BarChart3 className="h-5 w-5 text-purple-400" />
-                  KPI Impact Projection
+                  Boost Summary Panel
                 </h3>
                 
                 <div className="space-y-4">
                   <div className="glass-subtle rounded-lg p-4">
-                    <div className="text-white/70 text-sm mb-1">Total Reach Increase</div>
+                    <div className="text-white/70 text-sm mb-1">Projected Reach Increase</div>
                     <div className="text-2xl font-bold text-purple-400">+{totalMetrics.reach}%</div>
                   </div>
                   
                   <div className="glass-subtle rounded-lg p-4">
-                    <div className="text-white/70 text-sm mb-1">Engagement Delta</div>
+                    <div className="text-white/70 text-sm mb-1">Engagement Boost</div>
                     <div className="text-2xl font-bold text-blue-400">+{totalMetrics.engagement}%</div>
                   </div>
                   
@@ -312,22 +442,38 @@ const CampaignBuilderStep4 = () => {
                   </div>
 
                   <div className="glass-subtle rounded-lg p-4">
-                    <div className="text-white/70 text-sm mb-2">Boost ROI Meter</div>
+                    <div className="text-white/70 text-sm mb-2">ROI Projection</div>
                     <div className="w-full bg-white/10 rounded-full h-2 mb-2">
                       <div className={`h-2 rounded-full bg-gradient-to-r from-purple-400 to-blue-400 transition-all duration-500 ${roiLevel.width}`}></div>
                     </div>
                     <div className={`text-sm font-semibold ${roiLevel.color}`}>{roiLevel.level} ROI</div>
                   </div>
-                </div>
-                
-                <div className="mt-6 p-4 glass-strong rounded-lg border border-yellow-400/30">
-                  <div className="text-center">
-                    <div className="text-yellow-400 font-semibold mb-2">🎯 Strategy Insight</div>
-                    <div className="text-white/80 text-sm">
-                      {getSuggestedBundle()}
-                    </div>
+
+                  <div className="glass-subtle rounded-lg p-4">
+                    <div className="text-white/70 text-sm mb-2">Current Plan</div>
+                    <Badge className={getPlanBadgeColor(userPlan)}>
+                      {userPlan.charAt(0).toUpperCase() + userPlan.slice(1)} Plan
+                    </Badge>
+                    {userPlan === "basic" && (
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="glass-button w-full mt-2 text-purple-400 border-purple-400/30"
+                      >
+                        💡 Upgrade for More Boosts
+                      </Button>
+                    )}
                   </div>
                 </div>
+
+                <Button
+                  variant="outline"
+                  className="glass-button w-full mt-6"
+                  onClick={() => {/* Preview campaign summary */}}
+                >
+                  <Eye className="h-4 w-4 mr-2" />
+                  Preview Final Campaign Summary
+                </Button>
               </CardContent>
             </Card>
           </div>
@@ -347,7 +493,7 @@ const CampaignBuilderStep4 = () => {
             onClick={handleNext}
             className="glass-button-primary text-white font-bold px-8"
           >
-            Continue to Launch
+            Proceed to Schedule & Launch 🔥
             <ArrowRight className="h-4 w-4 ml-2" />
           </Button>
         </div>
@@ -357,52 +503,6 @@ const CampaignBuilderStep4 = () => {
         <div className="fixed bottom-20 left-20 w-6 h-6 bg-blue-400/20 rounded-full blur-sm animate-float delay-500"></div>
         <div className="fixed top-1/2 right-10 w-3 h-3 bg-pink-400/25 rounded-full blur-sm animate-float delay-1000"></div>
       </div>
-
-      {/* Preview Modal */}
-      {showPreview && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <Card className="glass-modal max-w-3xl w-full max-h-[80vh] overflow-y-auto">
-            <CardContent className="p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-2xl font-bold text-white">Echo Clone Timeline Preview</h3>
-                <Button
-                  variant="ghost"
-                  onClick={() => setShowPreview(false)}
-                  className="text-white hover:bg-white/10"
-                >
-                  ✕
-                </Button>
-              </div>
-              
-              <div className="space-y-4">
-                <div className="text-white/80 mb-4">
-                  See how your content gets strategically redistributed for maximum impact:
-                </div>
-                
-                {/* Timeline visualization */}
-                <div className="space-y-3">
-                  {[
-                    { day: "Day 1", action: "Original post goes live", platform: "All platforms" },
-                    { day: "Day 3", action: "Remix #1 with new captions", platform: "TikTok + Instagram" },
-                    { day: "Day 7", action: "Remix #2 with trending hashtags", platform: "All platforms" },
-                    { day: "Day 14", action: "Final remix targeting missed audience", platform: "YouTube + Facebook" }
-                  ].map((item, index) => (
-                    <div key={index} className="glass-subtle rounded-lg p-4 flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-r from-purple-400 to-blue-400 flex items-center justify-center text-white font-bold text-sm">
-                        {item.day.split(' ')[1]}
-                      </div>
-                      <div className="flex-1">
-                        <div className="text-white font-semibold">{item.action}</div>
-                        <div className="text-white/60 text-sm">{item.platform}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
     </div>
   );
 };

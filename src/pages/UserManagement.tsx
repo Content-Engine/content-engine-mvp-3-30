@@ -1,40 +1,33 @@
-
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { ArrowLeft, Plus, Users, Crown, Calendar, Edit } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { useAuth, UserRole } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Users, Crown, Calendar, Edit, UserPlus } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth, UserRole } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
+import Layout from '@/components/Layout';
 
 interface UserProfile {
   id: string;
   email: string;
   full_name: string;
-  created_at: string;
   role: UserRole;
+  created_at: string;
 }
 
 const UserManagement = () => {
-  const navigate = useNavigate();
-  const { userRole, updateUserRole, signUp } = useAuth();
-  const { toast } = useToast();
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
-
-  // Invite form state
-  const [inviteEmail, setInviteEmail] = useState("");
-  const [inviteFullName, setInviteFullName] = useState("");
-  const [inviteRole, setInviteRole] = useState<UserRole>("editor");
-  const [inviteLoading, setInviteLoading] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteRole, setInviteRole] = useState<UserRole>('editor');
+  const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
+  const { updateUserRole } = useAuth();
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchUsers();
@@ -48,17 +41,17 @@ const UserManagement = () => {
 
       if (profilesError) throw profilesError;
 
-      const { data: roles, error: rolesError } = await supabase
+      const { data: userRoles, error: rolesError } = await supabase
         .from('user_roles')
         .select('user_id, role');
 
       if (rolesError) throw rolesError;
 
       const usersWithRoles = profiles?.map(profile => {
-        const userRole = roles?.find(role => role.user_id === profile.id);
+        const userRole = userRoles?.find(role => role.user_id === profile.id);
         return {
           ...profile,
-          role: userRole?.role || 'editor'
+          role: (userRole?.role || 'editor') as UserRole
         };
       }) || [];
 
@@ -75,16 +68,20 @@ const UserManagement = () => {
     }
   };
 
-  const handleRoleChange = async (userId: string, newRole: UserRole) => {
+  const handleRoleChange = async (userId: string, role: UserRole) => {
     try {
-      await updateUserRole(userId, newRole);
-      await fetchUsers(); // Refresh the list
+      await updateUserRole(userId, role);
+      setUsers(prevUsers =>
+        prevUsers.map(user =>
+          user.id === userId ? { ...user, role: role } : user
+        )
+      );
       toast({
         title: "Success",
-        description: "User role updated successfully",
+        description: `User role updated to ${role}`,
       });
     } catch (error) {
-      console.error('Error updating role:', error);
+      console.error('Error updating user role:', error);
       toast({
         title: "Error",
         description: "Failed to update user role",
@@ -93,26 +90,32 @@ const UserManagement = () => {
     }
   };
 
-  const handleInviteUser = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setInviteLoading(true);
-
+  const handleInviteUser = async () => {
     try {
-      // Generate a temporary password
-      const tempPassword = Math.random().toString(36).slice(-12) + "Temp!";
-      
-      await signUp(inviteEmail, tempPassword, inviteFullName, inviteRole);
-      
-      toast({
-        title: "User Invited",
-        description: `${inviteFullName} has been invited as ${inviteRole.replace('_', ' ')}. They will receive an email to set their password.`,
+      setLoading(true);
+      setInviteDialogOpen(false);
+
+      // Basic email validation
+      if (!inviteEmail.includes('@')) {
+        throw new Error('Invalid email format.');
+      }
+
+      // Call Supabase function to handle the invite
+      const { data, error } = await supabase.functions.invoke('invite-user', {
+        body: {
+          email: inviteEmail,
+          role: inviteRole,
+        },
       });
 
-      setIsInviteModalOpen(false);
-      setInviteEmail("");
-      setInviteFullName("");
-      setInviteRole("editor");
-      await fetchUsers();
+      if (error) {
+        throw new Error(error.message || 'Failed to invite user');
+      }
+
+      toast({
+        title: "Success",
+        description: `User invited successfully with role: ${inviteRole}`,
+      });
     } catch (error: any) {
       console.error('Error inviting user:', error);
       toast({
@@ -121,7 +124,8 @@ const UserManagement = () => {
         variant: "destructive",
       });
     } finally {
-      setInviteLoading(false);
+      setLoading(false);
+      setInviteEmail(''); // Reset the invite email
     }
   };
 
@@ -138,180 +142,128 @@ const UserManagement = () => {
     }
   };
 
-  const getRoleBadgeVariant = (role: UserRole) => {
+  const getRoleBadgeColor = (role: UserRole) => {
     switch (role) {
       case 'admin':
-        return 'default';
+        return 'bg-yellow-500/20 text-yellow-400';
       case 'social_media_manager':
-        return 'secondary';
+        return 'bg-blue-500/20 text-blue-400';
       case 'editor':
-        return 'outline';
+        return 'bg-green-500/20 text-green-400';
       default:
-        return 'outline';
+        return 'bg-gray-500/20 text-gray-400';
     }
   };
 
-  if (userRole !== 'admin') {
-    navigate('/unauthorized');
-    return null;
-  }
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-gray-950 to-gray-900">
-      <div className="container mx-auto p-6 space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate("/dashboard")}
-              className="text-white/70 hover:text-white"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Dashboard
-            </Button>
-            <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                User Management
-              </h1>
-              <p className="text-white/70">
-                Manage user roles and permissions
-              </p>
-            </div>
-          </div>
-          
-          <Dialog open={isInviteModalOpen} onOpenChange={setIsInviteModalOpen}>
-            <DialogTrigger asChild>
-              <Button className="glass-button-primary">
-                <Plus className="h-4 w-4 mr-2" />
-                Invite User
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="glass-card">
-              <DialogHeader>
-                <DialogTitle className="text-white">Invite New User</DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleInviteUser} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="text-white/90">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={inviteEmail}
-                    onChange={(e) => setInviteEmail(e.target.value)}
-                    className="glass-input"
-                    required
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="fullName" className="text-white/90">Full Name</Label>
-                  <Input
-                    id="fullName"
-                    type="text"
-                    value={inviteFullName}
-                    onChange={(e) => setInviteFullName(e.target.value)}
-                    className="glass-input"
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="role" className="text-white/90">Role</Label>
-                  <Select value={inviteRole} onValueChange={(value: UserRole) => setInviteRole(value)}>
-                    <SelectTrigger className="glass-input">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="editor">Editor</SelectItem>
-                      <SelectItem value="social_media_manager">Social Media Manager</SelectItem>
-                      <SelectItem value="admin">Admin</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <Button
-                  type="submit"
-                  className="w-full glass-button-primary"
-                  disabled={inviteLoading}
-                >
-                  {inviteLoading ? 'Inviting...' : 'Send Invitation'}
+    <Layout>
+      <div className="container mx-auto p-6">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-2xl font-bold">User Management</CardTitle>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="outline">
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  Invite User
                 </Button>
-              </form>
-            </DialogContent>
-          </Dialog>
-        </div>
-
-        {/* Users List */}
-        <Card className="glass-card">
-          <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              Platform Users
-            </CardTitle>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Invite New User</DialogTitle>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="email" className="text-right">
+                      Email
+                    </Label>
+                    <Input
+                      id="email"
+                      value={inviteEmail}
+                      onChange={(e) => setInviteEmail(e.target.value)}
+                      className="col-span-3"
+                      type="email"
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="role" className="text-right">
+                      Role
+                    </Label>
+                    <Select onValueChange={(value) => setInviteRole(value as UserRole)}>
+                      <SelectTrigger className="col-span-3">
+                        <SelectValue placeholder="Select a role" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="admin">Admin</SelectItem>
+                        <SelectItem value="social_media_manager">Social Media Manager</SelectItem>
+                        <SelectItem value="editor">Editor</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <Button onClick={handleInviteUser} disabled={loading}>
+                  {loading ? 'Inviting...' : 'Invite User'}
+                </Button>
+              </DialogContent>
+            </Dialog>
           </CardHeader>
           <CardContent>
             {loading ? (
-              <div className="text-center py-8">
-                <div className="text-white/60">Loading users...</div>
-              </div>
-            ) : users.length === 0 ? (
-              <div className="text-center py-8">
-                <div className="text-white/60 mb-4">No users found.</div>
-                <Button onClick={() => setIsInviteModalOpen(true)} variant="ghost">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Invite your first user
-                </Button>
-              </div>
+              <p>Loading users...</p>
             ) : (
-              <div className="space-y-4">
-                {users.map((user) => (
-                  <div key={user.id} className="glass-card-subtle p-4 rounded-lg border border-white/10 flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
-                      <Avatar>
-                        <AvatarImage src="" />
-                        <AvatarFallback className="bg-white/10 text-white">
-                          {user.full_name?.charAt(0)?.toUpperCase() || user.email.charAt(0).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <h3 className="text-white font-semibold">{user.full_name || 'Unknown'}</h3>
-                        <p className="text-white/60 text-sm">{user.email}</p>
-                        <p className="text-white/40 text-xs">
-                          Joined {new Date(user.created_at).toLocaleDateString()}
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center space-x-3">
-                      <Badge variant={getRoleBadgeVariant(user.role)} className="flex items-center gap-1">
-                        {getRoleIcon(user.role)}
-                        {user.role.replace('_', ' ')}
-                      </Badge>
-                      
-                      <Select
-                        value={user.role}
-                        onValueChange={(value: UserRole) => handleRoleChange(user.id, value)}
-                      >
-                        <SelectTrigger className="w-40 glass-input text-sm">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="editor">Editor</SelectItem>
-                          <SelectItem value="social_media_manager">Social Media Manager</SelectItem>
-                          <SelectItem value="admin">Admin</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                ))}
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead>
+                    <tr>
+                      <th className="px-6 py-3 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">
+                        Name
+                      </th>
+                      <th className="px-6 py-3 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">
+                        Email
+                      </th>
+                      <th className="px-6 py-3 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">
+                        Role
+                      </th>
+                      <th className="px-6 py-3 bg-gray-50"></th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {users.map((user) => (
+                      <tr key={user.id}>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-900">{user.full_name}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-900">{user.email}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <Badge className={`flex items-center gap-1 ${getRoleBadgeColor(user.role)}`}>
+                            {getRoleIcon(user.role)}
+                            {user.role.replace('_', ' ')}
+                          </Badge>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm leading-5 font-medium">
+                          <Select onValueChange={(value) => handleRoleChange(user.id, value as UserRole)}>
+                            <SelectTrigger>
+                              <SelectValue placeholder={user.role} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="admin">Admin</SelectItem>
+                              <SelectItem value="social_media_manager">Social Media Manager</SelectItem>
+                              <SelectItem value="editor">Editor</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             )}
           </CardContent>
         </Card>
       </div>
-    </div>
+    </Layout>
   );
 };
 

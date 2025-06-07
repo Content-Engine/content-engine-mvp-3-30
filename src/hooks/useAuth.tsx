@@ -1,10 +1,9 @@
-
 import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 
-export type UserRole = 'admin' | 'social_media_manager' | 'editor';
+export type UserRole = 'admin' | 'social_media_manager' | 'editor' | 'user';
 
 interface AuthContextType {
   user: User | null;
@@ -64,6 +63,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         break;
       case 'editor':
         navigate('/editor-dashboard');
+        break;
+      case 'user':
+        navigate('/user-dashboard');
         break;
       default:
         navigate('/');

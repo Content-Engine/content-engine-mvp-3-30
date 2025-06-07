@@ -1,10 +1,138 @@
+import { supabase } from '@/integrations/supabase/client';
 
-import { QCContent } from "@/types/qc";
+export interface QCContent {
+  id: string;
+  campaignId: string;
+  title: string;
+  accountName: string;
+  editorName: string;
+  platform: string;
+  scheduledDate: string;
+  approvalStatus: 'pending' | 'approved' | 'rejected';
+  comments: Array<{
+    id: string;
+    authorName: string;
+    content: string;
+    createdAt: string;
+  }>;
+  autoApproved: boolean;
+  mediaUrl: string;
+  thumbnailUrl: string;
+  timeToApprove?: number;
+  boostStatus?: 'none' | 'boosted' | 'scheduled';
+  boostTier?: string;
+  boostAmount?: number;
+  approvedBy?: string;
+  approvedAt?: string;
+  boostPurchases?: Array<{
+    id: string;
+    tier: string;
+    amount: number;
+    purchasedAt: string;
+    reach?: number;
+    status: string;
+  }>;
+}
 
+export const fetchQCContent = async (): Promise<QCContent[]> => {
+  try {
+    // Fetch QC submissions with related data
+    const { data: submissions, error: submissionsError } = await supabase
+      .from('qc_submissions')
+      .select(`
+        *,
+        content_items (
+          *,
+          campaigns (
+            name,
+            id
+          )
+        ),
+        submitted_by_profile:profiles!qc_submissions_submitted_by_fkey (
+          full_name,
+          email
+        ),
+        reviewed_by_profile:profiles!qc_submissions_reviewed_by_fkey (
+          full_name,
+          email
+        )
+      `)
+      .order('submitted_at', { ascending: false });
+
+    if (submissionsError) {
+      console.error('Error fetching QC submissions:', submissionsError);
+      return [];
+    }
+
+    // Transform the data to match our QCContent interface
+    const transformedData: QCContent[] = (submissions || []).map((submission: any) => {
+      const contentItem = submission.content_items;
+      const campaign = contentItem?.campaigns;
+      
+      return {
+        id: submission.id,
+        campaignId: campaign?.id || '',
+        title: contentItem?.file_name || 'Untitled Content',
+        accountName: campaign?.name || 'Unknown Campaign',
+        editorName: submission.submitted_by_profile?.full_name || 'Unknown Editor',
+        platform: 'TikTok', // Default platform, could be stored in content_items
+        scheduledDate: submission.submitted_at,
+        approvalStatus: submission.status,
+        comments: [], // We'll implement comments separately if needed
+        autoApproved: false,
+        mediaUrl: contentItem?.file_url || '/placeholder.svg',
+        thumbnailUrl: contentItem?.thumbnail_url || '/placeholder.svg',
+        approvedBy: submission.reviewed_by_profile?.full_name,
+        approvedAt: submission.reviewed_at,
+        boostStatus: 'none',
+      };
+    });
+
+    return transformedData;
+  } catch (error) {
+    console.error('Error in fetchQCContent:', error);
+    return [];
+  }
+};
+
+export const updateQCSubmissionStatus = async (
+  submissionId: string, 
+  status: 'approved' | 'rejected' | 'pending',
+  notes?: string
+) => {
+  try {
+    const { error } = await supabase
+      .from('qc_submissions')
+      .update({
+        status,
+        notes,
+        reviewed_at: status !== 'pending' ? new Date().toISOString() : null,
+        reviewed_by: status !== 'pending' ? (await supabase.auth.getUser()).data.user?.id : null,
+      })
+      .eq('id', submissionId);
+
+    if (error) {
+      throw error;
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error updating QC submission:', error);
+    return { success: false, error };
+  }
+};
+
+// Fallback to mock data if no real data exists
 export const mockQCContent = async (): Promise<QCContent[]> => {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 500));
+  // First try to get real data
+  const realData = await fetchQCContent();
+  
+  // If we have real data, return it
+  if (realData.length > 0) {
+    return realData;
+  }
 
+  // Otherwise return mock data for demonstration
   return [
     {
       id: "qc-1",
@@ -31,7 +159,7 @@ export const mockQCContent = async (): Promise<QCContent[]> => {
     },
     {
       id: "qc-2",
-      campaignId: "campaign-2",
+      campaignId: "campaign-2", 
       title: "Artist Spotlight: Behind the Scenes",
       accountName: "@indie_artist_music",
       editorName: "David Wilson",

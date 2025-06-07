@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,7 +9,7 @@ import QCFilterBar from "@/components/QCFilterBar";
 import QCContentTable from "@/components/QCContentTable";
 import QCContentModal from "@/components/QCContentModal";
 import { QCContent, QCFilters } from "@/types/qc";
-import { mockQCContent } from "@/services/qcService";
+import { fetchQCContent, updateQCSubmissionStatus } from "@/services/qcService";
 
 const QualityControlPanel = () => {
   const navigate = useNavigate();
@@ -16,6 +17,7 @@ const QualityControlPanel = () => {
   const [filteredContent, setFilteredContent] = useState<QCContent[]>([]);
   const [selectedContent, setSelectedContent] = useState<QCContent | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<QCFilters>({
     status: 'all',
     dateRange: {
@@ -27,23 +29,26 @@ const QualityControlPanel = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Load QC content data
-    const loadContent = async () => {
-      try {
-        const data = await mockQCContent();
-        setContent(data);
-        setFilteredContent(data);
-      } catch (error) {
-        toast({
-          title: "Error",
-          description: "Failed to load content for review",
-          variant: "destructive",
-        });
-      }
-    };
-
     loadContent();
-  }, [toast]);
+  }, []);
+
+  const loadContent = async () => {
+    try {
+      setLoading(true);
+      const data = await fetchQCContent();
+      setContent(data);
+      setFilteredContent(data);
+    } catch (error) {
+      console.error('Error loading QC content:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load content for review",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     // Apply filters
@@ -71,35 +76,42 @@ const QualityControlPanel = () => {
 
   const handleApproval = async (contentId: string, status: 'approved' | 'rejected' | 'pending', comment?: string) => {
     try {
-      setContent(prev => prev.map(item => 
-        item.id === contentId 
-          ? {
-              ...item,
-              approvalStatus: status === 'pending' ? item.approvalStatus : status,
-              approvedBy: status !== 'pending' ? 'Current User' : item.approvedBy,
-              approvedAt: status !== 'pending' ? new Date().toISOString() : item.approvedAt,
-              comments: comment ? [...item.comments, {
-                id: Date.now().toString(),
-                authorName: 'Current User',
-                content: comment,
-                createdAt: new Date().toISOString()
-              }] : item.comments
-            }
-          : item
-      ));
+      const result = await updateQCSubmissionStatus(contentId, status, comment);
+      
+      if (result.success) {
+        // Update local state
+        setContent(prev => prev.map(item => 
+          item.id === contentId 
+            ? {
+                ...item,
+                approvalStatus: status,
+                approvedAt: status !== 'pending' ? new Date().toISOString() : item.approvedAt,
+                comments: comment ? [...item.comments, {
+                  id: Date.now().toString(),
+                  authorName: 'Current User',
+                  content: comment,
+                  createdAt: new Date().toISOString()
+                }] : item.comments
+              }
+            : item
+        ));
 
-      if (status !== 'pending') {
-        toast({
-          title: status === 'approved' ? "Content Approved" : "Content Rejected",
-          description: `Content has been ${status} successfully.`,
-        });
-      } else if (comment) {
-        toast({
-          title: "Comment Added",
-          description: "Your comment has been added to the content.",
-        });
+        if (status !== 'pending') {
+          toast({
+            title: status === 'approved' ? "Content Approved" : "Content Rejected",
+            description: `Content has been ${status} successfully.`,
+          });
+        } else if (comment) {
+          toast({
+            title: "Comment Added",
+            description: "Your comment has been added to the content.",
+          });
+        }
+      } else {
+        throw new Error('Failed to update submission status');
       }
     } catch (error) {
+      console.error('Error updating submission:', error);
       toast({
         title: "Error",
         description: `Failed to ${status === 'pending' ? 'add comment' : status + ' content'}`,
@@ -112,6 +124,14 @@ const QualityControlPanel = () => {
     setSelectedContent(contentItem);
     setIsModalOpen(true);
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-black via-gray-950 to-gray-900 flex items-center justify-center">
+        <div className="text-white text-xl">Loading content...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-gray-950 to-gray-900 p-4 md:p-6">
@@ -142,11 +162,20 @@ const QualityControlPanel = () => {
 
         <Card className="glow-strong">
           <CardContent className="p-0">
-            <QCContentTable
-              content={filteredContent}
-              onApproval={handleApproval}
-              onContentClick={handleContentClick}
-            />
+            {filteredContent.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-white/60 mb-4">No content submissions found</p>
+                <Button onClick={loadContent} variant="outline">
+                  Refresh
+                </Button>
+              </div>
+            ) : (
+              <QCContentTable
+                content={filteredContent}
+                onApproval={handleApproval}
+                onContentClick={handleContentClick}
+              />
+            )}
           </CardContent>
         </Card>
 

@@ -15,7 +15,6 @@ const Dashboard = lazy(() => import("@/pages/Dashboard"));
 const CampaignBuilder = lazy(() => import("@/pages/CampaignBuilder"));
 const CalendarOverview = lazy(() => import("@/pages/CalendarOverview"));
 const QualityControlPanel = lazy(() => import("@/pages/QualityControlPanel"));
-const EditorView = lazy(() => import("@/pages/EditorView"));
 const PaymentTiers = lazy(() => import("@/pages/PaymentTiers"));
 
 const queryClient = new QueryClient();
@@ -79,12 +78,6 @@ const App = () => (
               <Route path="/quality-control" element={
                 <ProtectedRoute>
                   <QualityControlPanel />
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/editor-dashboard" element={
-                <ProtectedRoute>
-                  <EditorView />
                 </ProtectedRoute>
               } />
               

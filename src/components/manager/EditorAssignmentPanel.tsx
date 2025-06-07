@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -54,7 +53,21 @@ const EditorAssignmentPanel = () => {
           { id: "4", name: "Emma L.", email: "emma@example.com", status: "online", current_task_count: 4, upload_speed_per_day: 9.1 },
         ]);
       } else {
-        setEditors(data || []);
+        // Type-safe conversion of database response to Editor interface
+        const VALID_STATUSES = ["online", "busy", "offline"] as const;
+        
+        const parsedEditors: Editor[] = (data || []).map((editor: any) => ({
+          id: editor.id,
+          name: editor.name,
+          email: editor.email,
+          status: VALID_STATUSES.includes(editor.status as Editor["status"])
+            ? (editor.status as Editor["status"])
+            : "offline", // fallback to offline for invalid statuses
+          current_task_count: editor.current_task_count || 0,
+          upload_speed_per_day: editor.upload_speed_per_day || 0,
+        }));
+        
+        setEditors(parsedEditors);
       }
     } catch (error) {
       console.error('Error:', error);

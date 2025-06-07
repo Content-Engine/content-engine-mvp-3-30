@@ -35,6 +35,8 @@ const CampaignBuilder = () => {
   const currentStep = parseInt(step || '1');
   const { createCampaign } = useCampaignData();
 
+  console.log('CampaignBuilder rendered, step:', step, 'currentStep:', currentStep);
+
   const [campaignData, setCampaignData] = useState<CampaignData>({
     name: '',
     goal: '',
@@ -68,23 +70,27 @@ const CampaignBuilder = () => {
   }, [campaignData]);
 
   const updateCampaignData = (updates: Partial<CampaignData>) => {
+    console.log('Updating campaign data:', updates);
     setCampaignData(prev => ({ ...prev, ...updates }));
   };
 
   const handleNext = () => {
     if (currentStep < 5) {
+      console.log('Navigating to next step:', currentStep + 1);
       navigate(`/campaign-builder/step-${currentStep + 1}`);
     }
   };
 
   const handlePrevious = () => {
     if (currentStep > 1) {
+      console.log('Navigating to previous step:', currentStep - 1);
       navigate(`/campaign-builder/step-${currentStep - 1}`);
     }
   };
 
   const handleLaunch = async () => {
     try {
+      console.log('Launching campaign with data:', campaignData);
       await createCampaign({
         name: campaignData.name || `Campaign ${new Date().toLocaleDateString()}`,
         goal: campaignData.goal,
@@ -109,6 +115,7 @@ const CampaignBuilder = () => {
   };
 
   const renderStep = () => {
+    console.log('Rendering step:', currentStep);
     const stepProps = {
       campaignData,
       updateCampaignData,
@@ -128,9 +135,17 @@ const CampaignBuilder = () => {
       case 5:
         return <CampaignBuilderStep5 {...stepProps} onLaunch={handleLaunch} />;
       default:
-        return <div className="text-white">Invalid step</div>;
+        console.error('Invalid step:', currentStep);
+        return <div className="text-white">Invalid step: {currentStep}</div>;
     }
   };
+
+  // If step is invalid, redirect to step 1
+  if (currentStep < 1 || currentStep > 5 || isNaN(currentStep)) {
+    console.log('Invalid step detected, redirecting to step 1');
+    navigate('/campaign-builder/step-1', { replace: true });
+    return null;
+  }
 
   return (
     <Layout>

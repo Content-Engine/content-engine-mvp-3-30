@@ -1,118 +1,22 @@
 
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft, Edit, FileText, Calendar, CheckSquare } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { Edit, FileText, Calendar, CheckSquare } from "lucide-react";
+import Layout from "@/components/Layout";
 
 const EditorView = () => {
-  const navigate = useNavigate();
-  const { toast } = useToast();
-  const [isAuthorized, setIsAuthorized] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    checkUserRole();
-  }, []);
-
-  const checkUserRole = async () => {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        toast({
-          title: "Access Denied",
-          description: "Please log in to access the Editor view.",
-          variant: "destructive",
-        });
-        navigate("/login");
-        return;
-      }
-
-      const { data: userRoles, error } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', session.user.id);
-
-      if (error) {
-        console.error('Error checking user role:', error);
-        toast({
-          title: "Error",
-          description: "Failed to verify user permissions.",
-          variant: "destructive",
-        });
-        navigate("/");
-        return;
-      }
-
-      const hasEditorRole = userRoles?.some(role => 
-        role.role === 'admin' || role.role === 'editor'
-      );
-
-      if (!hasEditorRole) {
-        toast({
-          title: "Access Denied",
-          description: "You don't have permission to access the Editor view.",
-          variant: "destructive",
-        });
-        navigate("/");
-        return;
-      }
-
-      setIsAuthorized(true);
-    } catch (error) {
-      console.error('Authentication error:', error);
-      toast({
-        title: "Error",
-        description: "Authentication failed.",
-        variant: "destructive",
-      });
-      navigate("/");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-300 rounded w-48 mb-4"></div>
-          <div className="h-4 bg-gray-300 rounded w-32"></div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!isAuthorized) {
-    return null;
-  }
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
-      <div className="container mx-auto p-6 space-y-6">
+    <Layout>
+      <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate("/")}
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Dashboard
-            </Button>
-            <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                Editor Dashboard
-              </h1>
-              <p className="text-muted-foreground">
-                Content editing and assignment management
-              </p>
-            </div>
+          <div>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              Editor Dashboard
+            </h1>
+            <p className="text-muted-foreground">
+              Content editing and assignment management
+            </p>
           </div>
           <Badge variant="secondary" className="bg-blue-100 text-blue-800">
             Editor Access
@@ -171,7 +75,7 @@ const EditorView = () => {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </Layout>
   );
 };
 

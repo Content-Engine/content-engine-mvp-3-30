@@ -44,7 +44,7 @@ const App = () => (
                 </ProtectedRoute>
               } />
               
-              {/* Campaign Builder Routes - Fixed routing */}
+              {/* Campaign Builder Routes */}
               <Route path="/campaign-builder" element={
                 <ProtectedRoute>
                   <Navigate to="/campaign-builder/step-1" replace />
@@ -57,14 +57,8 @@ const App = () => (
                 </ProtectedRoute>
               } />
               
-              {/* Legacy route redirect for campaigns/new */}
+              {/* Legacy redirects */}
               <Route path="/campaigns/new" element={
-                <ProtectedRoute>
-                  <Navigate to="/campaign-builder/step-1" replace />
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/campaigns/new/step-:step" element={
                 <ProtectedRoute>
                   <Navigate to="/campaign-builder/step-1" replace />
                 </ProtectedRoute>
@@ -82,7 +76,6 @@ const App = () => (
                 </ProtectedRoute>
               } />
               
-              {/* Add the quality-control route */}
               <Route path="/quality-control" element={
                 <ProtectedRoute>
                   <QualityControlPanel />

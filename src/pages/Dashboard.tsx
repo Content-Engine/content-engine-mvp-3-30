@@ -36,7 +36,7 @@ const Dashboard = () => {
             <p className="text-white/70">Manage your music content campaigns</p>
           </div>
           <Button
-            onClick={() => navigate('/campaign-builder/step-1')}
+            onClick={() => navigate('/campaign-builder/step/1')}
             size="lg"
             className="glass-button-primary"
           >
@@ -90,7 +90,7 @@ const Dashboard = () => {
             {campaigns.length === 0 ? (
               <div className="text-center py-12">
                 <p className="text-white/60 mb-4">No campaigns yet. Create your first campaign to get started!</p>
-                <Button onClick={() => navigate('/campaign-builder/step-1')} variant="secondary">
+                <Button onClick={() => navigate('/campaign-builder/step/1')} variant="secondary">
                   <Plus className="h-4 w-4 mr-2" />
                   Create Campaign
                 </Button>

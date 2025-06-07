@@ -73,13 +73,13 @@ const CampaignBuilder = () => {
 
   const handleNext = () => {
     if (currentStep < 5) {
-      navigate(`/campaign-builder/step-${currentStep + 1}`);
+      navigate(`/campaign-builder/step/${currentStep + 1}`);
     }
   };
 
   const handlePrevious = () => {
     if (currentStep > 1) {
-      navigate(`/campaign-builder/step-${currentStep - 1}`);
+      navigate(`/campaign-builder/step/${currentStep - 1}`);
     }
   };
 
@@ -107,7 +107,7 @@ const CampaignBuilder = () => {
 
   // Validate step before rendering
   if (isNaN(currentStep) || currentStep < 1 || currentStep > 5) {
-    navigate('/campaign-builder/step-1', { replace: true });
+    navigate('/campaign-builder/step/1', { replace: true });
     return null;
   }
 

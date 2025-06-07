@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { useNavigate, Routes, Route, useLocation } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -11,7 +11,7 @@ import {
   BarChart3, 
   FolderOpen, 
   GraduationCap, 
-  Syndication2,
+  Share2,
   ArrowLeft,
   Bell,
   Search,
@@ -28,82 +28,30 @@ const SocialManagerDashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
-  const [isAuthorized, setIsAuthorized] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const { userRole, loading } = useAuth();
   const [currentCampaign, setCurrentCampaign] = useState("All Campaigns");
 
   const sidebarItems = [
     { path: "/social/calendar", label: "Calendar", icon: Calendar },
     { path: "/social/editors", label: "Editors & Schedulers", icon: Users },
-    { path: "/social/syndication", label: "Syndication", icon: Syndication2 },
+    { path: "/social/syndication", label: "Syndication", icon: Share2 },
     { path: "/social/performance", label: "Performance", icon: BarChart3 },
     { path: "/social/assets", label: "Content Library", icon: FolderOpen },
     { path: "/social/training", label: "Training & SOPs", icon: GraduationCap },
   ];
 
   useEffect(() => {
-    checkUserRole();
-  }, []);
-
-  const checkUserRole = async () => {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        toast({
-          title: "Access Denied",
-          description: "Please log in to access the Social Media Manager dashboard.",
-          variant: "destructive",
-        });
-        navigate("/login");
-        return;
-      }
-
-      const { data: userRoles, error } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', session.user.id);
-
-      if (error) {
-        console.error('Error checking user role:', error);
-        toast({
-          title: "Error",
-          description: "Failed to verify user permissions.",
-          variant: "destructive",
-        });
-        navigate("/");
-        return;
-      }
-
-      const hasManagerRole = userRoles?.some(role => 
-        role.role === 'admin' || role.role === 'social_media_manager'
-      );
-
-      if (!hasManagerRole) {
-        toast({
-          title: "Access Denied",
-          description: "You don't have permission to access the Social Media Manager dashboard.",
-          variant: "destructive",
-        });
-        navigate("/");
-        return;
-      }
-
-      setIsAuthorized(true);
-    } catch (error) {
-      console.error('Authentication error:', error);
+    if (!loading && userRole && !['admin', 'social_media_manager'].includes(userRole)) {
       toast({
-        title: "Error",
-        description: "Authentication failed.",
+        title: "Access Denied",
+        description: "You don't have permission to access the Social Media Manager dashboard.",
         variant: "destructive",
       });
-      navigate("/");
-    } finally {
-      setIsLoading(false);
+      navigate("/unauthorized");
     }
-  };
+  }, [userRole, loading, navigate, toast]);
 
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black flex items-center justify-center">
         <div className="animate-pulse">
@@ -114,7 +62,7 @@ const SocialManagerDashboard = () => {
     );
   }
 
-  if (!isAuthorized) {
+  if (!userRole || !['admin', 'social_media_manager'].includes(userRole)) {
     return null;
   }
 
@@ -146,7 +94,7 @@ const SocialManagerDashboard = () => {
                 Social Manager
               </h1>
               <Badge variant="secondary" className="mt-2 bg-green-500/20 text-green-400">
-                Manager Access
+                {userRole === 'admin' ? 'Admin Access' : 'Manager Access'}
               </Badge>
             </div>
           </div>

@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
-import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -16,7 +15,6 @@ const Login = () => {
   const [error, setError] = useState('');
   
   const { signIn, signUp } = useAuth();
-  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,8 +27,8 @@ const Login = () => {
       } else {
         await signIn(email, password);
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Authentication failed');
+    } catch (err: any) {
+      setError(err.message || 'Authentication failed');
     } finally {
       setLoading(false);
     }
@@ -115,24 +113,45 @@ const Login = () => {
             </button>
           </div>
 
-          {/* Demo Account */}
-          <div className="mt-6 p-4 glass-card-subtle rounded-lg">
-            <p className="text-white/70 text-sm mb-2">Demo Account:</p>
-            <p className="text-white/60 text-xs">
-              Email: demo@contentengine.com<br />
-              Password: demo123
-            </p>
-            <Button
-              onClick={() => {
-                setEmail('demo@contentengine.com');
-                setPassword('demo123');
-              }}
-              variant="ghost"
-              size="sm"
-              className="mt-2 text-white/70"
-            >
-              Use Demo Account
-            </Button>
+          {/* Demo Accounts */}
+          <div className="mt-6 space-y-3">
+            <div className="p-3 glass-card-subtle rounded-lg">
+              <p className="text-white/70 text-sm font-semibold mb-2">Demo Admin Account:</p>
+              <p className="text-white/60 text-xs mb-2">
+                Email: admin@contentengine.com<br />
+                Password: admin123
+              </p>
+              <Button
+                onClick={() => {
+                  setEmail('admin@contentengine.com');
+                  setPassword('admin123');
+                }}
+                variant="ghost"
+                size="sm"
+                className="text-white/70 h-6 px-2 text-xs"
+              >
+                Use Admin Demo
+              </Button>
+            </div>
+
+            <div className="p-3 glass-card-subtle rounded-lg">
+              <p className="text-white/70 text-sm font-semibold mb-2">Demo Editor Account:</p>
+              <p className="text-white/60 text-xs mb-2">
+                Email: editor@contentengine.com<br />
+                Password: editor123
+              </p>
+              <Button
+                onClick={() => {
+                  setEmail('editor@contentengine.com');
+                  setPassword('editor123');
+                }}
+                variant="ghost"
+                size="sm"
+                className="text-white/70 h-6 px-2 text-xs"
+              >
+                Use Editor Demo
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>

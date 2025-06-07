@@ -1,105 +1,142 @@
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { useNavigate } from "react-router-dom";
-import { Play, TrendingUp, BarChart3, Zap } from "lucide-react";
+import { useAuth } from '@/hooks/useAuth';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ArrowRight, Zap, Users, BarChart3 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 
 const Index = () => {
+  const { user, userRole, loading } = useAuth();
   const navigate = useNavigate();
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-pink-900">
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-6xl font-bold bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent mb-4">
-            Viral Campaign Builder
-          </h1>
-          <p className="text-xl text-white/80 max-w-2xl mx-auto">
-            Create explosive short-form video campaigns across TikTok, Instagram Reels, YouTube Shorts, and Facebook
-          </p>
-        </div>
+  useEffect(() => {
+    // Auto-redirect authenticated users to their appropriate dashboard
+    if (!loading && user && userRole) {
+      switch (userRole) {
+        case 'admin':
+          navigate('/dashboard');
+          break;
+        case 'social_media_manager':
+          navigate('/social/calendar');
+          break;
+        case 'editor':
+          navigate('/editor-dashboard');
+          break;
+      }
+    }
+  }, [user, userRole, loading, navigate]);
 
-        {/* Main Action Cards */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-          {/* Start New Campaign */}
-          <Card className="bg-gradient-to-br from-gray-900 to-black border-0 hover:scale-105 transition-all duration-300 cursor-pointer group" 
-                onClick={() => navigate('/campaign-builder/step-1')}>
-            <CardContent className="p-8 text-center">
-              <div className="bg-white/20 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
-                <Play className="h-8 w-8 text-white" />
-              </div>
-              <h3 className="text-2xl font-bold text-white mb-2">Start Campaign</h3>
-              <p className="text-white/80">Build viral content across all platforms</p>
-            </CardContent>
-          </Card>
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-black via-gray-950 to-gray-900 flex items-center justify-center">
+        <div className="text-white text-xl">Loading...</div>
+      </div>
+    );
+  }
 
-          {/* Payment Tiers */}
-          <Card className="bg-gradient-to-br from-green-500 to-emerald-600 border-0 hover:scale-105 transition-all duration-300 cursor-pointer group"
-                onClick={() => navigate('/payment-tiers')}>
-            <CardContent className="p-8 text-center">
-              <div className="bg-white/20 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
-                <Zap className="h-8 w-8 text-white" />
-              </div>
-              <h3 className="text-2xl font-bold text-white mb-2">Upgrade Plan</h3>
-              <p className="text-white/80">Scale your syndication power</p>
-            </CardContent>
-          </Card>
+  // Show landing page for unauthenticated users
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-black via-gray-950 to-gray-900">
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-900/30 via-blue-900/20 to-pink-900/30"></div>
+        
+        <div className="container mx-auto px-4 py-16 relative z-10">
+          {/* Header */}
+          <div className="text-center mb-16">
+            <h1 className="text-6xl font-bold bg-gradient-to-r from-purple-400 via-blue-400 to-pink-400 bg-clip-text text-transparent mb-6">
+              Content Engine
+            </h1>
+            <p className="text-xl text-white/80 mb-8 max-w-2xl mx-auto">
+              Streamline your content creation workflow with role-based access, powerful analytics, and collaborative tools.
+            </p>
+            <div className="flex gap-4 justify-center">
+              <Button 
+                onClick={() => navigate('/login')} 
+                size="lg"
+                className="glass-button-primary"
+              >
+                Get Started
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </div>
+          </div>
 
-          {/* View Campaigns */}
-          <Card className="bg-gradient-to-br from-orange-500 to-red-600 border-0 hover:scale-105 transition-all duration-300 cursor-pointer group"
-                onClick={() => navigate('/campaigns-dashboard')}>
-            <CardContent className="p-8 text-center">
-              <div className="bg-white/20 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
-                <TrendingUp className="h-8 w-8 text-white" />
-              </div>
-              <h3 className="text-2xl font-bold text-white mb-2">My Campaigns</h3>
-              <p className="text-white/80">Manage active campaigns</p>
-            </CardContent>
-          </Card>
-
-          {/* Performance Dashboard */}
-          <Card className="bg-gradient-to-br from-blue-500 to-cyan-600 border-0 hover:scale-105 transition-all duration-300 cursor-pointer group"
-                onClick={() => navigate('/performance-dashboard')}>
-            <CardContent className="p-8 text-center">
-              <div className="bg-white/20 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
-                <BarChart3 className="h-8 w-8 text-white" />
-              </div>
-              <h3 className="text-2xl font-bold text-white mb-2">Analytics</h3>
-              <p className="text-white/80">Track performance & ROI</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Platform Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
-          {[
-            { platform: "TikTok", color: "from-pink-500 to-purple-500", accounts: "30+ accounts" },
-            { platform: "Instagram", color: "from-orange-500 to-pink-500", accounts: "25+ accounts" },
-            { platform: "YouTube", color: "from-red-500 to-red-600", accounts: "20+ accounts" },
-            { platform: "Facebook", color: "from-blue-500 to-blue-600", accounts: "15+ accounts" },
-          ].map((item) => (
-            <Card key={item.platform} className={`bg-gradient-to-br ${item.color} border-0`}>
-              <CardContent className="p-4 text-center">
-                <h4 className="text-lg font-bold text-white">{item.platform}</h4>
-                <p className="text-white/80 text-sm">{item.accounts}</p>
+          {/* Features */}
+          <div className="grid md:grid-cols-3 gap-8 mb-16">
+            <Card className="glass-card">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center gap-2">
+                  <Users className="h-6 w-6 text-blue-400" />
+                  Role-Based Access
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-white/70">
+                  Secure access control for Admins, Social Media Managers, and Editors with tailored dashboards.
+                </p>
               </CardContent>
             </Card>
-          ))}
-        </div>
 
-        {/* CTA */}
-        <div className="text-center">
-          <Button 
-            size="lg"
-            className="bg-gradient-to-r from-gray-900 to-black hover:from-gray-800 hover:to-gray-900 text-white text-xl px-12 py-6 rounded-full font-bold shadow-2xl hover:scale-105 transition-all duration-300 border border-white/20"
-            onClick={() => navigate('/campaign-builder/step-1')}
-          >
-            <Zap className="mr-2 h-6 w-6" />
-            Create Your First Viral Campaign
-          </Button>
+            <Card className="glass-card">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center gap-2">
+                  <BarChart3 className="h-6 w-6 text-green-400" />
+                  Performance Analytics
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-white/70">
+                  Track engagement, reach, and ROI across all your content campaigns with real-time insights.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="glass-card">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center gap-2">
+                  <Zap className="h-6 w-6 text-yellow-400" />
+                  Boost & Syndication
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-white/70">
+                  Amplify your content with intelligent boost triggers and multi-platform syndication.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* CTA Section */}
+          <div className="text-center">
+            <Card className="glass-card max-w-2xl mx-auto">
+              <CardContent className="p-8">
+                <h2 className="text-3xl font-bold text-white mb-4">
+                  Ready to Transform Your Content Strategy?
+                </h2>
+                <p className="text-white/70 mb-6">
+                  Join thousands of creators and marketers who trust Content Engine for their workflow management.
+                </p>
+                <Button 
+                  onClick={() => navigate('/login')} 
+                  size="lg"
+                  className="glass-button-primary"
+                >
+                  Start Your Journey
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
+    );
+  }
+
+  // If user is authenticated but we're still here, show loading
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-black via-gray-950 to-gray-900 flex items-center justify-center">
+      <div className="text-white text-xl">Redirecting...</div>
     </div>
   );
 };

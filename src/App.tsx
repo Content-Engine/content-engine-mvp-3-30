@@ -4,16 +4,13 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { AuthProvider } from "@/hooks/useAuth";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import RoleBasedRoute from "@/components/RoleBasedRoute";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import CampaignBuilder from "./pages/CampaignBuilder";
-import CampaignBuilderStep1 from "./pages/CampaignBuilderStep1";
-import CampaignBuilderStep2 from "./pages/CampaignBuilderStep2";
-import CampaignBuilderStep3 from "./pages/CampaignBuilderStep3";
-import CampaignBuilderStep4 from "./pages/CampaignBuilderStep4";
-import CampaignBuilderStep5 from "./pages/CampaignBuilderStep5";
 import CalendarOverview from "./pages/CalendarOverview";
 import PerformanceDashboard from "./pages/PerformanceDashboard";
 import QualityControlPanel from "./pages/QualityControlPanel";
@@ -22,6 +19,8 @@ import SocialMediaManagerView from "./pages/SocialMediaManagerView";
 import EditorView from "./pages/EditorView";
 import SocialManagerDashboard from "./pages/SocialManagerDashboard";
 import NotFound from "./pages/NotFound";
+import Unauthorized from "./pages/Unauthorized";
+import UserManagement from "./pages/UserManagement";
 
 const queryClient = new QueryClient();
 
@@ -32,81 +31,71 @@ function App() {
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/dashboard" element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            } />
-            <Route path="/campaign-builder" element={
-              <ProtectedRoute>
-                <CampaignBuilder />
-              </ProtectedRoute>
-            } />
-            <Route path="/campaign-builder/step1" element={
-              <ProtectedRoute>
-                <CampaignBuilderStep1 />
-              </ProtectedRoute>
-            } />
-            <Route path="/campaign-builder/step2" element={
-              <ProtectedRoute>
-                <CampaignBuilderStep2 />
-              </ProtectedRoute>
-            } />
-            <Route path="/campaign-builder/step3" element={
-              <ProtectedRoute>
-                <CampaignBuilderStep3 />
-              </ProtectedRoute>
-            } />
-            <Route path="/campaign-builder/step4" element={
-              <ProtectedRoute>
-                <CampaignBuilderStep4 />
-              </ProtectedRoute>
-            } />
-            <Route path="/campaign-builder/step5" element={
-              <ProtectedRoute>
-                <CampaignBuilderStep5 />
-              </ProtectedRoute>
-            } />
-            <Route path="/calendar" element={
-              <ProtectedRoute>
-                <CalendarOverview />
-              </ProtectedRoute>
-            } />
-            <Route path="/performance" element={
-              <ProtectedRoute>
-                <PerformanceDashboard />
-              </ProtectedRoute>
-            } />
-            <Route path="/qc-panel" element={
-              <ProtectedRoute>
-                <QualityControlPanel />
-              </ProtectedRoute>
-            } />
-            <Route path="/payment-tiers" element={
-              <ProtectedRoute>
-                <PaymentTiers />
-              </ProtectedRoute>
-            } />
-            <Route path="/social-manager" element={
-              <ProtectedRoute>
-                <SocialMediaManagerView />
-              </ProtectedRoute>
-            } />
-            <Route path="/editor-dashboard" element={
-              <ProtectedRoute>
-                <EditorView />
-              </ProtectedRoute>
-            } />
-            <Route path="/social/*" element={
-              <ProtectedRoute>
-                <SocialManagerDashboard />
-              </ProtectedRoute>
-            } />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <AuthProvider>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/unauthorized" element={<Unauthorized />} />
+              
+              {/* Admin Routes */}
+              <Route path="/dashboard" element={
+                <RoleBasedRoute allowedRoles={['admin']}>
+                  <Dashboard />
+                </RoleBasedRoute>
+              } />
+              <Route path="/user-management" element={
+                <RoleBasedRoute allowedRoles={['admin']}>
+                  <UserManagement />
+                </RoleBasedRoute>
+              } />
+              <Route path="/campaign-builder" element={
+                <RoleBasedRoute allowedRoles={['admin']}>
+                  <CampaignBuilder />
+                </RoleBasedRoute>
+              } />
+              <Route path="/calendar" element={
+                <RoleBasedRoute allowedRoles={['admin', 'social_media_manager']}>
+                  <CalendarOverview />
+                </RoleBasedRoute>
+              } />
+              <Route path="/performance" element={
+                <RoleBasedRoute allowedRoles={['admin', 'social_media_manager']}>
+                  <PerformanceDashboard />
+                </RoleBasedRoute>
+              } />
+              <Route path="/qc-panel" element={
+                <RoleBasedRoute allowedRoles={['admin', 'social_media_manager']}>
+                  <QualityControlPanel />
+                </RoleBasedRoute>
+              } />
+              <Route path="/payment-tiers" element={
+                <RoleBasedRoute allowedRoles={['admin']}>
+                  <PaymentTiers />
+                </RoleBasedRoute>
+              } />
+              <Route path="/social-manager" element={
+                <RoleBasedRoute allowedRoles={['admin', 'social_media_manager']}>
+                  <SocialMediaManagerView />
+                </RoleBasedRoute>
+              } />
+              
+              {/* Editor Routes */}
+              <Route path="/editor-dashboard" element={
+                <RoleBasedRoute allowedRoles={['admin', 'editor']}>
+                  <EditorView />
+                </RoleBasedRoute>
+              } />
+              
+              {/* Social Manager Dashboard Routes */}
+              <Route path="/social/*" element={
+                <RoleBasedRoute allowedRoles={['admin', 'social_media_manager']}>
+                  <SocialManagerDashboard />
+                </RoleBasedRoute>
+              } />
+              
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>

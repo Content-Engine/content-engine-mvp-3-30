@@ -15,13 +15,11 @@ const ContentEngineLogo = ({ size = "medium", className }: ContentEngineLogoProp
 
   return (
     <div className={cn("flex items-center justify-center", className)}>
-      <div className={cn(
-        "relative rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center",
-        sizeClasses[size]
-      )}>
-        <div className="text-white font-bold text-lg">CE</div>
-        <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-purple-400/20 to-pink-400/20"></div>
-      </div>
+      <img 
+        src="/lovable-uploads/fb15ada8-fb97-44e9-82df-d6e779eaa094.png"
+        alt="Content Engine Logo"
+        className={cn("object-contain", sizeClasses[size])}
+      />
     </div>
   );
 };

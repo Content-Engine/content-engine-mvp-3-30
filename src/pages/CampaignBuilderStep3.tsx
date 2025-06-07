@@ -64,16 +64,23 @@ interface CampaignBuilderStep3Props {
 const CampaignBuilderStep3 = ({ campaignData, updateCampaignData, onNext }: CampaignBuilderStep3Props) => {
   const handleTierSelect = (tierId: string) => {
     updateCampaignData({ syndicationTier: tierId });
+    // Auto-advance after selection with a slight delay for visual feedback
+    setTimeout(() => {
+      onNext();
+    }, 1000);
   };
 
   return (
     <div className="space-y-8">
       {/* Step Title */}
       <div className="text-center">
-        <h2 className="text-4xl font-bold bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 bg-clip-text text-transparent mb-4">
-          Choose Your Syndication Tier 🚀
-        </h2>
-        <p className="text-lg text-white/90">
+        <div className="glass-card-strong p-8 mb-6 inline-block">
+          <h2 className="text-4xl font-bold bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 bg-clip-text text-transparent mb-4">
+            Choose Your Syndication Tier 🚀
+          </h2>
+          <div className="h-1 w-full bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 rounded-full"></div>
+        </div>
+        <p className="text-lg text-white/90 glass-card-strong p-4 inline-block">
           Scale your content distribution across platforms
         </p>
       </div>
@@ -83,8 +90,8 @@ const CampaignBuilderStep3 = ({ campaignData, updateCampaignData, onNext }: Camp
         {tiers.map((tier) => (
           <Card
             key={tier.id}
-            className={`frosted-glass bg-gradient-to-br ${tier.gradient} border-0 cursor-pointer hover:scale-105 transition-all duration-500 relative overflow-hidden ${
-              campaignData.syndicationTier === tier.id ? 'ring-4 ring-white/50 scale-105' : ''
+            className={`frosted-glass bg-gradient-to-br ${tier.gradient} border-0 cursor-pointer hover:scale-105 transition-all duration-500 relative overflow-hidden group ${
+              campaignData.syndicationTier === tier.id ? 'ring-4 ring-white/50 scale-105 glow-strong' : ''
             } ${tier.popular ? 'ring-2 ring-yellow-400/50' : ''}`}
             onClick={() => handleTierSelect(tier.id)}
           >
@@ -95,7 +102,7 @@ const CampaignBuilderStep3 = ({ campaignData, updateCampaignData, onNext }: Camp
             )}
             
             <CardHeader className="text-center">
-              <CardTitle className="text-2xl font-bold text-white">
+              <CardTitle className="text-2xl font-bold text-white group-hover:scale-110 transition-transform duration-300">
                 {tier.name}
               </CardTitle>
               <div className="text-4xl font-bold text-white">
@@ -137,7 +144,9 @@ const CampaignBuilderStep3 = ({ campaignData, updateCampaignData, onNext }: Camp
 
               {campaignData.syndicationTier === tier.id && (
                 <div className="text-center">
-                  <div className="text-green-400 font-semibold">✓ Selected</div>
+                  <div className="text-green-400 font-semibold text-sm">
+                    ✨ Selected! Moving to boost options...
+                  </div>
                 </div>
               )}
             </CardContent>
@@ -145,14 +154,14 @@ const CampaignBuilderStep3 = ({ campaignData, updateCampaignData, onNext }: Camp
         ))}
       </div>
 
-      {/* Continue Button */}
-      {campaignData.syndicationTier && (
-        <div className="text-center">
-          <Button onClick={onNext} size="lg" className="glass-button-primary">
-            Continue to Boost Options
-          </Button>
+      {/* Help Text */}
+      <div className="text-center">
+        <div className="glass-card-strong p-4 inline-block">
+          <p className="text-white/80 font-medium">
+            💡 Click any tier to select and automatically continue to boost options
+          </p>
         </div>
-      )}
+      </div>
     </div>
   );
 };

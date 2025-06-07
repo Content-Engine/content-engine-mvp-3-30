@@ -17,6 +17,7 @@ import PerformanceDashboard from "./pages/PerformanceDashboard";
 import QualityControlPanel from "./pages/QualityControlPanel";
 import CalendarOverview from "./pages/CalendarOverview";
 import EditorView from "./pages/EditorView";
+import SocialMediaManagerView from "./pages/SocialMediaManagerView";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -40,6 +41,7 @@ const App = () => (
           <Route path="/quality-control" element={<QualityControlPanel />} />
           <Route path="/calendar" element={<CalendarOverview />} />
           <Route path="/editor-dashboard" element={<EditorView />} />
+          <Route path="/social-media-manager" element={<SocialMediaManagerView />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

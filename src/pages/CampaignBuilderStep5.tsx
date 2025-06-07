@@ -1,247 +1,201 @@
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Slider } from "@/components/ui/slider";
 import { useNavigate } from "react-router-dom";
-import ProgressBar from "@/components/ProgressBar";
-import { ArrowLeft, Calendar, Clock, Rocket, Settings, TrendingUp, Eye, Zap, Info } from "lucide-react";
-import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Checkbox, CheckedState } from "@/components/ui/checkbox";
+import { Slider } from "@/components/ui/slider";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Calendar, Clock, ArrowLeft, Play, Settings, Check, AlertTriangle } from "lucide-react";
 
 const CampaignBuilderStep5 = () => {
   const navigate = useNavigate();
-  const [startDate, setStartDate] = useState("");
-  const [startTime, setStartTime] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [endTime, setEndTime] = useState("");
-  const [enableEndDate, setEnableEndDate] = useState(false);
-  const [autoBoostThreshold, setAutoBoostThreshold] = useState([1000]);
-  const [reboostOnce, setReboostOnce] = useState(true);
-  const [variantCaptions, setVariantCaptions] = useState(true);
-  const [isLaunching, setIsLaunching] = useState(false);
-  const [showSummary, setShowSummary] = useState(false);
+  
+  // Form state
+  const [selectedDate, setSelectedDate] = useState<string>("");
+  const [selectedTime, setSelectedTime] = useState<string>("");
+  const [timeZone, setTimeZone] = useState<string>("EST");
+  const [hasEndDate, setHasEndDate] = useState<boolean>(false);
+  const [endDate, setEndDate] = useState<string>("");
+  const [endTime, setEndTime] = useState<string>("");
+  
+  // Auto-boost settings
+  const [viewThreshold, setViewThreshold] = useState<number[]>([1000]);
+  const [timeWindow, setTimeWindow] = useState<string>("24");
+  const [boostOnce, setBoostOnce] = useState<boolean>(true);
+  const [useVariantCaptions, setUseVariantCaptions] = useState<boolean>(false);
+  
+  // UI state
+  const [showSummary, setShowSummary] = useState<boolean>(false);
+  const [showConfirmModal, setShowConfirmModal] = useState<boolean>(false);
 
-  // Get campaign data from localStorage
-  const campaignGoal = localStorage.getItem('campaignGoal') || 'Not Set';
-  const campaignTier = localStorage.getItem('campaignTier') || 'Not Set';
-  const campaignContent = JSON.parse(localStorage.getItem('campaignContent') || '{}');
-  const campaignBoosts = JSON.parse(localStorage.getItem('campaignBoosts') || '[]');
-
-  const platforms = [
-    { name: "TikTok", icon: "🎵", accounts: campaignTier === "Basic" ? 2 : campaignTier === "Pro" ? 4 : 8 },
-    { name: "Instagram", icon: "📸", accounts: campaignTier === "Basic" ? 2 : campaignTier === "Pro" ? 4 : 8 },
-    { name: "YouTube", icon: "📹", accounts: campaignTier === "Basic" ? 0 : campaignTier === "Pro" ? 3 : 6 },
-    { name: "Facebook", icon: "👥", accounts: campaignTier === "Basic" ? 1 : campaignTier === "Pro" ? 4 : 8 }
-  ].filter(p => p.accounts > 0);
-
-  const getEstimatedReachLift = () => {
-    const threshold = autoBoostThreshold[0];
-    if (threshold < 1000) return "+15-25%";
-    if (threshold < 5000) return "+25-40%";
-    return "+40-60%";
+  // Mock campaign data - in real app this would come from global state
+  const campaignData = {
+    goal: "Viral Content",
+    contentAssets: 3,
+    tier: "Pro",
+    platforms: ["TikTok", "Instagram", "YouTube", "Facebook"],
+    boosts: ["Echo Clone Generator", "Fan Loop Driver"],
+    estimatedReach: "25K-45K views"
   };
 
-  const validateForm = () => {
-    if (!startDate || !startTime) {
-      toast.error("Please set a start date and time");
-      return false;
-    }
-    return true;
+  const handleLaunch = () => {
+    // Save campaign data to localStorage (replace with Supabase later)
+    const campaign = {
+      id: `campaign-${Date.now()}`,
+      ...campaignData,
+      schedule: {
+        startDate: selectedDate,
+        startTime: selectedTime,
+        timeZone,
+        endDate: hasEndDate ? endDate : null,
+        endTime: hasEndDate ? endTime : null
+      },
+      autoBoost: {
+        viewThreshold: viewThreshold[0],
+        timeWindow,
+        boostOnce,
+        useVariantCaptions
+      },
+      createdAt: new Date().toISOString(),
+      status: "scheduled"
+    };
+
+    // Get existing campaigns or initialize empty array
+    const existingCampaigns = JSON.parse(localStorage.getItem('campaigns') || '[]');
+    existingCampaigns.push(campaign);
+    localStorage.setItem('campaigns', JSON.stringify(existingCampaigns));
+
+    setShowConfirmModal(false);
+    navigate('/campaigns-dashboard');
   };
 
-  const handleLaunch = async () => {
-    if (!validateForm()) return;
-
-    setIsLaunching(true);
-
-    // Simulate campaign creation process with realistic steps
-    toast.success("🔄 Initializing campaign...");
-    
-    setTimeout(() => {
-      toast.success("📡 Connecting to syndication network...");
-    }, 1000);
-
-    setTimeout(() => {
-      toast.success("🎯 Optimizing content for each platform...");
-    }, 2000);
-
-    setTimeout(() => {
-      toast.success("⚡ Setting up auto-boost triggers...");
-    }, 3000);
-
-    setTimeout(() => {
-      toast.success("🚀 Campaign launched successfully!");
-      
-      // Save final campaign data
-      const campaignData = {
-        goal: campaignGoal,
-        content: campaignContent,
-        tier: campaignTier,
-        boosts: campaignBoosts,
-        schedule: {
-          startDate,
-          startTime,
-          endDate: enableEndDate ? endDate : null,
-          endTime: enableEndDate ? endTime : null,
-          autoBoostThreshold: autoBoostThreshold[0],
-          reboostOnce,
-          variantCaptions
-        },
-        createdAt: new Date().toISOString(),
-        id: Math.random().toString(36).substr(2, 9)
-      };
-
-      // Save to localStorage (would be Supabase in production)
-      const existingCampaigns = JSON.parse(localStorage.getItem('campaigns') || '[]');
-      existingCampaigns.push(campaignData);
-      localStorage.setItem('campaigns', JSON.stringify(existingCampaigns));
-
-      // Navigate to dashboard
-      navigate('/campaigns-dashboard');
-    }, 4000);
+  const getPlatformIcon = (platform: string) => {
+    const icons: { [key: string]: string } = {
+      "TikTok": "🎵",
+      "Instagram": "📸",
+      "YouTube": "📹",
+      "Facebook": "👥"
+    };
+    return icons[platform] || "📱";
   };
 
-  const getMissingInfo = () => {
-    const missing = [];
-    if (campaignGoal === 'Not Set') missing.push('Campaign Goal');
-    if (campaignTier === 'Not Set') missing.push('Syndication Tier');
-    if (!campaignContent.files?.length) missing.push('Content Assets');
-    return missing;
-  };
+  const isFormValid = selectedDate && selectedTime;
 
   return (
-    <div className="min-h-screen bg-[#0D0D0D] relative overflow-hidden">
-      {/* Background effects */}
-      <div className="absolute inset-0">
-        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-purple-900/20 via-blue-900/10 to-pink-900/20"></div>
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-black via-gray-950 to-gray-900 relative">
+      {/* Ambient background effects */}
+      <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-blue-900/10 to-pink-900/20 animate-float"></div>
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl animate-pulse"></div>
+      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
 
       <div className="container mx-auto px-4 py-8 relative z-10">
-        {/* Header */}
-        <div className="flex items-center mb-8">
-          <Button
-            variant="ghost"
-            onClick={() => navigate('/campaign-builder/step-4')}
-            className="glass-button text-white hover:bg-white/15 mr-4"
-            disabled={isLaunching}
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back
-          </Button>
-          <div className="glass-card-strong p-4 animate-fade-in">
-            <h1 className="text-4xl font-bold text-white bg-gradient-to-r from-purple-400 via-blue-400 to-pink-400 bg-clip-text text-transparent drop-shadow-2xl">
-              Campaign Builder
+        {/* Progress Bar */}
+        <div className="mb-8">
+          <div className="flex items-center justify-center mb-4">
+            <div className="flex items-center space-x-4">
+              {[1, 2, 3, 4, 5].map((step) => (
+                <div key={step} className="flex items-center">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 ${
+                    step < 5 ? 'bg-green-500 border-green-500 text-white' :
+                    step === 5 ? 'bg-purple-500 border-purple-400 text-white shadow-lg shadow-purple-500/50 animate-pulse' :
+                    'border-gray-600 text-gray-400'
+                  }`}>
+                    {step < 5 ? <Check className="h-5 w-5" /> : step}
+                  </div>
+                  {step < 5 && (
+                    <div className={`w-12 h-1 mx-2 ${step < 5 ? 'bg-green-500' : 'bg-gray-600'}`}></div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="text-center">
+            <h1 className="text-4xl font-bold text-white bg-gradient-to-r from-purple-400 via-blue-400 to-pink-400 bg-clip-text text-transparent">
+              Step 5: Schedule & Launch 🚀
             </h1>
-            <div className="h-1 w-full bg-gradient-to-r from-purple-400 via-blue-400 to-pink-400 rounded-full mt-2 animate-shimmer"></div>
+            <p className="text-white/80 mt-2">Set your launch window and finalize your campaign</p>
           </div>
         </div>
 
-        <ProgressBar currentStep={5} totalSteps={5} />
-
-        {/* Step Title */}
-        <div className="text-center mb-12">
-          <h2 className="text-5xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent mb-4">
-            Schedule & Launch 🚀
-          </h2>
-          <p className="text-xl text-white/80 max-w-2xl mx-auto">
-            Set your launch window and auto-boost triggers for maximum impact
-          </p>
-        </div>
-
-        <div className="flex flex-col lg:flex-row gap-8 max-w-7xl mx-auto">
+        <div className="grid lg:grid-cols-3 gap-8">
           {/* Main Content */}
-          <div className="flex-1 space-y-8">
-            {/* Date & Time Selector */}
-            <Card className="glass-card animate-fade-in">
-              <CardContent className="p-6">
-                <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-                  <Calendar className="h-5 w-5 text-purple-400" />
-                  Campaign Launch Window
-                </h3>
-                
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <Label htmlFor="start-date" className="text-white font-semibold flex items-center gap-2">
-                      Start Date & Time
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger>
-                            <Info className="h-4 w-4 text-white/60" />
-                          </TooltipTrigger>
-                          <TooltipContent className="glass-modal border-purple-400/30">
-                            <p>Choose optimal times based on your audience's peak activity</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </Label>
-                    <div className="space-y-2">
-                      <Input
-                        id="start-date"
-                        type="date"
-                        value={startDate}
-                        onChange={(e) => setStartDate(e.target.value)}
-                        className="glass-input"
-                        min={new Date().toISOString().split('T')[0]}
-                      />
-                      <Input
-                        type="time"
-                        value={startTime}
-                        onChange={(e) => setStartTime(e.target.value)}
-                        className="glass-input"
-                      />
-                    </div>
+          <div className="lg:col-span-2 space-y-6">
+            {/* Date/Time Selector */}
+            <Card className="glass-card-strong">
+              <CardHeader>
+                <CardTitle className="flex items-center text-white">
+                  <Calendar className="h-5 w-5 mr-2 text-purple-400" />
+                  Launch Schedule
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-white/90 text-sm font-medium mb-2">Start Date</label>
+                    <input
+                      type="date"
+                      value={selectedDate}
+                      onChange={(e) => setSelectedDate(e.target.value)}
+                      className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    />
                   </div>
-                  
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2">
-                      <Checkbox
-                        id="enable-end-date"
-                        checked={enableEndDate}
-                        onCheckedChange={setEnableEndDate}
-                      />
-                      <Label htmlFor="enable-end-date" className="text-white font-semibold">
-                        Set End Date (Optional)
-                      </Label>
-                    </div>
-                    {enableEndDate && (
-                      <div className="space-y-2">
-                        <Input
-                          type="date"
-                          value={endDate}
-                          onChange={(e) => setEndDate(e.target.value)}
-                          className="glass-input"
-                          min={startDate || new Date().toISOString().split('T')[0]}
-                        />
-                        <Input
-                          type="time"
-                          value={endTime}
-                          onChange={(e) => setEndTime(e.target.value)}
-                          className="glass-input"
-                        />
-                      </div>
-                    )}
+                  <div>
+                    <label className="block text-white/90 text-sm font-medium mb-2">Start Time</label>
+                    <input
+                      type="time"
+                      value={selectedTime}
+                      onChange={(e) => setSelectedTime(e.target.value)}
+                      className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    />
                   </div>
                 </div>
 
-                {/* Platform Delivery Preview */}
-                {platforms.length > 0 && (
-                  <div className="mt-6 p-4 glass-subtle rounded-lg">
-                    <h4 className="text-white/80 text-sm mb-3">Expected Platform Delivery</h4>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                      {platforms.map((platform) => (
-                        <div key={platform.name} className="text-center">
-                          <div className="text-2xl mb-1">{platform.icon}</div>
-                          <div className="text-white text-xs font-medium">{platform.name}</div>
-                          <div className="text-white/60 text-xs">{platform.accounts} accounts</div>
-                        </div>
-                      ))}
+                <div>
+                  <label className="block text-white/90 text-sm font-medium mb-2">Time Zone</label>
+                  <Select value={timeZone} onValueChange={setTimeZone}>
+                    <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="EST">Eastern Time (EST)</SelectItem>
+                      <SelectItem value="CST">Central Time (CST)</SelectItem>
+                      <SelectItem value="MST">Mountain Time (MST)</SelectItem>
+                      <SelectItem value="PST">Pacific Time (PST)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    checked={hasEndDate}
+                    onCheckedChange={(checked: CheckedState) => setHasEndDate(checked === true)}
+                    className="border-white/20"
+                  />
+                  <label className="text-white/90 text-sm">Set campaign end date</label>
+                </div>
+
+                {hasEndDate && (
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-white/90 text-sm font-medium mb-2">End Date</label>
+                      <input
+                        type="date"
+                        value={endDate}
+                        onChange={(e) => setEndDate(e.target.value)}
+                        className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-white/90 text-sm font-medium mb-2">End Time</label>
+                      <input
+                        type="time"
+                        value={endTime}
+                        onChange={(e) => setEndTime(e.target.value)}
+                        className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
                     </div>
                   </div>
                 )}
@@ -249,189 +203,201 @@ const CampaignBuilderStep5 = () => {
             </Card>
 
             {/* Auto-Boost Settings */}
-            <Card className="glass-card animate-fade-in">
-              <CardContent className="p-6">
-                <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5 text-blue-400" />
+            <Card className="glass-card-strong">
+              <CardHeader>
+                <CardTitle className="flex items-center text-white">
+                  <Settings className="h-5 w-5 mr-2 text-blue-400" />
                   Engagement-Based Reboost Rules
-                </h3>
-                <p className="text-white/70 mb-6">Set conditions to re-distribute underperforming content automatically.</p>
-                
-                <div className="space-y-6">
-                  <div>
-                    <Label className="text-white font-semibold mb-3 block flex items-center gap-2">
-                      <Eye className="h-4 w-4" />
-                      Reboost if views are below this threshold after 24 hours
-                    </Label>
-                    <div className="space-y-3">
-                      <Slider
-                        value={autoBoostThreshold}
-                        onValueChange={setAutoBoostThreshold}
-                        max={10000}
-                        min={500}
-                        step={100}
-                        className="w-full"
-                      />
-                      <div className="flex justify-between text-sm text-white/60">
-                        <span>500 views</span>
-                        <span className="text-purple-400 font-bold">{autoBoostThreshold[0]} views</span>
-                        <span>10,000 views</span>
-                      </div>
-                      <div className="text-center p-3 glass-subtle rounded-lg">
-                        <div className="text-green-400 font-semibold">Estimated Reach Lift: {getEstimatedReachLift()}</div>
-                      </div>
-                    </div>
+                </CardTitle>
+                <p className="text-white/70 text-sm">Set conditions to re-distribute underperforming content automatically</p>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div>
+                  <label className="block text-white/90 text-sm font-medium mb-2">
+                    Reboost if views are below threshold after
+                  </label>
+                  <Select value={timeWindow} onValueChange={setTimeWindow}>
+                    <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="12">12 hours</SelectItem>
+                      <SelectItem value="24">24 hours</SelectItem>
+                      <SelectItem value="48">48 hours</SelectItem>
+                      <SelectItem value="72">72 hours</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="block text-white/90 text-sm font-medium mb-4">
+                    View Threshold: {viewThreshold[0].toLocaleString()} views
+                  </label>
+                  <Slider
+                    value={viewThreshold}
+                    onValueChange={setViewThreshold}
+                    max={10000}
+                    min={500}
+                    step={100}
+                    className="w-full"
+                  />
+                  <div className="flex justify-between text-xs text-white/60 mt-1">
+                    <span>500</span>
+                    <span>10,000</span>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      checked={boostOnce}
+                      onCheckedChange={(checked: CheckedState) => setBoostOnce(checked === true)}
+                      className="border-white/20"
+                    />
+                    <label className="text-white/90 text-sm">Reboost once only</label>
                   </div>
 
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div className="flex items-center space-x-2 p-4 glass-subtle rounded-lg">
-                      <Checkbox
-                        id="reboost-once"
-                        checked={reboostOnce}
-                        onCheckedChange={setReboostOnce}
-                      />
-                      <Label htmlFor="reboost-once" className="text-white text-sm">
-                        Reboost once only
-                      </Label>
-                    </div>
-                    
-                    <div className="flex items-center space-x-2 p-4 glass-subtle rounded-lg">
-                      <Checkbox
-                        id="variant-captions"
-                        checked={variantCaptions}
-                        onCheckedChange={setVariantCaptions}
-                      />
-                      <Label htmlFor="variant-captions" className="text-white text-sm">
-                        Use variant captions
-                      </Label>
-                    </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      checked={useVariantCaptions}
+                      onCheckedChange={(checked: CheckedState) => setUseVariantCaptions(checked === true)}
+                      className="border-white/20"
+                    />
+                    <label className="text-white/90 text-sm">Use variant captions for reboosts</label>
                   </div>
+                </div>
+
+                <div className="bg-blue-500/10 border border-blue-400/20 rounded-lg p-3">
+                  <p className="text-blue-200 text-sm">
+                    <strong>Estimated reach lift:</strong> +35% with these settings
+                  </p>
                 </div>
               </CardContent>
             </Card>
           </div>
 
           {/* Campaign Summary Sidebar */}
-          <div className="lg:w-80">
-            <Card className="glass-card animate-fade-in sticky top-8">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                    <Settings className="h-5 w-5 text-purple-400" />
-                    Campaign Summary
-                  </h3>
-                  <Dialog open={showSummary} onOpenChange={setShowSummary}>
-                    <DialogTrigger asChild>
-                      <Button variant="ghost" size="sm" className="glass-button text-xs">
-                        Review
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="glass-modal max-w-2xl">
-                      <DialogHeader>
-                        <DialogTitle className="text-white">Campaign Review</DialogTitle>
-                      </DialogHeader>
-                      <div className="space-y-4 text-white/80">
-                        <div><strong>Goal:</strong> {campaignGoal}</div>
-                        <div><strong>Tier:</strong> {campaignTier}</div>
-                        <div><strong>Content:</strong> {campaignContent.files?.length || 0} assets</div>
-                        <div><strong>Boosts:</strong> {campaignBoosts.length} selected</div>
-                        <div><strong>Platforms:</strong> {platforms.map(p => p.name).join(", ")}</div>
-                        <div><strong>Auto-boost:</strong> Below {autoBoostThreshold[0]} views</div>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
+          <div className="space-y-6">
+            <Card className="glass-card-strong">
+              <CardHeader>
+                <CardTitle className="text-white">Campaign Summary</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-white/80 text-sm">Goal:</span>
+                    <Badge className="bg-purple-500/20 text-purple-200">{campaignData.goal}</Badge>
+                  </div>
                 </div>
-                
-                <div className="space-y-4">
-                  <div className="glass-subtle rounded-lg p-4">
-                    <div className="text-white/70 text-sm mb-1">Campaign Goal</div>
-                    <div className="text-white font-semibold">{campaignGoal}</div>
-                  </div>
-                  
-                  <div className="glass-subtle rounded-lg p-4">
-                    <div className="text-white/70 text-sm mb-1">Syndication Tier</div>
-                    <div className="text-white font-semibold">{campaignTier}</div>
-                  </div>
-                  
-                  <div className="glass-subtle rounded-lg p-4">
-                    <div className="text-white/70 text-sm mb-1">Content Assets</div>
-                    <div className="text-white font-semibold">{campaignContent.files?.length || 0} videos</div>
-                  </div>
-                  
-                  <div className="glass-subtle rounded-lg p-4">
-                    <div className="text-white/70 text-sm mb-1">Boosts Activated</div>
-                    <div className="text-white font-semibold">{campaignBoosts.length} boosts</div>
-                  </div>
 
-                  <div className="glass-subtle rounded-lg p-4">
-                    <div className="text-white/70 text-sm mb-1">Auto-Reboost Rules</div>
-                    <div className="text-white font-semibold">Below {autoBoostThreshold[0]} views, 24h</div>
+                <div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-white/80 text-sm">Content Assets:</span>
+                    <span className="text-white font-medium">{campaignData.contentAssets} clips</span>
                   </div>
-
-                  {getMissingInfo().length > 0 && (
-                    <div className="p-4 glass-strong rounded-lg border border-yellow-400/30">
-                      <div className="text-yellow-400 font-semibold mb-2">⚠️ Missing Information</div>
-                      <div className="text-white/80 text-sm">
-                        {getMissingInfo().join(", ")}
-                      </div>
-                    </div>
-                  )}
                 </div>
+
+                <div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-white/80 text-sm">Tier:</span>
+                    <Badge className="bg-green-500/20 text-green-200">{campaignData.tier}</Badge>
+                  </div>
+                </div>
+
+                <div>
+                  <span className="text-white/80 text-sm block mb-2">Platforms:</span>
+                  <div className="flex flex-wrap gap-1">
+                    {campaignData.platforms.map((platform) => (
+                      <span
+                        key={platform}
+                        className="bg-white/10 text-white text-xs px-2 py-1 rounded flex items-center"
+                      >
+                        {getPlatformIcon(platform)} {platform}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <span className="text-white/80 text-sm block mb-2">Active Boosts:</span>
+                  <div className="space-y-1">
+                    {campaignData.boosts.map((boost) => (
+                      <div key={boost} className="bg-white/5 text-white text-xs px-2 py-1 rounded">
+                        {boost}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-white/80 text-sm">Estimated Reach:</span>
+                    <span className="text-white font-medium">{campaignData.estimatedReach}</span>
+                  </div>
+                </div>
+
+                {!isFormValid && (
+                  <div className="bg-yellow-500/10 border border-yellow-400/20 rounded-lg p-3 flex items-center">
+                    <AlertTriangle className="h-4 w-4 text-yellow-400 mr-2" />
+                    <span className="text-yellow-200 text-xs">Schedule date & time required</span>
+                  </div>
+                )}
               </CardContent>
             </Card>
+
+            {/* Launch Controls */}
+            <div className="space-y-3">
+              <Button
+                onClick={() => navigate('/campaign-builder/step-4')}
+                variant="outline"
+                className="w-full bg-white/10 border-white/20 text-white hover:bg-white/20"
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Boosts
+              </Button>
+
+              <Dialog open={showConfirmModal} onOpenChange={setShowConfirmModal}>
+                <DialogTrigger asChild>
+                  <Button
+                    disabled={!isFormValid}
+                    className="w-full bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 text-white font-bold py-3"
+                  >
+                    <Play className="h-4 w-4 mr-2" />
+                    Launch Campaign
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="glass-card-strong border-white/20">
+                  <DialogHeader>
+                    <DialogTitle className="text-white">Confirm & Launch Campaign</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <p className="text-white/80">
+                      Your campaign will be scheduled to launch on{' '}
+                      <strong className="text-white">
+                        {selectedDate} at {selectedTime} {timeZone}
+                      </strong>
+                    </p>
+                    <div className="flex space-x-3">
+                      <Button
+                        onClick={() => setShowConfirmModal(false)}
+                        variant="outline"
+                        className="flex-1 bg-white/10 border-white/20 text-white hover:bg-white/20"
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        onClick={handleLaunch}
+                        className="flex-1 bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 text-white"
+                      >
+                        Confirm & Launch
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
           </div>
         </div>
-
-        {/* Launch Controls */}
-        <div className="max-w-4xl mx-auto mt-8">
-          <Card className="glass-card-strong animate-fade-in">
-            <CardContent className="p-8 text-center">
-              <h3 className="text-2xl font-bold text-white mb-4 flex items-center justify-center gap-2">
-                <Rocket className="h-6 w-6 text-purple-400" />
-                Ready to Launch Your Campaign?
-              </h3>
-              <p className="text-white/80 mb-6 max-w-2xl mx-auto">
-                Your campaign will be distributed across {platforms.length} platform{platforms.length !== 1 ? 's' : ''} with optimized timing and intelligent auto-boost triggers.
-              </p>
-              
-              <div className="flex gap-4 justify-center">
-                <Button
-                  variant="outline"
-                  onClick={() => navigate('/campaign-builder/step-4')}
-                  className="glass-button text-white hover:bg-white/10"
-                  disabled={isLaunching}
-                >
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back to Boosts
-                </Button>
-                
-                <Button
-                  size="lg"
-                  onClick={handleLaunch}
-                  disabled={isLaunching || !startDate || !startTime}
-                  className="glass-button-primary text-white font-bold px-12 py-6 text-lg relative overflow-hidden group"
-                >
-                  {isLaunching ? (
-                    <>
-                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white mr-3"></div>
-                      Launching Campaign...
-                    </>
-                  ) : (
-                    <>
-                      <Zap className="mr-3 h-6 w-6 group-hover:animate-pulse" />
-                      Launch Campaign
-                    </>
-                  )}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Need Help Button */}
-        <button className="fixed bottom-8 right-8 glass-button p-4 rounded-full text-white hover:scale-110 transition-all duration-300 z-50">
-          💬
-        </button>
       </div>
     </div>
   );

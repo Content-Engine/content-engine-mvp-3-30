@@ -48,10 +48,18 @@ export const useCampaignData = () => {
 
     const { data, error } = await supabase
       .from('campaigns')
-      .insert([{
-        ...campaignData,
+      .insert({
+        name: campaignData.name || `Campaign ${new Date().toLocaleDateString()}`,
+        goal: campaignData.goal || '',
+        status: campaignData.status || 'draft',
+        syndication_tier: campaignData.syndication_tier,
+        start_date: campaignData.start_date,
+        end_date: campaignData.end_date,
+        budget_allocated: campaignData.budget_allocated || 0,
+        budget_spent: campaignData.budget_spent || 0,
+        boost_settings: campaignData.boost_settings || {},
         user_id: user.id,
-      }])
+      })
       .select()
       .single();
 

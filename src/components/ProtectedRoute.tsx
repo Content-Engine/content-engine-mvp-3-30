@@ -2,6 +2,7 @@
 import { ReactNode, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { DEV_MODE } from '@/config/dev';
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -12,10 +13,19 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Bypass auth check in dev mode
+    if (DEV_MODE.DISABLE_AUTH) {
+      return;
+    }
+    
     if (!loading && !user) {
       navigate('/auth');
     }
   }, [user, loading, navigate]);
+
+  if (DEV_MODE.DISABLE_AUTH) {
+    return <>{children}</>;
+  }
 
   if (loading) {
     return (

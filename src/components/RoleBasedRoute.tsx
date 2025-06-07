@@ -2,6 +2,7 @@
 import { ReactNode, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth, UserRole } from '@/hooks/useAuth';
+import { DEV_MODE } from '@/config/dev';
 
 interface RoleBasedRouteProps {
   children: ReactNode;
@@ -13,6 +14,11 @@ const RoleBasedRoute = ({ children, allowedRoles }: RoleBasedRouteProps) => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Bypass role check in dev mode
+    if (DEV_MODE.DISABLE_AUTH) {
+      return;
+    }
+    
     if (!loading) {
       if (!user) {
         navigate('/auth');
@@ -25,6 +31,10 @@ const RoleBasedRoute = ({ children, allowedRoles }: RoleBasedRouteProps) => {
       }
     }
   }, [userRole, loading, user, allowedRoles, navigate]);
+
+  if (DEV_MODE.DISABLE_AUTH) {
+    return <>{children}</>;
+  }
 
   if (loading) {
     return (

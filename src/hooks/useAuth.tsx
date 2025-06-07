@@ -1,7 +1,7 @@
-
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { DEV_MODE } from '@/config/dev';
 
 export type UserRole = 'admin' | 'social_media_manager' | 'editor' | 'user';
 
@@ -25,34 +25,42 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchUserRole = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', userId)
-        .single();
+  // Development mode bypass
+  useEffect(() => {
+    if (DEV_MODE.DISABLE_AUTH) {
+      setUser(DEV_MODE.MOCK_USER as User);
+      setUserRole(DEV_MODE.DEFAULT_ROLE);
+      setLoading(false);
+      return;
+    }
 
-      if (error) {
-        console.log('No role found for user, defaulting to user role');
+    const fetchUserRole = async (userId: string) => {
+      try {
+        const { data, error } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', userId)
+          .single();
+
+        if (error) {
+          console.log('No role found for user, defaulting to user role');
+          return 'user';
+        }
+        
+        return data.role as UserRole;
+      } catch (error) {
+        console.error('Error fetching user role:', error);
         return 'user';
       }
-      
-      return data.role as UserRole;
-    } catch (error) {
-      console.error('Error fetching user role:', error);
-      return 'user';
-    }
-  };
+    };
 
-  const refreshUserRole = async () => {
-    if (user) {
-      const role = await fetchUserRole(user.id);
-      setUserRole(role);
-    }
-  };
+    const refreshUserRole = async () => {
+      if (user) {
+        const role = await fetchUserRole(user.id);
+        setUserRole(role);
+      }
+    };
 
-  useEffect(() => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
@@ -82,7 +90,40 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => subscription.unsubscribe();
   }, []);
 
+  const refreshUserRole = async () => {
+    if (DEV_MODE.DISABLE_AUTH) return;
+    
+    if (user) {
+      const fetchUserRole = async (userId: string) => {
+        try {
+          const { data, error } = await supabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', userId)
+            .single();
+
+          if (error) {
+            console.log('No role found for user, defaulting to user role');
+            return 'user';
+          }
+          
+          return data.role as UserRole;
+        } catch (error) {
+          console.error('Error fetching user role:', error);
+          return 'user';
+        }
+      };
+      
+      const role = await fetchUserRole(user.id);
+      setUserRole(role);
+    }
+  };
+
   const signIn = async (email: string, password: string) => {
+    if (DEV_MODE.DISABLE_AUTH) {
+      return { error: null };
+    }
+    
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -91,6 +132,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signUp = async (email: string, password: string, fullName?: string, role: UserRole = 'user') => {
+    if (DEV_MODE.DISABLE_AUTH) {
+      return { error: null };
+    }
+    
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -115,10 +160,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signOut = async () => {
+    if (DEV_MODE.DISABLE_AUTH) {
+      return;
+    }
+    
     await supabase.auth.signOut();
   };
 
   const updateUserRole = async (userId: string, role: UserRole) => {
+    if (DEV_MODE.DISABLE_AUTH) {
+      setUserRole(role);
+      return;
+    }
+    
     const { error } = await supabase
       .from('user_roles')
       .upsert({

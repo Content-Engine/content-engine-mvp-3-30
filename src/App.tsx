@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/hooks/useAuth";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import CampaignBuilder from "./pages/CampaignBuilder";
@@ -29,29 +30,31 @@ const queryClient = new QueryClient({
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <Routes>
-            <Route path="/" element={<Index />} />
-            
-            {/* All routes are now public - no auth required */}
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/user-management" element={<UserManagement />} />
-            <Route path="/campaign-builder" element={<CampaignBuilder />} />
-            <Route path="/calendar" element={<CalendarOverview />} />
-            <Route path="/performance" element={<PerformanceDashboard />} />
-            <Route path="/qc-panel" element={<QualityControlPanel />} />
-            <Route path="/payment-tiers" element={<PaymentTiers />} />
-            <Route path="/social-manager" element={<SocialMediaManagerView />} />
-            <Route path="/editor-dashboard" element={<EditorView />} />
-            <Route path="/social/*" element={<SocialManagerDashboard />} />
-            
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </TooltipProvider>
-      </BrowserRouter>
+      <AuthProvider>
+        <BrowserRouter>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <Routes>
+              <Route path="/" element={<Index />} />
+              
+              {/* All routes are now public - no auth required */}
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/user-management" element={<UserManagement />} />
+              <Route path="/campaign-builder" element={<CampaignBuilder />} />
+              <Route path="/calendar" element={<CalendarOverview />} />
+              <Route path="/performance" element={<PerformanceDashboard />} />
+              <Route path="/qc-panel" element={<QualityControlPanel />} />
+              <Route path="/payment-tiers" element={<PaymentTiers />} />
+              <Route path="/social-manager" element={<SocialMediaManagerView />} />
+              <Route path="/editor-dashboard" element={<EditorView />} />
+              <Route path="/social/*" element={<SocialManagerDashboard />} />
+              
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </TooltipProvider>
+        </BrowserRouter>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

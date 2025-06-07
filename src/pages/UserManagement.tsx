@@ -24,7 +24,7 @@ const UserManagement = () => {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [inviteEmail, setInviteEmail] = useState('');
-  const [inviteRole, setInviteRole] = useState('editor');
+  const [inviteRole, setInviteRole] = useState<'admin' | 'social_media_manager' | 'editor' | 'user'>('editor');
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
   const { toast } = useToast();
 
@@ -83,7 +83,7 @@ const UserManagement = () => {
     }
   };
 
-  const handleRoleChange = async (userId: string, role: string) => {
+  const handleRoleChange = async (userId: string, role: 'admin' | 'social_media_manager' | 'editor' | 'user') => {
     try {
       console.log('Changing role for user:', userId, 'to:', role);
       
@@ -206,7 +206,7 @@ const UserManagement = () => {
                   <Label htmlFor="role" className="text-right">
                     Role
                   </Label>
-                  <Select onValueChange={setInviteRole} defaultValue="editor">
+                  <Select onValueChange={(value: 'admin' | 'social_media_manager' | 'editor' | 'user') => setInviteRole(value)} defaultValue="editor">
                     <SelectTrigger className="col-span-3">
                       <SelectValue placeholder="Select a role" />
                     </SelectTrigger>
@@ -214,6 +214,7 @@ const UserManagement = () => {
                       <SelectItem value="admin">Admin</SelectItem>
                       <SelectItem value="social_media_manager">Social Media Manager</SelectItem>
                       <SelectItem value="editor">Editor</SelectItem>
+                      <SelectItem value="user">User</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -262,7 +263,7 @@ const UserManagement = () => {
                         </Badge>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm leading-5 font-medium">
-                        <Select onValueChange={(value) => handleRoleChange(user.id, value)}>
+                        <Select onValueChange={(value: 'admin' | 'social_media_manager' | 'editor' | 'user') => handleRoleChange(user.id, value)}>
                           <SelectTrigger>
                             <SelectValue placeholder={user.role} />
                           </SelectTrigger>
@@ -270,6 +271,7 @@ const UserManagement = () => {
                             <SelectItem value="admin">Admin</SelectItem>
                             <SelectItem value="social_media_manager">Social Media Manager</SelectItem>
                             <SelectItem value="editor">Editor</SelectItem>
+                            <SelectItem value="user">User</SelectItem>
                           </SelectContent>
                         </Select>
                       </td>

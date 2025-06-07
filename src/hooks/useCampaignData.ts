@@ -1,7 +1,6 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
 
 interface Campaign {
   id: string;
@@ -21,17 +20,13 @@ export const useCampaignData = () => {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { user } = useAuth();
 
   const fetchCampaigns = async () => {
-    if (!user) return;
-    
     try {
       setLoading(true);
       const { data, error } = await supabase
         .from('campaigns')
         .select('*')
-        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -44,8 +39,6 @@ export const useCampaignData = () => {
   };
 
   const createCampaign = async (campaignData: Partial<Campaign>) => {
-    if (!user) throw new Error('User not authenticated');
-
     const { data, error } = await supabase
       .from('campaigns')
       .insert({
@@ -58,7 +51,6 @@ export const useCampaignData = () => {
         budget_allocated: campaignData.budget_allocated || 0,
         budget_spent: campaignData.budget_spent || 0,
         boost_settings: campaignData.boost_settings || {},
-        user_id: user.id,
       })
       .select()
       .single();
@@ -80,7 +72,7 @@ export const useCampaignData = () => {
 
   useEffect(() => {
     fetchCampaigns();
-  }, [user]);
+  }, []);
 
   return {
     campaigns,

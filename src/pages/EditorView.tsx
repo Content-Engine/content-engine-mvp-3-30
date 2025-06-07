@@ -1,13 +1,15 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, Clock, Upload, Trophy, Star, Zap } from "lucide-react";
+import { CheckCircle, Clock, Upload, Trophy, Star, Zap, ArrowLeft } from "lucide-react";
 import { CalendarContent } from "@/types/calendar";
 import { useToast } from "@/hooks/use-toast";
 import DiscordChatModule from "@/components/DiscordChatModule";
 
 const EditorView = () => {
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [myContent, setMyContent] = useState<CalendarContent[]>([]);
   const [isChatCollapsed, setIsChatCollapsed] = useState(false);
@@ -81,6 +83,19 @@ const EditorView = () => {
   return (
     <div className="min-h-screen bg-background p-4 md:p-6">
       <div className={`max-w-6xl mx-auto space-y-6 transition-all duration-300 ${!isChatCollapsed ? 'md:mr-84' : ''}`}>
+        {/* Header with Back Button */}
+        <div className="flex items-center justify-between">
+          <div className="flex-1" />
+          <Button
+            variant="ghost"
+            onClick={() => navigate(-1)}
+            className="text-foreground/90 hover:text-foreground"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back
+          </Button>
+        </div>
+
         {/* Header */}
         <Card>
           <CardHeader>

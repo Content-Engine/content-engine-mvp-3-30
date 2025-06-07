@@ -1,7 +1,8 @@
-
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import QCFilterBar from "@/components/QCFilterBar";
 import QCContentTable from "@/components/QCContentTable";
@@ -10,6 +11,7 @@ import { QCContent, QCFilters } from "@/types/qc";
 import { mockQCContent } from "@/services/qcService";
 
 const QualityControlPanel = () => {
+  const navigate = useNavigate();
   const [content, setContent] = useState<QCContent[]>([]);
   const [filteredContent, setFilteredContent] = useState<QCContent[]>([]);
   const [selectedContent, setSelectedContent] = useState<QCContent | null>(null);
@@ -114,6 +116,19 @@ const QualityControlPanel = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-gray-950 to-gray-900 p-4 md:p-6">
       <div className="max-w-7xl mx-auto space-y-6">
+        {/* Header with Back Button */}
+        <div className="flex items-center justify-between">
+          <div className="flex-1" />
+          <Button
+            variant="ghost"
+            onClick={() => navigate(-1)}
+            className="text-white/90 hover:text-white"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back
+          </Button>
+        </div>
+
         <Card className="glow">
           <CardHeader>
             <CardTitle className="text-2xl font-bold text-center bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">

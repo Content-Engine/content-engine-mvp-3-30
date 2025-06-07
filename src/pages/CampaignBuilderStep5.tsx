@@ -1,10 +1,9 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Checkbox, CheckedState } from "@/components/ui/checkbox";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -171,7 +170,7 @@ const CampaignBuilderStep5 = () => {
                 <div className="flex items-center space-x-2">
                   <Checkbox
                     checked={hasEndDate}
-                    onCheckedChange={(checked: CheckedState) => setHasEndDate(checked === true)}
+                    onCheckedChange={(checked) => setHasEndDate(checked === true)}
                     className="border-white/20"
                   />
                   <label className="text-white/90 text-sm">Set campaign end date</label>
@@ -251,7 +250,7 @@ const CampaignBuilderStep5 = () => {
                   <div className="flex items-center space-x-2">
                     <Checkbox
                       checked={boostOnce}
-                      onCheckedChange={(checked: CheckedState) => setBoostOnce(checked === true)}
+                      onCheckedChange={(checked) => setBoostOnce(checked === true)}
                       className="border-white/20"
                     />
                     <label className="text-white/90 text-sm">Reboost once only</label>
@@ -260,7 +259,7 @@ const CampaignBuilderStep5 = () => {
                   <div className="flex items-center space-x-2">
                     <Checkbox
                       checked={useVariantCaptions}
-                      onCheckedChange={(checked: CheckedState) => setUseVariantCaptions(checked === true)}
+                      onCheckedChange={(checked) => setUseVariantCaptions(checked === true)}
                       className="border-white/20"
                     />
                     <label className="text-white/90 text-sm">Use variant captions for reboosts</label>

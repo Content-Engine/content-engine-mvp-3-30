@@ -1,33 +1,58 @@
 
 import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import ProgressBar from "@/components/ProgressBar";
-import { ArrowLeft, Upload, X } from "lucide-react";
+import { ArrowLeft, Upload, X, Music, Target, Tag, Settings } from "lucide-react";
 import { useDropzone } from "react-dropzone";
 
-interface UploadedFile {
+interface ContentAsset {
+  id: string;
   file: File;
   preview: string;
-  id: string;
+  category: string;
+  funnelStage: string;
+  postType: string;
+  assignedSong: string;
+  caption: string;
+  syndicationTier: string;
 }
 
 const CampaignBuilderStep2 = () => {
   const navigate = useNavigate();
-  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
-  const [vibeDescription, setVibeDescription] = useState("");
+  const [contentAssets, setContentAssets] = useState<ContentAsset[]>([]);
+  const [globalSyndicationTier, setGlobalSyndicationTier] = useState("basic");
+
+  // Mock song database
+  const availableSongs = [
+    "Midnight Dreams",
+    "Electric Vibes",
+    "Summer Nights",
+    "Urban Flow",
+    "Neon Lights",
+    "Bass Drop",
+    "Ambient Waves"
+  ];
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
-    const newFiles = acceptedFiles.map(file => ({
+    const newAssets = acceptedFiles.map(file => ({
+      id: Math.random().toString(36).substr(2, 9),
       file,
       preview: URL.createObjectURL(file),
-      id: Math.random().toString(36).substr(2, 9)
+      category: "",
+      funnelStage: "",
+      postType: "",
+      assignedSong: "",
+      caption: "",
+      syndicationTier: globalSyndicationTier
     }));
-    setUploadedFiles(prev => [...prev, ...newFiles]);
-  }, []);
+    setContentAssets(prev => [...prev, ...newAssets]);
+  }, [globalSyndicationTier]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -37,18 +62,55 @@ const CampaignBuilderStep2 = () => {
     multiple: true
   });
 
-  const removeFile = (id: string) => {
-    setUploadedFiles(prev => prev.filter(file => file.id !== id));
+  const updateAsset = (id: string, field: keyof ContentAsset, value: string) => {
+    setContentAssets(prev => prev.map(asset => 
+      asset.id === id ? { ...asset, [field]: value } : asset
+    ));
+  };
+
+  const removeAsset = (id: string) => {
+    setContentAssets(prev => prev.filter(asset => asset.id !== id));
+  };
+
+  const applyToAll = (field: keyof ContentAsset, value: string) => {
+    setContentAssets(prev => prev.map(asset => ({ ...asset, [field]: value })));
   };
 
   const handleNext = () => {
-    // Save to localStorage (would be Airtable in production)
-    localStorage.setItem('campaignContent', JSON.stringify({
-      files: uploadedFiles.map(f => f.file.name),
-      vibeDescription
+    // Save to localStorage
+    localStorage.setItem('campaignContentStrategy', JSON.stringify({
+      contentAssets: contentAssets.map(asset => ({
+        fileName: asset.file.name,
+        category: asset.category,
+        funnelStage: asset.funnelStage,
+        postType: asset.postType,
+        assignedSong: asset.assignedSong,
+        caption: asset.caption,
+        syndicationTier: asset.syndicationTier
+      }))
     }));
     navigate('/campaign-builder/step-3');
   };
+
+  const getCompletionStats = () => {
+    const total = contentAssets.length;
+    const completed = contentAssets.filter(asset => 
+      asset.category && asset.funnelStage && asset.postType && asset.assignedSong
+    ).length;
+    return { total, completed };
+  };
+
+  const getFunnelBreakdown = () => {
+    const breakdown = { awareness: 0, retention: 0, conversion: 0 };
+    contentAssets.forEach(asset => {
+      if (asset.funnelStage) {
+        breakdown[asset.funnelStage as keyof typeof breakdown]++;
+      }
+    });
+    return breakdown;
+  };
+
+  const isValid = contentAssets.length > 0 && getCompletionStats().completed === contentAssets.length;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-gray-950 to-gray-900 relative">
@@ -81,121 +143,300 @@ const CampaignBuilderStep2 = () => {
         {/* Step Title */}
         <div className="text-center mb-12">
           <h2 className="text-4xl font-bold bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent mb-4">
-            Upload Your Content 📱
+            Content Strategy 🎯
           </h2>
           <p className="text-xl text-white/80">
-            Add your short-form videos for multi-platform syndication
+            Define your content types, funnel goals, and syndication strategy
           </p>
         </div>
 
-        <div className="max-w-4xl mx-auto space-y-8">
-          {/* Upload Area */}
-          <Card className="glass-card border-2 border-dashed border-white/30 hover:border-white/50 transition-colors">
-            <CardContent className="p-8">
-              <div {...getRootProps()} className="text-center cursor-pointer">
-                <input {...getInputProps()} />
-                <Upload className="h-12 w-12 text-white/60 mx-auto mb-4" />
-                {isDragActive ? (
-                  <p className="text-white text-lg">Drop your videos here! 🎬</p>
-                ) : (
-                  <div>
-                    <p className="text-white text-lg mb-2">
-                      Drag & drop videos or click to browse
-                    </p>
-                    <p className="text-white/60">
-                      Supports MP4, MOV • Auto-resizes for TikTok (9:16), IG (1:1), YouTube (16:9)
-                    </p>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Uploaded Files */}
-          {uploadedFiles.length > 0 && (
-            <Card className="glass-card">
-              <CardContent className="p-6">
-                <h3 className="text-xl font-bold text-white mb-4">Uploaded Content ({uploadedFiles.length})</h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {uploadedFiles.map((file) => (
-                    <div key={file.id} className="relative group">
-                      <video
-                        src={file.preview}
-                        className="w-full h-32 object-cover rounded-lg"
-                        controls
-                      />
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={() => removeFile(file.id)}
-                      >
-                        <X className="h-3 w-3" />
-                      </Button>
-                      <p className="text-white/80 text-xs mt-1 truncate">{file.file.name}</p>
+        <div className="grid lg:grid-cols-4 gap-8">
+          {/* Main Content */}
+          <div className="lg:col-span-3 space-y-8">
+            {/* Upload Area */}
+            <Card className="glass-card border-2 border-dashed border-white/30 hover:border-white/50 transition-colors">
+              <CardContent className="p-8">
+                <div {...getRootProps()} className="text-center cursor-pointer">
+                  <input {...getInputProps()} />
+                  <Upload className="h-12 w-12 text-white/60 mx-auto mb-4" />
+                  {isDragActive ? (
+                    <p className="text-white text-lg">Drop your content here! 🎬</p>
+                  ) : (
+                    <div>
+                      <p className="text-white text-lg mb-2">
+                        Upload Content Assets
+                      </p>
+                      <p className="text-white/60">
+                        Drag & drop videos or click to browse • Each piece needs strategy assignment
+                      </p>
                     </div>
-                  ))}
+                  )}
                 </div>
               </CardContent>
             </Card>
-          )}
 
-          {/* Vibe Description */}
-          <Card className="glass-card">
-            <CardContent className="p-6">
-              <Label htmlFor="vibe" className="text-white text-lg font-semibold mb-3 block">
-                Content Vibe Description (Optional) ✨
-              </Label>
-              <Input
-                id="vibe"
-                placeholder="e.g., 'Spiritual drop', 'Party starter', 'Motivational energy'"
-                value={vibeDescription}
-                onChange={(e) => setVibeDescription(e.target.value)}
-                className="glass-input text-lg p-4"
-              />
-              <p className="text-white/60 text-sm mt-2">
-                💡 Helps optimize captions and hashtag strategies across platforms
-              </p>
-            </CardContent>
-          </Card>
-
-          {/* Platform Preview */}
-          <Card className="glass-card">
-            <CardContent className="p-6">
-              <h3 className="text-xl font-bold text-white mb-4">Platform Optimization Preview</h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {[
-                  { platform: "TikTok", ratio: "9:16", color: "from-pink-500 to-purple-500" },
-                  { platform: "IG Reels", ratio: "9:16", color: "from-orange-500 to-pink-500" },
-                  { platform: "YouTube", ratio: "16:9", color: "from-red-500 to-red-600" },
-                  { platform: "Facebook", ratio: "1:1", color: "from-blue-500 to-blue-600" },
-                ].map((item) => (
-                  <div key={item.platform} className={`bg-gradient-to-br ${item.color} rounded-lg p-4 text-center`}>
-                    <h4 className="text-white font-bold">{item.platform}</h4>
-                    <p className="text-white/80 text-sm">{item.ratio}</p>
+            {/* Global Settings */}
+            {contentAssets.length > 0 && (
+              <Card className="glass-card">
+                <CardHeader>
+                  <CardTitle className="flex items-center text-white">
+                    <Settings className="h-5 w-5 mr-2 text-blue-400" />
+                    Global Settings
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <Label className="text-white/90 text-sm">Apply to All: Syndication Tier</Label>
+                      <Select value={globalSyndicationTier} onValueChange={(value) => {
+                        setGlobalSyndicationTier(value);
+                        applyToAll('syndicationTier', value);
+                      }}>
+                        <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="basic">Basic Syndication</SelectItem>
+                          <SelectItem value="pro">Pro Syndication</SelectItem>
+                          <SelectItem value="max">Max Syndication</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label className="text-white/90 text-sm">Apply to All: Category</Label>
+                      <Select onValueChange={(value) => applyToAll('category', value)}>
+                        <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                          <SelectValue placeholder="Select category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="meme">Meme Page</SelectItem>
+                          <SelectItem value="fan">Fan Page</SelectItem>
+                          <SelectItem value="topic">Topic Page</SelectItem>
+                          <SelectItem value="official">Official Channel</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label className="text-white/90 text-sm">Apply to All: Funnel Stage</Label>
+                      <Select onValueChange={(value) => applyToAll('funnelStage', value)}>
+                        <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                          <SelectValue placeholder="Select stage" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="awareness">Awareness</SelectItem>
+                          <SelectItem value="retention">Retention</SelectItem>
+                          <SelectItem value="conversion">Conversion</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                </CardContent>
+              </Card>
+            )}
 
-          {/* Navigation */}
-          <div className="flex justify-between">
-            <Button
-              variant="outline"
-              onClick={() => navigate('/campaign-builder/step-1')}
-              className="glass-button text-white hover:bg-white/10"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back
-            </Button>
-            <Button
-              onClick={handleNext}
-              disabled={uploadedFiles.length === 0}
-              className="glass-button-primary text-white font-bold px-8"
-            >
-              Next: Choose Syndication Tier
-            </Button>
+            {/* Content Assets Grid */}
+            {contentAssets.length > 0 && (
+              <div className="space-y-6">
+                <h3 className="text-2xl font-bold text-white">Content Assets ({contentAssets.length})</h3>
+                <div className="space-y-6">
+                  {contentAssets.map((asset) => (
+                    <Card key={asset.id} className="glass-card">
+                      <CardContent className="p-6">
+                        <div className="grid lg:grid-cols-12 gap-6 items-start">
+                          {/* Video Preview */}
+                          <div className="lg:col-span-3">
+                            <div className="relative">
+                              <video
+                                src={asset.preview}
+                                className="w-full h-32 object-cover rounded-lg"
+                                controls
+                              />
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0"
+                                onClick={() => removeAsset(asset.id)}
+                              >
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </div>
+                            <p className="text-white/80 text-xs mt-2 truncate">{asset.file.name}</p>
+                          </div>
+
+                          {/* Strategy Configuration */}
+                          <div className="lg:col-span-9 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                            {/* Content Category */}
+                            <div>
+                              <Label className="text-white/90 text-sm flex items-center mb-2">
+                                <Tag className="h-4 w-4 mr-1" />
+                                Content Category
+                              </Label>
+                              <Select value={asset.category} onValueChange={(value) => updateAsset(asset.id, 'category', value)}>
+                                <SelectTrigger className="bg-white/10 border-white/20 text-white text-xs">
+                                  <SelectValue placeholder="Select" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="meme">Meme Page</SelectItem>
+                                  <SelectItem value="fan">Fan Page</SelectItem>
+                                  <SelectItem value="topic">Topic Page</SelectItem>
+                                  <SelectItem value="official">Official Channel</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+
+                            {/* Funnel Stage */}
+                            <div>
+                              <Label className="text-white/90 text-sm flex items-center mb-2">
+                                <Target className="h-4 w-4 mr-1" />
+                                Funnel Stage
+                              </Label>
+                              <Select value={asset.funnelStage} onValueChange={(value) => updateAsset(asset.id, 'funnelStage', value)}>
+                                <SelectTrigger className="bg-white/10 border-white/20 text-white text-xs">
+                                  <SelectValue placeholder="Select" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="awareness">Awareness</SelectItem>
+                                  <SelectItem value="retention">Retention</SelectItem>
+                                  <SelectItem value="conversion">Conversion</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+
+                            {/* Post Type */}
+                            <div>
+                              <Label className="text-white/90 text-sm mb-2 block">Post Type</Label>
+                              <Select value={asset.postType} onValueChange={(value) => updateAsset(asset.id, 'postType', value)}>
+                                <SelectTrigger className="bg-white/10 border-white/20 text-white text-xs">
+                                  <SelectValue placeholder="Select" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="short-form">Short-form</SelectItem>
+                                  <SelectItem value="snippet">Snippet</SelectItem>
+                                  <SelectItem value="cta">CTA Content</SelectItem>
+                                  <SelectItem value="remix">Remix/Variant</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+
+                            {/* Song Assignment */}
+                            <div>
+                              <Label className="text-white/90 text-sm flex items-center mb-2">
+                                <Music className="h-4 w-4 mr-1" />
+                                Assign Song
+                              </Label>
+                              <Select value={asset.assignedSong} onValueChange={(value) => updateAsset(asset.id, 'assignedSong', value)}>
+                                <SelectTrigger className="bg-white/10 border-white/20 text-white text-xs">
+                                  <SelectValue placeholder="Select" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {availableSongs.map((song) => (
+                                    <SelectItem key={song} value={song}>{song}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+
+                            {/* Caption */}
+                            <div className="md:col-span-2">
+                              <Label className="text-white/90 text-sm mb-2 block">Caption (Optional)</Label>
+                              <Input
+                                placeholder="Add custom caption..."
+                                value={asset.caption}
+                                onChange={(e) => updateAsset(asset.id, 'caption', e.target.value)}
+                                className="bg-white/10 border-white/20 text-white placeholder-white/50 text-xs"
+                              />
+                            </div>
+
+                            {/* Status Indicators */}
+                            <div className="md:col-span-2 flex flex-wrap gap-1">
+                              {asset.category && <Badge className="bg-blue-500/20 text-blue-200 text-xs">{asset.category}</Badge>}
+                              {asset.funnelStage && <Badge className="bg-green-500/20 text-green-200 text-xs">{asset.funnelStage}</Badge>}
+                              {asset.assignedSong && <Badge className="bg-purple-500/20 text-purple-200 text-xs">🎵 {asset.assignedSong}</Badge>}
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Navigation */}
+            <div className="flex justify-between">
+              <Button
+                variant="outline"
+                onClick={() => navigate('/campaign-builder/step-1')}
+                className="glass-button text-white hover:bg-white/10"
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Goal
+              </Button>
+              <Button
+                onClick={handleNext}
+                disabled={!isValid}
+                className="glass-button-primary text-white font-bold px-8"
+              >
+                Next: Choose Syndication
+              </Button>
+            </div>
+          </div>
+
+          {/* Summary Sidebar */}
+          <div className="space-y-6">
+            <Card className="glass-card-strong">
+              <CardHeader>
+                <CardTitle className="text-white">Strategy Summary</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-white/80 text-sm">Completion</span>
+                    <span className="text-white font-medium">
+                      {getCompletionStats().completed}/{getCompletionStats().total}
+                    </span>
+                  </div>
+                  <div className="w-full bg-white/10 rounded-full h-2">
+                    <div 
+                      className="bg-gradient-to-r from-purple-500 to-blue-500 h-2 rounded-full transition-all"
+                      style={{ 
+                        width: getCompletionStats().total > 0 
+                          ? `${(getCompletionStats().completed / getCompletionStats().total) * 100}%` 
+                          : '0%' 
+                      }}
+                    ></div>
+                  </div>
+                </div>
+
+                <div>
+                  <span className="text-white/80 text-sm block mb-2">Funnel Breakdown</span>
+                  <div className="space-y-2">
+                    {Object.entries(getFunnelBreakdown()).map(([stage, count]) => (
+                      <div key={stage} className="flex justify-between">
+                        <span className="text-white/70 text-xs capitalize">{stage}</span>
+                        <span className="text-white text-xs">{count}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <span className="text-white/80 text-sm block mb-2">Daily Syndication Load</span>
+                  <div className="bg-white/5 rounded-lg p-3">
+                    <div className="text-white text-lg font-bold">{contentAssets.length}</div>
+                    <div className="text-white/60 text-xs">pieces per day</div>
+                  </div>
+                </div>
+
+                {!isValid && contentAssets.length > 0 && (
+                  <div className="bg-yellow-500/10 border border-yellow-400/20 rounded-lg p-3">
+                    <p className="text-yellow-200 text-xs">
+                      Complete all content assignments to continue
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </div>
         </div>
 

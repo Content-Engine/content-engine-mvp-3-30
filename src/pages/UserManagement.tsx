@@ -51,14 +51,14 @@ const UserManagement = () => {
 
       console.log('Profiles fetched:', profiles?.length);
 
-      // Then get all user roles
+      // Then get all user roles using the new structure
       const { data: userRoles, error: rolesError } = await supabase
         .from('user_roles')
         .select('user_id, role');
 
       if (rolesError) {
         console.error('Error fetching user roles:', rolesError);
-        // Don't throw here, just use default roles
+        // Continue without roles if there's an error
       }
 
       console.log('User roles fetched:', userRoles?.length);

@@ -31,7 +31,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       console.log('Fetching user role for:', userId);
       
-      // Use a direct query instead of the function to avoid RLS issues during initial setup
       const { data, error } = await supabase
         .from('user_roles')
         .select('role')
@@ -54,6 +53,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           
           if (insertError) {
             console.error('Error creating default role:', insertError);
+            return 'editor'; // Return default even if insert fails
           }
           
           return 'editor';
@@ -102,7 +102,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     console.log('Setting up auth state listener');
     
-    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('Auth state changed:', event, session?.user?.id);
@@ -135,7 +134,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     );
 
-    // THEN check for existing session
+    // Check for existing session
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       console.log('Initial session check:', session?.user?.id);
       setSession(session);

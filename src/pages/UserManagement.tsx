@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -35,18 +36,34 @@ const UserManagement = () => {
 
   const fetchUsers = async () => {
     try {
+      console.log('Fetching users and roles...');
+      
+      // First get all profiles
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
-        .select('id, email, full_name, created_at');
+        .select('id, email, full_name, created_at')
+        .order('created_at', { ascending: false });
 
-      if (profilesError) throw profilesError;
+      if (profilesError) {
+        console.error('Error fetching profiles:', profilesError);
+        throw profilesError;
+      }
 
+      console.log('Profiles fetched:', profiles?.length);
+
+      // Then get all user roles
       const { data: userRoles, error: rolesError } = await supabase
         .from('user_roles')
         .select('user_id, role');
 
-      if (rolesError) throw rolesError;
+      if (rolesError) {
+        console.error('Error fetching user roles:', rolesError);
+        // Don't throw here, just use default roles
+      }
 
+      console.log('User roles fetched:', userRoles?.length);
+
+      // Combine profiles with roles
       const usersWithRoles = profiles?.map(profile => {
         const userRole = userRoles?.find(role => role.user_id === profile.id);
         return {
@@ -55,12 +72,13 @@ const UserManagement = () => {
         };
       }) || [];
 
+      console.log('Users with roles:', usersWithRoles);
       setUsers(usersWithRoles);
     } catch (error) {
       console.error('Error fetching users:', error);
       toast({
         title: "Error",
-        description: "Failed to fetch users",
+        description: "Failed to fetch users. Please check console for details.",
         variant: "destructive",
       });
     } finally {
@@ -70,12 +88,16 @@ const UserManagement = () => {
 
   const handleRoleChange = async (userId: string, role: UserRole) => {
     try {
+      console.log('Changing role for user:', userId, 'to:', role);
       await updateUserRole(userId, role);
+      
+      // Update local state
       setUsers(prevUsers =>
         prevUsers.map(user =>
           user.id === userId ? { ...user, role: role } : user
         )
       );
+      
       toast({
         title: "Success",
         description: `User role updated to ${role}`,
@@ -100,6 +122,8 @@ const UserManagement = () => {
         throw new Error('Invalid email format.');
       }
 
+      console.log('Inviting user:', inviteEmail, 'with role:', inviteRole);
+
       // Call Supabase function to handle the invite
       const { data, error } = await supabase.functions.invoke('invite-user', {
         body: {
@@ -116,6 +140,9 @@ const UserManagement = () => {
         title: "Success",
         description: `User invited successfully with role: ${inviteRole}`,
       });
+      
+      // Refresh users list
+      await fetchUsers();
     } catch (error: any) {
       console.error('Error inviting user:', error);
       toast({
@@ -161,7 +188,7 @@ const UserManagement = () => {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-2xl font-bold">User Management</CardTitle>
-            <Dialog>
+            <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
               <DialogTrigger asChild>
                 <Button variant="outline">
                   <UserPlus className="h-4 w-4 mr-2" />
@@ -189,7 +216,7 @@ const UserManagement = () => {
                     <Label htmlFor="role" className="text-right">
                       Role
                     </Label>
-                    <Select onValueChange={(value) => setInviteRole(value as UserRole)}>
+                    <Select onValueChange={(value) => setInviteRole(value as UserRole)} defaultValue="editor">
                       <SelectTrigger className="col-span-3">
                         <SelectValue placeholder="Select a role" />
                       </SelectTrigger>
@@ -209,7 +236,9 @@ const UserManagement = () => {
           </CardHeader>
           <CardContent>
             {loading ? (
-              <p>Loading users...</p>
+              <div className="flex justify-center items-center py-8">
+                <div className="text-lg">Loading users...</div>
+              </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
@@ -231,7 +260,7 @@ const UserManagement = () => {
                     {users.map((user) => (
                       <tr key={user.id}>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">{user.full_name}</div>
+                          <div className="text-sm text-gray-900">{user.full_name || 'N/A'}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm text-gray-900">{user.email}</div>
@@ -258,6 +287,12 @@ const UserManagement = () => {
                     ))}
                   </tbody>
                 </table>
+                
+                {users.length === 0 && (
+                  <div className="text-center py-8">
+                    <p className="text-gray-500">No users found</p>
+                  </div>
+                )}
               </div>
             )}
           </CardContent>

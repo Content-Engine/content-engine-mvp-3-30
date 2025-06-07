@@ -28,50 +28,67 @@ const Auth = () => {
     e.preventDefault();
     setLoading(true);
     
-    const { error } = await signIn(loginForm.email, loginForm.password);
-    
-    if (error) {
+    try {
+      const { error } = await signIn(loginForm.email, loginForm.password);
+      
+      if (error) {
+        toast({
+          title: "Login Failed",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Welcome back!",
+          description: "You have been successfully logged in.",
+        });
+        navigate('/dashboard');
+      }
+    } catch (err: any) {
       toast({
-        title: "Login Failed",
-        description: error.message,
+        title: "Login Error",
+        description: err.message || "An unexpected error occurred",
         variant: "destructive",
       });
-    } else {
-      toast({
-        title: "Welcome back!",
-        description: "You have been successfully logged in.",
-      });
-      navigate('/dashboard');
+    } finally {
+      setLoading(false);
     }
-    
-    setLoading(false);
   };
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     
-    const { error } = await signUp(
-      signupForm.email, 
-      signupForm.password, 
-      signupForm.fullName,
-      signupForm.role
-    );
-    
-    if (error) {
+    try {
+      const { error } = await signUp(
+        signupForm.email, 
+        signupForm.password, 
+        signupForm.fullName,
+        signupForm.role
+      );
+      
+      if (error) {
+        toast({
+          title: "Signup Failed",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Account Created!",
+          description: "Please check your email to verify your account.",
+        });
+        // Don't navigate immediately - user needs to verify email
+      }
+    } catch (err: any) {
       toast({
-        title: "Signup Failed",
-        description: error.message,
+        title: "Signup Error",
+        description: err.message || "An unexpected error occurred",
         variant: "destructive",
       });
-    } else {
-      toast({
-        title: "Account Created!",
-        description: "Please check your email to verify your account.",
-      });
+    } finally {
+      setLoading(false);
     }
-    
-    setLoading(false);
   };
 
   return (
@@ -104,6 +121,7 @@ const Auth = () => {
                     onChange={(e) => setLoginForm(prev => ({ ...prev, email: e.target.value }))}
                     className="bg-white/10 border-white/20 text-white"
                     required
+                    disabled={loading}
                   />
                 </div>
                 <div className="space-y-2">
@@ -115,6 +133,7 @@ const Auth = () => {
                     onChange={(e) => setLoginForm(prev => ({ ...prev, password: e.target.value }))}
                     className="bg-white/10 border-white/20 text-white"
                     required
+                    disabled={loading}
                   />
                 </div>
                 <Button type="submit" className="w-full glass-button-primary" disabled={loading}>
@@ -134,6 +153,7 @@ const Auth = () => {
                     onChange={(e) => setSignupForm(prev => ({ ...prev, fullName: e.target.value }))}
                     className="bg-white/10 border-white/20 text-white"
                     required
+                    disabled={loading}
                   />
                 </div>
                 <div className="space-y-2">
@@ -145,6 +165,7 @@ const Auth = () => {
                     onChange={(e) => setSignupForm(prev => ({ ...prev, email: e.target.value }))}
                     className="bg-white/10 border-white/20 text-white"
                     required
+                    disabled={loading}
                   />
                 </div>
                 <div className="space-y-2">
@@ -156,11 +177,18 @@ const Auth = () => {
                     onChange={(e) => setSignupForm(prev => ({ ...prev, password: e.target.value }))}
                     className="bg-white/10 border-white/20 text-white"
                     required
+                    disabled={loading}
                   />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="role" className="text-white">Role</Label>
-                  <Select value={signupForm.role} onValueChange={(value: 'admin' | 'social_media_manager' | 'editor' | 'user') => setSignupForm(prev => ({ ...prev, role: value }))}>
+                  <Select 
+                    value={signupForm.role} 
+                    onValueChange={(value: 'admin' | 'social_media_manager' | 'editor' | 'user') => 
+                      setSignupForm(prev => ({ ...prev, role: value }))
+                    }
+                    disabled={loading}
+                  >
                     <SelectTrigger className="bg-white/10 border-white/20 text-white">
                       <SelectValue />
                     </SelectTrigger>

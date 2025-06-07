@@ -106,14 +106,6 @@ const Dashboard = () => {
                           Goal: {campaign.goal} • Status: {campaign.status}
                         </p>
                       </div>
-                      <div className="flex space-x-2">
-                        <Button variant="ghost" size="sm" onClick={() => navigate(`/calendar`)}>
-                          View Schedule
-                        </Button>
-                        <Button variant="ghost" size="sm" onClick={() => navigate(`/qc-panel`)}>
-                          QC Review
-                        </Button>
-                      </div>
                     </div>
                   </div>
                 ))}

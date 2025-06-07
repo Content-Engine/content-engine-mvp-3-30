@@ -3,19 +3,13 @@ import { useState, useEffect } from 'react';
 import { PaymentTier } from '@/types/syndication';
 import { PAYMENT_TIERS } from '@/config/paymentTiers';
 import { STRIPE_CONFIG } from '@/config/stripe';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '@/integrations/supabase/client';
 
 interface SubscriptionState {
   currentTier: string | null;
   isLoading: boolean;
   error: string | null;
 }
-
-// Initialize Supabase client using Vite environment variables
-const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL || '',
-  import.meta.env.VITE_SUPABASE_ANON_KEY || ''
-);
 
 export const useSubscription = () => {
   const [subscriptionState, setSubscriptionState] = useState<SubscriptionState>({

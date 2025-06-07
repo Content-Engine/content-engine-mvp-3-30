@@ -44,15 +44,29 @@ const App = () => (
                 </ProtectedRoute>
               } />
               
+              {/* Campaign Builder Routes - Fixed routing */}
+              <Route path="/campaign-builder" element={
+                <ProtectedRoute>
+                  <Navigate to="/campaign-builder/step-1" replace />
+                </ProtectedRoute>
+              } />
+              
+              <Route path="/campaign-builder/step-:step" element={
+                <ProtectedRoute>
+                  <CampaignBuilder />
+                </ProtectedRoute>
+              } />
+              
+              {/* Legacy route redirect for campaigns/new */}
               <Route path="/campaigns/new" element={
                 <ProtectedRoute>
-                  <Navigate to="/campaigns/new/step-1" replace />
+                  <Navigate to="/campaign-builder/step-1" replace />
                 </ProtectedRoute>
               } />
               
               <Route path="/campaigns/new/step-:step" element={
                 <ProtectedRoute>
-                  <CampaignBuilder />
+                  <Navigate to="/campaign-builder/step-1" replace />
                 </ProtectedRoute>
               } />
               

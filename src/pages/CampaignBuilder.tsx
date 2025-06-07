@@ -73,13 +73,13 @@ const CampaignBuilder = () => {
 
   const handleNext = () => {
     if (currentStep < 5) {
-      navigate(`/campaigns/new/step-${currentStep + 1}`);
+      navigate(`/campaign-builder/step-${currentStep + 1}`);
     }
   };
 
   const handlePrevious = () => {
     if (currentStep > 1) {
-      navigate(`/campaigns/new/step-${currentStep - 1}`);
+      navigate(`/campaign-builder/step-${currentStep - 1}`);
     }
   };
 

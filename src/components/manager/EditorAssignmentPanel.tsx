@@ -154,7 +154,7 @@ const EditorAssignmentPanel = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {assignments.filter(a => a.status === View').length}
+              {assignments.filter(a => a.status === 'completed').length}
             </div>
           </CardContent>
         </Card>

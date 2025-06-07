@@ -1,8 +1,9 @@
 
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
-import { LogOut } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Card, CardContent } from '@/components/ui/card';
+import { LogOut, Home, Calendar, CheckSquare, CreditCard } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -11,6 +12,14 @@ interface LayoutProps {
 const Layout = ({ children }: LayoutProps) => {
   const { signOut } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const navigationItems = [
+    { path: '/dashboard', label: 'Dashboard', icon: Home },
+    { path: '/calendar', label: 'Calendar', icon: Calendar },
+    { path: '/qc-panel', label: 'Quality Control', icon: CheckSquare },
+    { path: '/billing', label: 'Billing', icon: CreditCard },
+  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-gray-950 to-gray-900">
@@ -30,6 +39,31 @@ const Layout = ({ children }: LayoutProps) => {
           </Button>
         </div>
       </header>
+
+      {/* Main Navigation Toolbar */}
+      <div className="container mx-auto px-4 py-4">
+        <Card>
+          <CardContent className="p-4">
+            <nav className="flex flex-wrap gap-4 items-center justify-center">
+              {navigationItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = location.pathname === item.path;
+                return (
+                  <Button
+                    key={item.path}
+                    variant={isActive ? "secondary" : "ghost"}
+                    onClick={() => navigate(item.path)}
+                    className="text-white/90 hover:text-white"
+                  >
+                    <Icon className="h-4 w-4 mr-2" />
+                    {item.label}
+                  </Button>
+                );
+              })}
+            </nav>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">

@@ -51,19 +51,29 @@ const CampaignBuilderStep2 = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-pink-900">
-      <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-black via-gray-950 to-gray-900 relative">
+      {/* Ambient background effects */}
+      <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-blue-900/10 to-pink-900/20 animate-float"></div>
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl animate-pulse"></div>
+      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+      
+      <div className="container mx-auto px-4 py-8 relative z-10">
         {/* Header */}
         <div className="flex items-center mb-8">
           <Button
             variant="ghost"
             onClick={() => navigate('/campaign-builder/step-1')}
-            className="text-white hover:bg-white/10 mr-4"
+            className="glass-button text-white hover:bg-white/15 mr-4 backdrop-blur-xl border border-white/10"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back
           </Button>
-          <h1 className="text-3xl font-bold text-white">Campaign Builder</h1>
+          <div className="glass-card-strong p-4 animate-fade-in">
+            <h1 className="text-4xl font-bold text-white bg-gradient-to-r from-purple-400 via-blue-400 to-pink-400 bg-clip-text text-transparent drop-shadow-2xl">
+              Campaign Builder
+            </h1>
+            <div className="h-1 w-full bg-gradient-to-r from-purple-400 via-blue-400 to-pink-400 rounded-full mt-2 animate-shimmer"></div>
+          </div>
         </div>
 
         <ProgressBar currentStep={2} totalSteps={5} />
@@ -80,7 +90,7 @@ const CampaignBuilderStep2 = () => {
 
         <div className="max-w-4xl mx-auto space-y-8">
           {/* Upload Area */}
-          <Card className="bg-white/10 border-2 border-dashed border-white/30 hover:border-white/50 transition-colors">
+          <Card className="glass-card border-2 border-dashed border-white/30 hover:border-white/50 transition-colors">
             <CardContent className="p-8">
               <div {...getRootProps()} className="text-center cursor-pointer">
                 <input {...getInputProps()} />
@@ -103,7 +113,7 @@ const CampaignBuilderStep2 = () => {
 
           {/* Uploaded Files */}
           {uploadedFiles.length > 0 && (
-            <Card className="bg-white/10 border-white/20">
+            <Card className="glass-card">
               <CardContent className="p-6">
                 <h3 className="text-xl font-bold text-white mb-4">Uploaded Content ({uploadedFiles.length})</h3>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -131,7 +141,7 @@ const CampaignBuilderStep2 = () => {
           )}
 
           {/* Vibe Description */}
-          <Card className="bg-white/10 border-white/20">
+          <Card className="glass-card">
             <CardContent className="p-6">
               <Label htmlFor="vibe" className="text-white text-lg font-semibold mb-3 block">
                 Content Vibe Description (Optional) ✨
@@ -141,7 +151,7 @@ const CampaignBuilderStep2 = () => {
                 placeholder="e.g., 'Spiritual drop', 'Party starter', 'Motivational energy'"
                 value={vibeDescription}
                 onChange={(e) => setVibeDescription(e.target.value)}
-                className="bg-white/10 border-white/30 text-white placeholder:text-white/60 text-lg p-4"
+                className="glass-input text-lg p-4"
               />
               <p className="text-white/60 text-sm mt-2">
                 💡 Helps optimize captions and hashtag strategies across platforms
@@ -150,7 +160,7 @@ const CampaignBuilderStep2 = () => {
           </Card>
 
           {/* Platform Preview */}
-          <Card className="bg-white/10 border-white/20">
+          <Card className="glass-card">
             <CardContent className="p-6">
               <h3 className="text-xl font-bold text-white mb-4">Platform Optimization Preview</h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -174,7 +184,7 @@ const CampaignBuilderStep2 = () => {
             <Button
               variant="outline"
               onClick={() => navigate('/campaign-builder/step-1')}
-              className="border-white/30 text-white hover:bg-white/10"
+              className="glass-button text-white hover:bg-white/10"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back
@@ -182,12 +192,17 @@ const CampaignBuilderStep2 = () => {
             <Button
               onClick={handleNext}
               disabled={uploadedFiles.length === 0}
-              className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-bold px-8"
+              className="glass-button-primary text-white font-bold px-8"
             >
               Next: Choose Syndication Tier
             </Button>
           </div>
         </div>
+
+        {/* Floating decorative elements */}
+        <div className="fixed top-20 right-20 w-4 h-4 bg-purple-400/30 rounded-full blur-sm animate-float"></div>
+        <div className="fixed bottom-20 left-20 w-6 h-6 bg-blue-400/20 rounded-full blur-sm animate-float delay-500"></div>
+        <div className="fixed top-1/2 right-10 w-3 h-3 bg-pink-400/25 rounded-full blur-sm animate-float delay-1000"></div>
       </div>
     </div>
   );

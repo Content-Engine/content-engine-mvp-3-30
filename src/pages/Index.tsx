@@ -23,7 +23,7 @@ const Index = () => {
         {/* Main Action Cards */}
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
           {/* Start New Campaign */}
-          <Card className="bg-gradient-to-br from-pink-500 to-purple-600 border-0 hover:scale-105 transition-all duration-300 cursor-pointer group" 
+          <Card className="bg-gradient-to-br from-gray-900 to-black border-0 hover:scale-105 transition-all duration-300 cursor-pointer group" 
                 onClick={() => navigate('/campaign-builder/step-1')}>
             <CardContent className="p-8 text-center">
               <div className="bg-white/20 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
@@ -92,7 +92,7 @@ const Index = () => {
         <div className="text-center">
           <Button 
             size="lg"
-            className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white text-xl px-12 py-6 rounded-full font-bold shadow-2xl hover:scale-105 transition-all duration-300"
+            className="bg-gradient-to-r from-gray-900 to-black hover:from-gray-800 hover:to-gray-900 text-white text-xl px-12 py-6 rounded-full font-bold shadow-2xl hover:scale-105 transition-all duration-300 border border-white/20"
             onClick={() => navigate('/campaign-builder/step-1')}
           >
             <Zap className="mr-2 h-6 w-6" />

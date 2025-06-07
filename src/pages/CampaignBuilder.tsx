@@ -175,12 +175,11 @@ const CampaignBuilder = () => {
   }
 
   console.log('=== Rendering Main Component ===');
+  console.log('=== Layout Children Rendering ===');
 
   return (
     <Layout>
       <div className="max-w-4xl mx-auto space-y-8">
-        {console.log('=== Layout Children Rendering ===')}
-        
         {/* Debug info */}
         <div className="text-white text-center p-4 bg-red-500/20 border border-red-500/50 rounded">
           <p>Debug: Current Step = {currentStep}</p>
@@ -225,9 +224,11 @@ const CampaignBuilder = () => {
 
         {/* Step Content */}
         <div className="min-h-[400px] border-2 border-yellow-500 p-4">
-          {console.log('=== About to render step content ===')}
           <div className="text-white mb-4">Debug: Step content container</div>
-          {renderStep()}
+          {(() => {
+            console.log('=== About to render step content ===');
+            return renderStep();
+          })()}
         </div>
       </div>
     </Layout>

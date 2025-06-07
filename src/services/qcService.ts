@@ -1,38 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
-
-export interface QCContent {
-  id: string;
-  campaignId: string;
-  title: string;
-  accountName: string;
-  editorName: string;
-  platform: string;
-  scheduledDate: string;
-  approvalStatus: 'pending' | 'approved' | 'rejected';
-  comments: Array<{
-    id: string;
-    authorName: string;
-    content: string;
-    createdAt: string;
-  }>;
-  autoApproved: boolean;
-  mediaUrl: string;
-  thumbnailUrl: string;
-  timeToApprove?: number;
-  boostStatus?: 'none' | 'boosted' | 'scheduled';
-  boostTier?: string;
-  boostAmount?: number;
-  approvedBy?: string;
-  approvedAt?: string;
-  boostPurchases?: Array<{
-    id: string;
-    tier: string;
-    amount: number;
-    purchasedAt: string;
-    reach?: number;
-    status: string;
-  }>;
-}
+import { QCContent } from '@/types/qc';
 
 export const fetchQCContent = async (): Promise<QCContent[]> => {
   try {
@@ -75,7 +42,7 @@ export const fetchQCContent = async (): Promise<QCContent[]> => {
         title: contentItem?.file_name || 'Untitled Content',
         accountName: campaign?.name || 'Unknown Campaign',
         editorName: submission.submitted_by_profile?.full_name || 'Unknown Editor',
-        platform: 'TikTok', // Default platform, could be stored in content_items
+        platform: 'TikTok', // Use proper type constraint
         scheduledDate: submission.submitted_at,
         approvalStatus: submission.status,
         comments: [], // We'll implement comments separately if needed

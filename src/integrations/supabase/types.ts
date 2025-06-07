@@ -156,6 +156,57 @@ export type Database = {
           },
         ]
       }
+      comment_seedings: {
+        Row: {
+          actual_count: number | null
+          boost_id: string | null
+          content_item_id: string | null
+          created_at: string | null
+          id: string
+          seed_comments: Json | null
+          status: string | null
+          target_count: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          actual_count?: number | null
+          boost_id?: string | null
+          content_item_id?: string | null
+          created_at?: string | null
+          id?: string
+          seed_comments?: Json | null
+          status?: string | null
+          target_count?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          actual_count?: number | null
+          boost_id?: string | null
+          content_item_id?: string | null
+          created_at?: string | null
+          id?: string
+          seed_comments?: Json | null
+          status?: string | null
+          target_count?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comment_seedings_boost_id_fkey"
+            columns: ["boost_id"]
+            isOneToOne: false
+            referencedRelation: "boosts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comment_seedings_content_item_id_fkey"
+            columns: ["content_item_id"]
+            isOneToOne: false
+            referencedRelation: "content_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       comments: {
         Row: {
           comment_text: string
@@ -232,6 +283,67 @@ export type Database = {
           },
         ]
       }
+      editor_assignments: {
+        Row: {
+          assigned_at: string | null
+          campaign_id: string | null
+          completed_at: string | null
+          content_item_id: string | null
+          created_at: string | null
+          editor_id: string | null
+          id: string
+          notes: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_at?: string | null
+          campaign_id?: string | null
+          completed_at?: string | null
+          content_item_id?: string | null
+          created_at?: string | null
+          editor_id?: string | null
+          id?: string
+          notes?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_at?: string | null
+          campaign_id?: string | null
+          completed_at?: string | null
+          content_item_id?: string | null
+          created_at?: string | null
+          editor_id?: string | null
+          id?: string
+          notes?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "editor_assignments_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "editor_assignments_content_item_id_fkey"
+            columns: ["content_item_id"]
+            isOneToOne: false
+            referencedRelation: "content_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "editor_assignments_editor_id_fkey"
+            columns: ["editor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       editors: {
         Row: {
           created_at: string
@@ -267,6 +379,66 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      metrics: {
+        Row: {
+          campaign_id: string | null
+          clicks: number | null
+          comments: number | null
+          content_item_id: string | null
+          created_at: string | null
+          ctr: number | null
+          id: string
+          impressions: number | null
+          platform: string
+          recorded_at: string | null
+          saves: number | null
+          shares: number | null
+        }
+        Insert: {
+          campaign_id?: string | null
+          clicks?: number | null
+          comments?: number | null
+          content_item_id?: string | null
+          created_at?: string | null
+          ctr?: number | null
+          id?: string
+          impressions?: number | null
+          platform: string
+          recorded_at?: string | null
+          saves?: number | null
+          shares?: number | null
+        }
+        Update: {
+          campaign_id?: string | null
+          clicks?: number | null
+          comments?: number | null
+          content_item_id?: string | null
+          created_at?: string | null
+          ctr?: number | null
+          id?: string
+          impressions?: number | null
+          platform?: string
+          recorded_at?: string | null
+          saves?: number | null
+          shares?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "metrics_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "metrics_content_item_id_fkey"
+            columns: ["content_item_id"]
+            isOneToOne: false
+            referencedRelation: "content_items"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -347,6 +519,89 @@ export type Database = {
           {
             foreignKeyName: "qc_submissions_submitted_by_fkey"
             columns: ["submitted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      songs: {
+        Row: {
+          artist: string | null
+          created_at: string | null
+          duration: number | null
+          file_url: string | null
+          genre: string | null
+          id: string
+          mood: string | null
+          platform_compatibility: Json | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          artist?: string | null
+          created_at?: string | null
+          duration?: number | null
+          file_url?: string | null
+          genre?: string | null
+          id?: string
+          mood?: string | null
+          platform_compatibility?: Json | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          artist?: string | null
+          created_at?: string | null
+          duration?: number | null
+          file_url?: string | null
+          genre?: string | null
+          id?: string
+          mood?: string | null
+          platform_compatibility?: Json | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      training_progress: {
+        Row: {
+          completed: boolean | null
+          completed_at: string | null
+          created_at: string | null
+          id: string
+          notes: string | null
+          progress_percentage: number | null
+          training_module: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          completed?: boolean | null
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          progress_percentage?: number | null
+          training_module: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          completed?: boolean | null
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          progress_percentage?: number | null
+          training_module?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_progress_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]

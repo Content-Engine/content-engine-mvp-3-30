@@ -53,38 +53,184 @@ export type Database = {
           },
         ]
       }
+      boosts: {
+        Row: {
+          boost_type: string
+          campaign_id: string | null
+          configuration: Json | null
+          cost: number | null
+          created_at: string | null
+          id: string
+          is_enabled: boolean | null
+        }
+        Insert: {
+          boost_type: string
+          campaign_id?: string | null
+          configuration?: Json | null
+          cost?: number | null
+          created_at?: string | null
+          id?: string
+          is_enabled?: boolean | null
+        }
+        Update: {
+          boost_type?: string
+          campaign_id?: string | null
+          configuration?: Json | null
+          cost?: number | null
+          created_at?: string | null
+          id?: string
+          is_enabled?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "boosts_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       campaigns: {
         Row: {
+          boost_settings: Json | null
+          budget_allocated: number | null
+          budget_spent: number | null
           created_at: string
           created_by: string | null
           description: string | null
+          end_date: string | null
+          goal: string | null
           id: string
           name: string
+          start_date: string | null
           status: string | null
+          syndication_tier: string | null
           total_boost_spend: number | null
           updated_at: string
+          user_id: string | null
         }
         Insert: {
+          boost_settings?: Json | null
+          budget_allocated?: number | null
+          budget_spent?: number | null
           created_at?: string
           created_by?: string | null
           description?: string | null
+          end_date?: string | null
+          goal?: string | null
           id?: string
           name: string
+          start_date?: string | null
           status?: string | null
+          syndication_tier?: string | null
           total_boost_spend?: number | null
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
+          boost_settings?: Json | null
+          budget_allocated?: number | null
+          budget_spent?: number | null
           created_at?: string
           created_by?: string | null
           description?: string | null
+          end_date?: string | null
+          goal?: string | null
           id?: string
           name?: string
+          start_date?: string | null
           status?: string | null
+          syndication_tier?: string | null
           total_boost_spend?: number | null
           updated_at?: string
+          user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "campaigns_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      comments: {
+        Row: {
+          comment_text: string
+          content_item_id: string | null
+          created_at: string | null
+          id: string
+          is_seeded: boolean | null
+          tone_type: string | null
+        }
+        Insert: {
+          comment_text: string
+          content_item_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_seeded?: boolean | null
+          tone_type?: string | null
+        }
+        Update: {
+          comment_text?: string
+          content_item_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_seeded?: boolean | null
+          tone_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comments_content_item_id_fkey"
+            columns: ["content_item_id"]
+            isOneToOne: false
+            referencedRelation: "content_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      content_items: {
+        Row: {
+          campaign_id: string | null
+          created_at: string | null
+          file_name: string
+          file_type: string
+          file_url: string
+          id: string
+          status: string | null
+          thumbnail_url: string | null
+        }
+        Insert: {
+          campaign_id?: string | null
+          created_at?: string | null
+          file_name: string
+          file_type: string
+          file_url: string
+          id?: string
+          status?: string | null
+          thumbnail_url?: string | null
+        }
+        Update: {
+          campaign_id?: string | null
+          created_at?: string | null
+          file_name?: string
+          file_type?: string
+          file_url?: string
+          id?: string
+          status?: string | null
+          thumbnail_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_items_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       editors: {
         Row: {
@@ -121,6 +267,91 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          email: string
+          full_name: string | null
+          id: string
+          subscription_tier: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email: string
+          full_name?: string | null
+          id: string
+          subscription_tier?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string
+          full_name?: string | null
+          id?: string
+          subscription_tier?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      qc_submissions: {
+        Row: {
+          content_item_id: string | null
+          id: string
+          notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string | null
+          submitted_at: string | null
+          submitted_by: string | null
+        }
+        Insert: {
+          content_item_id?: string | null
+          id?: string
+          notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+          submitted_at?: string | null
+          submitted_by?: string | null
+        }
+        Update: {
+          content_item_id?: string | null
+          id?: string
+          notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+          submitted_at?: string | null
+          submitted_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qc_submissions_content_item_id_fkey"
+            columns: ["content_item_id"]
+            isOneToOne: false
+            referencedRelation: "content_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "qc_submissions_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "qc_submissions_submitted_by_fkey"
+            columns: ["submitted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {

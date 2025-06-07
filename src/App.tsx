@@ -1,63 +1,90 @@
 
+import { Suspense, lazy } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
-import Login from "./pages/Login";
-import PaymentTiers from "./pages/PaymentTiers";
-import CampaignBuilderStep1 from "./pages/CampaignBuilderStep1";
-import CampaignBuilderStep2 from "./pages/CampaignBuilderStep2";
-import CampaignBuilderStep3 from "./pages/CampaignBuilderStep3";
-import CampaignBuilderStep4 from "./pages/CampaignBuilderStep4";
-import CampaignBuilderStep5 from "./pages/CampaignBuilderStep5";
-import CampaignsDashboard from "./pages/CampaignsDashboard";
-import PerformanceDashboard from "./pages/PerformanceDashboard";
-import QualityControlPanel from "./pages/QualityControlPanel";
-import CalendarOverview from "./pages/CalendarOverview";
-import EditorView from "./pages/EditorView";
-import SocialMediaManagerView from "./pages/SocialMediaManagerView";
-import NotFound from "./pages/NotFound";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider } from "@/hooks/useAuth";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
-// Create a stable query client instance
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
+// Lazy load components
+const Index = lazy(() => import("@/pages/Index"));
+const Login = lazy(() => import("@/pages/Login"));
+const Dashboard = lazy(() => import("@/pages/Dashboard"));
+const CampaignBuilder = lazy(() => import("@/pages/CampaignBuilder"));
+const CalendarOverview = lazy(() => import("@/pages/CalendarOverview"));
+const QualityControlPanel = lazy(() => import("@/pages/QualityControlPanel"));
+const EditorView = lazy(() => import("@/pages/EditorView"));
+const PaymentTiers = lazy(() => import("@/pages/PaymentTiers"));
 
-const App = () => {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/payment-tiers" element={<PaymentTiers />} />
-            <Route path="/campaign-builder/step-1" element={<CampaignBuilderStep1 />} />
-            <Route path="/campaign-builder/step-2" element={<CampaignBuilderStep2 />} />
-            <Route path="/campaign-builder/step-3" element={<CampaignBuilderStep3 />} />
-            <Route path="/campaign-builder/step-4" element={<CampaignBuilderStep4 />} />
-            <Route path="/campaign-builder/step-5" element={<CampaignBuilderStep5 />} />
-            <Route path="/campaigns-dashboard" element={<CampaignsDashboard />} />
-            <Route path="/performance-dashboard" element={<PerformanceDashboard />} />
-            <Route path="/quality-control" element={<QualityControlPanel />} />
-            <Route path="/calendar" element={<CalendarOverview />} />
-            <Route path="/editor-dashboard" element={<EditorView />} />
-            <Route path="/social-media-manager" element={<SocialMediaManagerView />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
-  );
-};
+const queryClient = new QueryClient();
+
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <BrowserRouter>
+        <AuthProvider>
+          <Suspense fallback={
+            <div className="min-h-screen bg-gradient-to-br from-black via-gray-950 to-gray-900 flex items-center justify-center">
+              <div className="text-white text-xl">Loading...</div>
+            </div>
+          }>
+            <Routes>
+              {/* Public routes */}
+              <Route path="/" element={<Index />} />
+              <Route path="/login" element={<Login />} />
+              
+              {/* Protected routes */}
+              <Route path="/dashboard" element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              } />
+              
+              <Route path="/campaigns/new" element={
+                <ProtectedRoute>
+                  <Navigate to="/campaigns/new/step-1" replace />
+                </ProtectedRoute>
+              } />
+              
+              <Route path="/campaigns/new/step-:step" element={
+                <ProtectedRoute>
+                  <CampaignBuilder />
+                </ProtectedRoute>
+              } />
+              
+              <Route path="/calendar" element={
+                <ProtectedRoute>
+                  <CalendarOverview />
+                </ProtectedRoute>
+              } />
+              
+              <Route path="/qc-panel" element={
+                <ProtectedRoute>
+                  <QualityControlPanel />
+                </ProtectedRoute>
+              } />
+              
+              <Route path="/editor-dashboard" element={
+                <ProtectedRoute>
+                  <EditorView />
+                </ProtectedRoute>
+              } />
+              
+              <Route path="/billing" element={
+                <ProtectedRoute>
+                  <PaymentTiers />
+                </ProtectedRoute>
+              } />
+            </Routes>
+          </Suspense>
+        </AuthProvider>
+      </BrowserRouter>
+    </TooltipProvider>
+  </QueryClientProvider>
+);
 
 export default App;

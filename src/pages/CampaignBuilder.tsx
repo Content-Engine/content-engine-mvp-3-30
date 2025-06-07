@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -29,20 +30,10 @@ interface CampaignData {
 }
 
 const CampaignBuilder = () => {
-  console.log('=== CampaignBuilder Component Loading ===');
-  
   const navigate = useNavigate();
   const { step } = useParams();
   const currentStep = parseInt(step || '1');
   const { createCampaign } = useCampaignData();
-
-  console.log('=== CampaignBuilder Debug ===');
-  console.log('URL step param:', step);
-  console.log('Parsed currentStep:', currentStep);
-  console.log('Step is valid number:', !isNaN(currentStep));
-  console.log('Step in range:', currentStep >= 1 && currentStep <= 5);
-  console.log('CampaignBuilderStep1 component:', CampaignBuilderStep1);
-  console.log('CampaignBuilderStep2 component:', CampaignBuilderStep2);
 
   const [campaignData, setCampaignData] = useState<CampaignData>({
     name: '',
@@ -77,27 +68,23 @@ const CampaignBuilder = () => {
   }, [campaignData]);
 
   const updateCampaignData = (updates: Partial<CampaignData>) => {
-    console.log('Updating campaign data:', updates);
     setCampaignData(prev => ({ ...prev, ...updates }));
   };
 
   const handleNext = () => {
     if (currentStep < 5) {
-      console.log('Navigating to next step:', currentStep + 1);
       navigate(`/campaign-builder/step-${currentStep + 1}`);
     }
   };
 
   const handlePrevious = () => {
     if (currentStep > 1) {
-      console.log('Navigating to previous step:', currentStep - 1);
       navigate(`/campaign-builder/step-${currentStep - 1}`);
     }
   };
 
   const handleLaunch = async () => {
     try {
-      console.log('Launching campaign with data:', campaignData);
       await createCampaign({
         name: campaignData.name || `Campaign ${new Date().toLocaleDateString()}`,
         goal: campaignData.goal,
@@ -111,82 +98,46 @@ const CampaignBuilder = () => {
         },
       });
 
-      // Clear saved data
       localStorage.removeItem('campaignBuilderData');
-      
-      // Redirect to dashboard
       navigate('/dashboard');
     } catch (error) {
       console.error('Failed to create campaign:', error);
     }
   };
 
-  const renderStep = () => {
-    console.log('=== Rendering Step ===');
-    console.log('Current step to render:', currentStep);
-    console.log('About to render step component...');
-    
-    const stepProps = {
-      campaignData,
-      updateCampaignData,
-      onNext: handleNext,
-      onPrevious: handlePrevious,
-    };
-
-    try {
-      switch (currentStep) {
-        case 1:
-          console.log('Rendering Step 1 component');
-          console.log('Step 1 props:', stepProps);
-          const step1Component = <CampaignBuilderStep1 {...stepProps} />;
-          console.log('Step 1 component created:', step1Component);
-          return step1Component;
-        case 2:
-          console.log('Rendering Step 2 component');
-          return <CampaignBuilderStep2 {...stepProps} />;
-        case 3:
-          console.log('Rendering Step 3 component');
-          return <CampaignBuilderStep3 {...stepProps} />;
-        case 4:
-          console.log('Rendering Step 4 component');
-          return <CampaignBuilderStep4 {...stepProps} />;
-        case 5:
-          console.log('Rendering Step 5 component');
-          return <CampaignBuilderStep5 {...stepProps} onLaunch={handleLaunch} />;
-        default:
-          console.error('Invalid step in switch:', currentStep);
-          return <div className="text-white text-center p-8">Invalid step: {currentStep}</div>;
-      }
-    } catch (error) {
-      console.error('Error rendering step component:', error);
-      return <div className="text-white text-center p-8">Error loading step component: {error.message}</div>;
-    }
-  };
-
   // Validate step before rendering
   if (isNaN(currentStep) || currentStep < 1 || currentStep > 5) {
-    console.log('Invalid step detected, redirecting to step 1');
     navigate('/campaign-builder/step-1', { replace: true });
-    return (
-      <Layout>
-        <div className="text-white text-center p-8">Redirecting to step 1...</div>
-      </Layout>
-    );
+    return null;
   }
 
-  console.log('=== Rendering Main Component ===');
-  console.log('=== Layout Children Rendering ===');
+  const stepProps = {
+    campaignData,
+    updateCampaignData,
+    onNext: handleNext,
+    onPrevious: handlePrevious,
+  };
+
+  const renderStepContent = () => {
+    switch (currentStep) {
+      case 1:
+        return <CampaignBuilderStep1 {...stepProps} />;
+      case 2:
+        return <CampaignBuilderStep2 {...stepProps} />;
+      case 3:
+        return <CampaignBuilderStep3 {...stepProps} />;
+      case 4:
+        return <CampaignBuilderStep4 {...stepProps} />;
+      case 5:
+        return <CampaignBuilderStep5 {...stepProps} onLaunch={handleLaunch} />;
+      default:
+        return <div className="text-white text-center p-8">Invalid step</div>;
+    }
+  };
 
   return (
     <Layout>
       <div className="max-w-4xl mx-auto space-y-8">
-        {/* Debug info */}
-        <div className="text-white text-center p-4 bg-red-500/20 border border-red-500/50 rounded">
-          <p>Debug: Current Step = {currentStep}</p>
-          <p>Debug: Step Param = {step}</p>
-          <p>Debug: Component is rendering</p>
-        </div>
-
         {/* Progress Bar */}
         <ProgressBar currentStep={currentStep} totalSteps={5} />
         
@@ -223,12 +174,8 @@ const CampaignBuilder = () => {
         </div>
 
         {/* Step Content */}
-        <div className="min-h-[400px] border-2 border-yellow-500 p-4">
-          <div className="text-white mb-4">Debug: Step content container</div>
-          {(() => {
-            console.log('=== About to render step content ===');
-            return renderStep();
-          })()}
+        <div className="min-h-[400px]">
+          {renderStepContent()}
         </div>
       </div>
     </Layout>

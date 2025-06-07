@@ -82,6 +82,13 @@ const App = () => (
                 </ProtectedRoute>
               } />
               
+              {/* Add the quality-control route */}
+              <Route path="/quality-control" element={
+                <ProtectedRoute>
+                  <QualityControlPanel />
+                </ProtectedRoute>
+              } />
+              
               <Route path="/editor-dashboard" element={
                 <ProtectedRoute>
                   <EditorView />

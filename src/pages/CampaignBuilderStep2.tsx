@@ -11,7 +11,7 @@ interface CampaignBuilderStep2Props {
   onPrevious: () => void;
 }
 
-const CampaignBuilderStep2 = ({ campaignData, updateCampaignData, onNext }: CampaignBuilderStep2Props) => {
+const CampaignBuilderStep2 = ({ campaignData, updateCampaignData, onNext, onPrevious }: CampaignBuilderStep2Props) => {
   const [dragActive, setDragActive] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>(campaignData.contentFiles || []);
 
@@ -71,6 +71,28 @@ const CampaignBuilderStep2 = ({ campaignData, updateCampaignData, onNext }: Camp
 
   const canContinue = uploadedFiles.length > 0;
 
+  const handleNextClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (canContinue && onNext) {
+      onNext();
+    }
+  };
+
+  const handlePreviousClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (onPrevious) {
+      onPrevious();
+    }
+  };
+
+  const handleUploadClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    document.getElementById('file-input')?.click();
+  };
+
   return (
     <div className="space-y-8">
       {/* Step Title */}
@@ -99,7 +121,7 @@ const CampaignBuilderStep2 = ({ campaignData, updateCampaignData, onNext }: Camp
             onDragLeave={handleDrag}
             onDragOver={handleDrag}
             onDrop={handleDrop}
-            onClick={() => document.getElementById('file-input')?.click()}
+            onClick={handleUploadClick}
           >
             <input
               id="file-input"
@@ -117,7 +139,11 @@ const CampaignBuilderStep2 = ({ campaignData, updateCampaignData, onNext }: Camp
             <p className="text-white/80 mb-6">
               Supports MP4, MOV, JPG, PNG (Max 3 files, 100MB each)
             </p>
-            <Button type="button" className="glass-button-primary">
+            <Button 
+              type="button" 
+              className="glass-button-primary"
+              onClick={handleUploadClick}
+            >
               Choose Files
             </Button>
           </div>
@@ -138,7 +164,11 @@ const CampaignBuilderStep2 = ({ campaignData, updateCampaignData, onNext }: Camp
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => removeFile(index)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      removeFile(index);
+                    }}
                     className="text-red-400 hover:text-red-300"
                   >
                     <X className="h-4 w-4" />
@@ -150,22 +180,33 @@ const CampaignBuilderStep2 = ({ campaignData, updateCampaignData, onNext }: Camp
         </CardContent>
       </Card>
 
-      {/* Continue Button */}
-      <div className="text-center">
+      {/* Navigation Buttons */}
+      <div className="flex items-center justify-between max-w-2xl mx-auto">
+        <Button
+          variant="ghost"
+          onClick={handlePreviousClick}
+          className="text-white/90 hover:text-white"
+        >
+          Previous
+        </Button>
+        
         <Button 
-          onClick={onNext} 
+          onClick={handleNextClick} 
           size="lg" 
           className="glass-button-primary"
           disabled={!canContinue}
         >
           {canContinue ? 'Continue to Syndication' : 'Upload at least 1 file to continue'}
         </Button>
-        {canContinue && (
-          <p className="text-green-400 text-sm mt-2">
+      </div>
+
+      {canContinue && (
+        <div className="text-center">
+          <p className="text-green-400 text-sm">
             ✨ Ready to proceed to syndication options!
           </p>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };

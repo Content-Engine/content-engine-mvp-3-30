@@ -31,11 +31,21 @@ interface CampaignBuilderStep1Props {
 
 const CampaignBuilderStep1 = ({ campaignData, updateCampaignData, onNext }: CampaignBuilderStep1Props) => {
   const handleGoalSelect = (goalId: string) => {
+    console.log('Goal selected:', goalId);
     updateCampaignData({ goal: goalId });
-    // Auto-advance after selection
+    
+    // Add a small delay to show the selection feedback, then navigate
     setTimeout(() => {
+      console.log('Navigating to next step');
       onNext();
-    }, 800);
+    }, 1000);
+  };
+
+  const handleContinueClick = () => {
+    if (campaignData.goal && onNext) {
+      console.log('Continue button clicked, proceeding to step 2');
+      onNext();
+    }
   };
 
   return (
@@ -79,6 +89,19 @@ const CampaignBuilderStep1 = ({ campaignData, updateCampaignData, onNext }: Camp
           </Card>
         ))}
       </div>
+
+      {/* Manual Continue Button (fallback) */}
+      {campaignData.goal && (
+        <div className="text-center">
+          <Button 
+            onClick={handleContinueClick}
+            size="lg" 
+            className="glass-button-primary"
+          >
+            Continue to Upload Content
+          </Button>
+        </div>
+      )}
 
       {/* Help Text */}
       <div className="text-center">

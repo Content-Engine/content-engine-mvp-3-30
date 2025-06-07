@@ -11,10 +11,10 @@ interface SubscriptionState {
   error: string | null;
 }
 
-// Initialize Supabase client (you'll need to add your actual URL and anon key)
+// Initialize Supabase client using Vite environment variables
 const supabase = createClient(
-  process.env.REACT_APP_SUPABASE_URL || '',
-  process.env.REACT_APP_SUPABASE_ANON_KEY || ''
+  import.meta.env.VITE_SUPABASE_URL || '',
+  import.meta.env.VITE_SUPABASE_ANON_KEY || ''
 );
 
 export const useSubscription = () => {

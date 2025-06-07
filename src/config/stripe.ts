@@ -1,8 +1,8 @@
 
 // Stripe configuration - use publishable key for client-side
 export const STRIPE_CONFIG = {
-  // Replace with your actual Stripe publishable key
-  publishableKey: process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY || 'pk_test_...',
+  // Live Stripe publishable key
+  publishableKey: 'pk_live_51RX77lEOop8EVApo',
   
   // Price IDs for each tier (replace with your actual Stripe price IDs)
   priceIds: {

@@ -29,6 +29,8 @@ interface CampaignData {
 }
 
 const CampaignBuilder = () => {
+  console.log('=== CampaignBuilder Component Loading ===');
+  
   const navigate = useNavigate();
   const { step } = useParams();
   const currentStep = parseInt(step || '1');
@@ -39,6 +41,8 @@ const CampaignBuilder = () => {
   console.log('Parsed currentStep:', currentStep);
   console.log('Step is valid number:', !isNaN(currentStep));
   console.log('Step in range:', currentStep >= 1 && currentStep <= 5);
+  console.log('CampaignBuilderStep1 component:', CampaignBuilderStep1);
+  console.log('CampaignBuilderStep2 component:', CampaignBuilderStep2);
 
   const [campaignData, setCampaignData] = useState<CampaignData>({
     name: '',
@@ -120,6 +124,7 @@ const CampaignBuilder = () => {
   const renderStep = () => {
     console.log('=== Rendering Step ===');
     console.log('Current step to render:', currentStep);
+    console.log('About to render step component...');
     
     const stepProps = {
       campaignData,
@@ -132,7 +137,10 @@ const CampaignBuilder = () => {
       switch (currentStep) {
         case 1:
           console.log('Rendering Step 1 component');
-          return <CampaignBuilderStep1 {...stepProps} />;
+          console.log('Step 1 props:', stepProps);
+          const step1Component = <CampaignBuilderStep1 {...stepProps} />;
+          console.log('Step 1 component created:', step1Component);
+          return step1Component;
         case 2:
           console.log('Rendering Step 2 component');
           return <CampaignBuilderStep2 {...stepProps} />;
@@ -151,7 +159,7 @@ const CampaignBuilder = () => {
       }
     } catch (error) {
       console.error('Error rendering step component:', error);
-      return <div className="text-white text-center p-8">Error loading step component</div>;
+      return <div className="text-white text-center p-8">Error loading step component: {error.message}</div>;
     }
   };
 
@@ -171,6 +179,15 @@ const CampaignBuilder = () => {
   return (
     <Layout>
       <div className="max-w-4xl mx-auto space-y-8">
+        {console.log('=== Layout Children Rendering ===')}
+        
+        {/* Debug info */}
+        <div className="text-white text-center p-4 bg-red-500/20 border border-red-500/50 rounded">
+          <p>Debug: Current Step = {currentStep}</p>
+          <p>Debug: Step Param = {step}</p>
+          <p>Debug: Component is rendering</p>
+        </div>
+
         {/* Progress Bar */}
         <ProgressBar currentStep={currentStep} totalSteps={5} />
         
@@ -207,7 +224,9 @@ const CampaignBuilder = () => {
         </div>
 
         {/* Step Content */}
-        <div className="min-h-[400px]">
+        <div className="min-h-[400px] border-2 border-yellow-500 p-4">
+          {console.log('=== About to render step content ===')}
+          <div className="text-white mb-4">Debug: Step content container</div>
           {renderStep()}
         </div>
       </div>

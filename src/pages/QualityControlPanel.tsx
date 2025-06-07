@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -111,11 +112,11 @@ const QualityControlPanel = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background p-4 md:p-6">
+    <div className="min-h-screen bg-gradient-to-br from-black via-gray-950 to-gray-900 p-4 md:p-6">
       <div className="max-w-7xl mx-auto space-y-6">
-        <Card>
+        <Card className="glow">
           <CardHeader>
-            <CardTitle className="text-2xl font-bold text-center">
+            <CardTitle className="text-2xl font-bold text-center bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
               Content Review & Quality Control
             </CardTitle>
           </CardHeader>
@@ -124,7 +125,7 @@ const QualityControlPanel = () => {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="glow-strong">
           <CardContent className="p-0">
             <QCContentTable
               content={filteredContent}

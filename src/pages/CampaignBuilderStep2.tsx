@@ -35,7 +35,7 @@ const CampaignBuilderStep2 = ({ campaignData, updateCampaignData, onNext, onPrev
     const newFileMetadata: FileMetadata[] = validFiles.map(file => ({
       id: generateFileId(),
       file,
-      contentType: 'raw', // Start with 'raw', user must change this
+      contentType: '', // Start empty, user must select
       editorNotes: '',
       assignedEditor: 'unassigned',
       viralityScore: calculateViralityScore(file, file.name, bulkUpload)
@@ -60,29 +60,43 @@ const CampaignBuilderStep2 = ({ campaignData, updateCampaignData, onNext, onPrev
     updateCampaignData({ contentFiles: updatedFiles });
   };
 
-  // Updated canContinue logic - require at least 1 file and all files to have proper content type and editor assigned
-  const canContinue = uploadedFiles.length > 0 && 
-    uploadedFiles.every(file => 
-      file.contentType !== '' && 
-      file.contentType !== 'raw' && // Don't allow 'raw' as final content type
-      file.assignedEditor !== 'unassigned'
-    );
+  // Check if we can continue - need at least 1 file and all files must have content type and editor
+  const hasFiles = uploadedFiles.length > 0;
+  const allFilesValid = uploadedFiles.every(file => {
+    const hasContentType = file.contentType && file.contentType !== '' && file.contentType !== 'raw';
+    const hasEditor = file.assignedEditor && file.assignedEditor !== 'unassigned';
+    console.log(`File ${file.id}: contentType=${file.contentType}, hasContentType=${hasContentType}, assignedEditor=${file.assignedEditor}, hasEditor=${hasEditor}`);
+    return hasContentType && hasEditor;
+  });
 
-  console.log('Step 2 - Can continue:', canContinue);
-  console.log('Step 2 - Files:', uploadedFiles.length);
-  console.log('Step 2 - Files validation:', uploadedFiles.map(f => ({
+  const canContinue = hasFiles && allFilesValid;
+
+  console.log('=== STEP 2 VALIDATION ===');
+  console.log('Has files:', hasFiles, '- Total files:', uploadedFiles.length);
+  console.log('All files valid:', allFilesValid);
+  console.log('Can continue:', canContinue);
+  console.log('Files details:', uploadedFiles.map(f => ({
     id: f.id,
+    name: f.file.name,
     contentType: f.contentType,
     assignedEditor: f.assignedEditor,
-    valid: f.contentType !== '' && f.contentType !== 'raw' && f.assignedEditor !== 'unassigned'
+    isValid: f.contentType && f.contentType !== '' && f.contentType !== 'raw' && f.assignedEditor && f.assignedEditor !== 'unassigned'
   })));
 
   const handleNext = () => {
-    console.log('Step 2 handleNext called, canContinue:', canContinue);
-    if (canContinue) {
+    console.log('=== HANDLE NEXT CALLED ===');
+    console.log('canContinue:', canContinue);
+    console.log('onNext function exists:', !!onNext);
+    
+    if (canContinue && onNext) {
+      console.log('Calling onNext() - should navigate to step 3');
       onNext();
     } else {
-      console.log('Cannot continue - validation failed');
+      console.log('Cannot continue - validation failed or onNext missing');
+      console.log('Reasons:');
+      console.log('- Has files:', hasFiles);
+      console.log('- All files valid:', allFilesValid);
+      console.log('- onNext exists:', !!onNext);
     }
   };
 
@@ -128,6 +142,9 @@ const CampaignBuilderStep2 = ({ campaignData, updateCampaignData, onNext, onPrev
           <div className="glass-card-strong p-4 inline-block">
             <p className="text-white/80 text-sm">
               Debug: {uploadedFiles.length} files uploaded, canContinue: {canContinue.toString()}
+            </p>
+            <p className="text-white/60 text-xs mt-1">
+              Files need: Content Type (not Raw) + Assigned Editor
             </p>
           </div>
         </div>

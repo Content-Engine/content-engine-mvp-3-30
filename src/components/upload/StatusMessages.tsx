@@ -7,7 +7,18 @@ interface StatusMessagesProps {
 }
 
 const StatusMessages = ({ files, canContinue }: StatusMessagesProps) => {
-  if (files.length === 0) return null;
+  if (files.length === 0) {
+    return (
+      <div className="text-center">
+        <p className="text-yellow-400 text-sm">
+          📁 Upload at least 1 file to get started
+        </p>
+      </div>
+    );
+  }
+
+  const unassignedFiles = files.filter(f => f.assignedEditor === 'unassigned');
+  const rawContentFiles = files.filter(f => f.contentType === '' || f.contentType === 'raw');
 
   return (
     <div className="text-center space-y-2">
@@ -17,16 +28,19 @@ const StatusMessages = ({ files, canContinue }: StatusMessagesProps) => {
         </p>
       ) : (
         <div className="space-y-1">
-          {files.some(f => f.assignedEditor === 'unassigned') && (
+          {unassignedFiles.length > 0 && (
             <p className="text-red-400 text-sm">
-              ⚠️ Please assign editors to all files before continuing
+              ⚠️ {unassignedFiles.length} file(s) need editor assignment
             </p>
           )}
-          {files.some(f => f.contentType === '' || f.contentType === 'raw') && (
+          {rawContentFiles.length > 0 && (
             <p className="text-yellow-400 text-sm">
-              📝 Please select content types for all files (can't be "Raw Content")
+              📝 {rawContentFiles.length} file(s) need content type selection (can't be "Raw Content")
             </p>
           )}
+          <p className="text-blue-400 text-xs">
+            Each file must have both a content type and an assigned editor
+          </p>
         </div>
       )}
     </div>

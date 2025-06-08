@@ -1,6 +1,6 @@
 
 import { useState, lazy, Suspense } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { useCampaignData } from '@/hooks/useCampaignData';
@@ -18,42 +18,21 @@ const Step5Launch = lazy(() => import('@/components/CampaignBuilder/Step5Launch'
 
 const CampaignBuilder = () => {
   const navigate = useNavigate();
-  const params = useParams();
   const { createCampaign } = useCampaignData();
   const { state, updateState, clearState } = useCampaignBuilder();
   
-  // Extract step from URL parameters - fix the parameter parsing
-  console.log('=== STEP PARAMETER DEBUG ===');
-  console.log('Raw params:', params);
-  console.log('All URL params:', Object.entries(params));
-  
-  // Get step from the 'step' parameter
-  const stepParam = params.step;
-  console.log('Step param from URL:', stepParam);
-  
-  const currentStep = stepParam ? parseInt(stepParam, 10) : 1;
-  console.log('Parsed currentStep:', currentStep);
-  
-  console.log('=== CAMPAIGN BUILDER MAIN ===');
-  console.log('Final currentStep:', currentStep);
-  console.log('DEV_MODE active:', DEV_MODE.DISABLE_AUTH);
+  // State-based step management (no URL routing)
+  const [currentStep, setCurrentStep] = useState(1);
 
   const handleNext = () => {
-    console.log('=== HANDLE NEXT ===');
-    console.log('Current step:', currentStep);
-    console.log('Campaign data:', state);
-    
     if (currentStep < 5) {
-      const nextStep = currentStep + 1;
-      console.log('Navigating to:', `/campaign-builder/step/${nextStep}`);
-      navigate(`/campaign-builder/step/${nextStep}`);
-      console.log('✅ Navigation triggered to step', nextStep);
+      setCurrentStep(prev => prev + 1);
     }
   };
 
   const handlePrevious = () => {
     if (currentStep > 1) {
-      navigate(`/campaign-builder/step/${currentStep - 1}`);
+      setCurrentStep(prev => prev - 1);
     }
   };
 
@@ -84,10 +63,6 @@ const CampaignBuilder = () => {
   };
 
   const renderStepContent = () => {
-    console.log('=== RENDERING STEP CONTENT ===');
-    console.log('Rendering step:', currentStep);
-    console.log('Step props goal:', state.goal);
-    
     const LoadingSpinner = () => (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
@@ -96,7 +71,6 @@ const CampaignBuilder = () => {
 
     switch (currentStep) {
       case 1:
-        console.log('Rendering Step 1 (Goal Selection)');
         return (
           <Suspense fallback={<LoadingSpinner />}>
             <Step1Goal
@@ -107,7 +81,6 @@ const CampaignBuilder = () => {
           </Suspense>
         );
       case 2:
-        console.log('Rendering Step 2 (Upload)');
         return (
           <Suspense fallback={<LoadingSpinner />}>
             <Step2Upload
@@ -119,7 +92,6 @@ const CampaignBuilder = () => {
           </Suspense>
         );
       case 3:
-        console.log('Rendering Step 3 (Boost Settings)');
         return (
           <Suspense fallback={<LoadingSpinner />}>
             <Step3Boost
@@ -136,7 +108,6 @@ const CampaignBuilder = () => {
           </Suspense>
         );
       case 4:
-        console.log('Rendering Step 4 (Schedule)');
         return (
           <Suspense fallback={<LoadingSpinner />}>
             <Step4Schedule
@@ -151,7 +122,6 @@ const CampaignBuilder = () => {
           </Suspense>
         );
       case 5:
-        console.log('Rendering Step 5 (Launch)');
         return (
           <Suspense fallback={<LoadingSpinner />}>
             <Step5Launch
@@ -184,7 +154,7 @@ const CampaignBuilder = () => {
                   <Button 
                     key={step}
                     size="sm" 
-                    onClick={() => navigate(`/campaign-builder/step/${step}`)}
+                    onClick={() => setCurrentStep(step)}
                     className="glass-button-secondary"
                   >
                     Step {step}

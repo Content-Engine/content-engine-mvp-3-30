@@ -1,31 +1,20 @@
 
-import { cn } from "@/lib/utils";
+import { Zap } from 'lucide-react';
 
 interface ContentEngineLogoProps {
-  size?: "small" | "medium" | "large";
-  className?: string;
+  size?: 'small' | 'medium' | 'large';
 }
 
-const ContentEngineLogo = ({ size = "medium", className }: ContentEngineLogoProps) => {
+const ContentEngineLogo = ({ size = 'medium' }: ContentEngineLogoProps) => {
   const sizeClasses = {
-    small: "w-8 h-8",
-    medium: "w-12 h-12",
-    large: "w-16 h-16"
+    small: 'h-8 w-8',
+    medium: 'h-12 w-12',
+    large: 'h-16 w-16'
   };
 
   return (
-    <div className={cn("flex items-center justify-center", className)}>
-      <img 
-        src="/lovable-uploads/ae36c0dd-50b0-42f4-9e47-7d0b4d2be2e9.png"
-        alt="Content Engine Logo"
-        className={cn("object-contain", sizeClasses[size])}
-        onError={(e) => {
-          console.log("Logo failed to load:", e);
-          // Fallback to a simple text logo if image fails
-          e.currentTarget.style.display = 'none';
-          e.currentTarget.parentElement!.innerHTML = '<div class="text-white font-bold text-xl">CE</div>';
-        }}
-      />
+    <div className={`${sizeClasses[size]} bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg`}>
+      <Zap className={`${size === 'small' ? 'h-4 w-4' : size === 'medium' ? 'h-6 w-6' : 'h-8 w-8'} text-white`} />
     </div>
   );
 };

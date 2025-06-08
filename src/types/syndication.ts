@@ -66,3 +66,22 @@ export interface ClientToken {
   created_at: string;
   updated_at: string;
 }
+
+export interface Platform {
+  id: string;
+  name: string;
+  enabled: boolean;
+  accountsAllocated: number;
+}
+
+export interface CycleProfile {
+  id?: string;
+  campaignId: string;
+  duration: 7 | 14 | 30;
+  frequency: 'daily' | '3x-week' | 'weekly';
+  platforms: Platform[];
+  accountCount: number;
+  status: 'active' | 'inactive' | 'completed';
+  created_at?: string;
+  updated_at?: string;
+}

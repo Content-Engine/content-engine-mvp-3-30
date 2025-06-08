@@ -20,6 +20,8 @@ import SocialManagerDashboard from "./pages/SocialManagerDashboard";
 import NotFound from "./pages/NotFound";
 import UserManagement from "./pages/UserManagement";
 import Unauthorized from "./pages/Unauthorized";
+import Layout from "@/components/Layout";
+import LoginPage from "./pages/LoginPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -41,67 +43,88 @@ function App() {
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
+              <Route path="/login" element={<LoginPage />} />
               <Route path="/unauthorized" element={<Unauthorized />} />
               
-              {/* Protected Routes */}
+              {/* Protected Routes wrapped with Layout */}
               <Route path="/dashboard" element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
+                <Layout>
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                </Layout>
               } />
               
               <Route path="/user-management" element={
-                <RoleBasedRoute allowedRoles={['admin']}>
-                  <UserManagement />
-                </RoleBasedRoute>
+                <Layout>
+                  <RoleBasedRoute allowedRoles={['admin']}>
+                    <UserManagement />
+                  </RoleBasedRoute>
+                </Layout>
               } />
               
               <Route path="/campaign-builder/*" element={
-                <ProtectedRoute>
-                  <CampaignBuilder />
-                </ProtectedRoute>
+                <Layout>
+                  <ProtectedRoute>
+                    <CampaignBuilder />
+                  </ProtectedRoute>
+                </Layout>
               } />
               
               <Route path="/calendar" element={
-                <ProtectedRoute>
-                  <CalendarOverview />
-                </ProtectedRoute>
+                <Layout>
+                  <ProtectedRoute>
+                    <CalendarOverview />
+                  </ProtectedRoute>
+                </Layout>
               } />
               
               <Route path="/performance" element={
-                <ProtectedRoute>
-                  <PerformanceDashboard />
-                </ProtectedRoute>
+                <Layout>
+                  <ProtectedRoute>
+                    <PerformanceDashboard />
+                  </ProtectedRoute>
+                </Layout>
               } />
               
               <Route path="/qc-panel" element={
-                <RoleBasedRoute allowedRoles={['admin', 'social_media_manager']}>
-                  <QualityControlPanel />
-                </RoleBasedRoute>
+                <Layout>
+                  <RoleBasedRoute allowedRoles={['admin', 'social_media_manager']}>
+                    <QualityControlPanel />
+                  </RoleBasedRoute>
+                </Layout>
               } />
               
               <Route path="/payment-tiers" element={
-                <ProtectedRoute>
-                  <PaymentTiers />
-                </ProtectedRoute>
+                <Layout>
+                  <ProtectedRoute>
+                    <PaymentTiers />
+                  </ProtectedRoute>
+                </Layout>
               } />
               
               <Route path="/social-manager" element={
-                <RoleBasedRoute allowedRoles={['admin', 'social_media_manager']}>
-                  <SocialMediaManagerView />
-                </RoleBasedRoute>
+                <Layout>
+                  <RoleBasedRoute allowedRoles={['admin', 'social_media_manager']}>
+                    <SocialMediaManagerView />
+                  </RoleBasedRoute>
+                </Layout>
               } />
               
               <Route path="/editor-dashboard" element={
-                <RoleBasedRoute allowedRoles={['admin', 'editor']}>
-                  <EditorView />
-                </RoleBasedRoute>
+                <Layout>
+                  <RoleBasedRoute allowedRoles={['admin', 'editor']}>
+                    <EditorView />
+                  </RoleBasedRoute>
+                </Layout>
               } />
               
               <Route path="/social/*" element={
-                <RoleBasedRoute allowedRoles={['admin', 'social_media_manager']}>
-                  <SocialManagerDashboard />
-                </RoleBasedRoute>
+                <Layout>
+                  <RoleBasedRoute allowedRoles={['admin', 'social_media_manager']}>
+                    <SocialManagerDashboard />
+                  </RoleBasedRoute>
+                </Layout>
               } />
               
               <Route path="*" element={<NotFound />} />

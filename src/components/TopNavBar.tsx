@@ -1,0 +1,234 @@
+
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { LogOut, Menu, X } from 'lucide-react';
+import ContentEngineLogo from '@/components/ContentEngineLogo';
+
+interface User {
+  email: string;
+  role: 'admin' | 'client' | 'editor' | 'social_media_manager';
+}
+
+const TopNavBar = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    // Load user from localStorage
+    const storedUser = localStorage.getItem('contentEngineUser');
+    if (storedUser) {
+      setCurrentUser(JSON.parse(storedUser));
+    }
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('contentEngineUser');
+    setCurrentUser(null);
+    navigate('/auth');
+  };
+
+  const getRoleButtons = (role: string) => {
+    switch (role) {
+      case 'admin':
+        return [
+          { label: 'Dashboard', path: '/dashboard' },
+          { label: 'Campaigns', path: '/campaign-builder' },
+          { label: 'QC Panel', path: '/qc-panel' },
+          { label: 'Analytics', path: '/performance' },
+          { label: 'Settings', path: '/user-management' }
+        ];
+      case 'client':
+        return [
+          { label: 'Dashboard', path: '/dashboard' },
+          { label: 'My Campaigns', path: '/campaign-builder' },
+          { label: 'Upload Content', path: '/campaign-builder' }
+        ];
+      case 'editor':
+        return [
+          { label: 'Assigned Clips', path: '/editor-dashboard' },
+          { label: 'QC Review', path: '/qc-panel' },
+          { label: 'Chat', path: '/dashboard' }
+        ];
+      case 'social_media_manager':
+        return [
+          { label: 'Schedule', path: '/social/calendar' },
+          { label: 'Calendar', path: '/calendar' },
+          { label: 'Approvals', path: '/qc-panel' }
+        ];
+      default:
+        return [{ label: 'Dashboard', path: '/dashboard' }];
+    }
+  };
+
+  const isActivePath = (path: string) => {
+    return location.pathname === path || 
+           (path === '/dashboard' && location.pathname === '/') ||
+           (path === '/campaign-builder' && location.pathname.startsWith('/campaign-builder'));
+  };
+
+  const getInitials = (email: string) => {
+    return email.substring(0, 2).toUpperCase();
+  };
+
+  const getRoleColor = (role: string) => {
+    switch (role) {
+      case 'admin':
+        return 'bg-red-500/20 text-red-700 border-red-300';
+      case 'client':
+        return 'bg-blue-500/20 text-blue-700 border-blue-300';
+      case 'editor':
+        return 'bg-green-500/20 text-green-700 border-green-300';
+      case 'social_media_manager':
+        return 'bg-purple-500/20 text-purple-700 border-purple-300';
+      default:
+        return 'bg-gray-500/20 text-gray-700 border-gray-300';
+    }
+  };
+
+  const formatRoleName = (role: string) => {
+    return role.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+  };
+
+  if (!currentUser) {
+    return null;
+  }
+
+  const buttons = getRoleButtons(currentUser.role);
+
+  return (
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-200 shadow-sm">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
+          {/* Left side - Logo */}
+          <div className="flex items-center gap-3">
+            <ContentEngineLogo size="small" />
+            <h1 
+              className="text-xl font-bold text-gray-900 cursor-pointer hover:text-gray-700 transition-colors"
+              onClick={() => navigate('/dashboard')}
+            >
+              Content Engine
+            </h1>
+          </div>
+
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center gap-1">
+            {buttons.map((button) => (
+              <Button
+                key={button.label}
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate(button.path)}
+                className={`px-4 py-2 transition-all duration-200 ${
+                  isActivePath(button.path)
+                    ? 'bg-gray-100 text-gray-900 font-semibold border-b-2 border-blue-500'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                }`}
+              >
+                {button.label}
+              </Button>
+            ))}
+          </div>
+
+          {/* Right side - User info and logout */}
+          <div className="flex items-center gap-3">
+            <div className="hidden sm:flex items-center gap-2">
+              <Avatar className="h-8 w-8">
+                <AvatarFallback className="text-xs font-semibold">
+                  {getInitials(currentUser.email)}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex flex-col">
+                <span className="text-sm font-medium text-gray-900">
+                  {currentUser.email}
+                </span>
+                <Badge 
+                  variant="outline" 
+                  className={`text-xs px-2 py-0 ${getRoleColor(currentUser.role)}`}
+                >
+                  {formatRoleName(currentUser.role)}
+                </Badge>
+              </div>
+            </div>
+
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleLogout}
+              className="text-gray-600 hover:text-red-600 hover:bg-red-50"
+            >
+              <LogOut className="h-4 w-4" />
+              <span className="hidden sm:inline ml-1">Logout</span>
+            </Button>
+
+            {/* Mobile menu button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="md:hidden"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            >
+              {mobileMenuOpen ? (
+                <X className="h-5 w-5" />
+              ) : (
+                <Menu className="h-5 w-5" />
+              )}
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile menu */}
+      {mobileMenuOpen && (
+        <div className="md:hidden bg-white border-t border-gray-200 shadow-lg">
+          <div className="px-4 py-3 space-y-2">
+            {/* Mobile user info */}
+            <div className="flex items-center gap-2 pb-3 border-b border-gray-100">
+              <Avatar className="h-8 w-8">
+                <AvatarFallback className="text-xs font-semibold">
+                  {getInitials(currentUser.email)}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex flex-col">
+                <span className="text-sm font-medium text-gray-900">
+                  {currentUser.email}
+                </span>
+                <Badge 
+                  variant="outline" 
+                  className={`text-xs px-2 py-0 w-fit ${getRoleColor(currentUser.role)}`}
+                >
+                  {formatRoleName(currentUser.role)}
+                </Badge>
+              </div>
+            </div>
+
+            {/* Mobile navigation buttons */}
+            {buttons.map((button) => (
+              <Button
+                key={button.label}
+                variant="ghost"
+                onClick={() => {
+                  navigate(button.path);
+                  setMobileMenuOpen(false);
+                }}
+                className={`w-full justify-start ${
+                  isActivePath(button.path)
+                    ? 'bg-gray-100 text-gray-900 font-semibold'
+                    : 'text-gray-600'
+                }`}
+              >
+                {button.label}
+              </Button>
+            ))}
+          </div>
+        </div>
+      )}
+    </nav>
+  );
+};
+
+export default TopNavBar;

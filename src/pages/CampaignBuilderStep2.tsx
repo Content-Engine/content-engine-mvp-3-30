@@ -65,22 +65,22 @@ const CampaignBuilderStep2 = ({ campaignData, updateCampaignData, onNext, onPrev
   const allFilesValid = uploadedFiles.every(file => {
     const hasContentType = file.contentType && file.contentType !== '' && file.contentType !== 'raw';
     const hasEditor = file.assignedEditor && file.assignedEditor !== 'unassigned';
-    console.log(`File ${file.id}: contentType=${file.contentType}, hasContentType=${hasContentType}, assignedEditor=${file.assignedEditor}, hasEditor=${hasEditor}`);
+    console.log(`File ${file.id} (${file.file.name}): contentType="${file.contentType}", hasContentType=${hasContentType}, assignedEditor="${file.assignedEditor}", hasEditor=${hasEditor}, valid=${hasContentType && hasEditor}`);
     return hasContentType && hasEditor;
   });
 
   const canContinue = hasFiles && allFilesValid;
 
-  console.log('=== STEP 2 VALIDATION ===');
+  console.log('=== STEP 2 VALIDATION DEBUG ===');
   console.log('Has files:', hasFiles, '- Total files:', uploadedFiles.length);
   console.log('All files valid:', allFilesValid);
   console.log('Can continue:', canContinue);
-  console.log('Files details:', uploadedFiles.map(f => ({
+  console.log('Files summary:', uploadedFiles.map(f => ({
     id: f.id,
     name: f.file.name,
     contentType: f.contentType,
     assignedEditor: f.assignedEditor,
-    isValid: f.contentType && f.contentType !== '' && f.contentType !== 'raw' && f.assignedEditor && f.assignedEditor !== 'unassigned'
+    isValid: (f.contentType && f.contentType !== '' && f.contentType !== 'raw') && (f.assignedEditor && f.assignedEditor !== 'unassigned')
   })));
 
   const handleNext = () => {
@@ -89,14 +89,28 @@ const CampaignBuilderStep2 = ({ campaignData, updateCampaignData, onNext, onPrev
     console.log('onNext function exists:', !!onNext);
     
     if (canContinue && onNext) {
-      console.log('Calling onNext() - should navigate to step 3');
+      console.log('✅ Calling onNext() - should navigate to step 3');
       onNext();
     } else {
-      console.log('Cannot continue - validation failed or onNext missing');
+      console.log('❌ Cannot continue - validation failed or onNext missing');
       console.log('Reasons:');
       console.log('- Has files:', hasFiles);
       console.log('- All files valid:', allFilesValid);
       console.log('- onNext exists:', !!onNext);
+      
+      if (!hasFiles) {
+        console.log('❌ No files uploaded');
+      }
+      if (!allFilesValid) {
+        console.log('❌ Some files are invalid:');
+        uploadedFiles.forEach(file => {
+          const hasContentType = file.contentType && file.contentType !== '' && file.contentType !== 'raw';
+          const hasEditor = file.assignedEditor && file.assignedEditor !== 'unassigned';
+          if (!hasContentType || !hasEditor) {
+            console.log(`  - ${file.file.name}: contentType=${file.contentType}, editor=${file.assignedEditor}`);
+          }
+        });
+      }
     }
   };
 
@@ -136,16 +150,27 @@ const CampaignBuilderStep2 = ({ campaignData, updateCampaignData, onNext, onPrev
         canContinue={canContinue}
       />
 
-      {/* Debug info for testing */}
+      {/* Enhanced debug info */}
       {uploadedFiles.length > 0 && (
         <div className="text-center">
           <div className="glass-card-strong p-4 inline-block">
-            <p className="text-white/80 text-sm">
+            <p className="text-white/80 text-sm mb-2">
               Debug: {uploadedFiles.length} files uploaded, canContinue: {canContinue.toString()}
             </p>
-            <p className="text-white/60 text-xs mt-1">
-              Files need: Content Type (not Raw) + Assigned Editor
+            <p className="text-white/60 text-xs mb-2">
+              Files need: Content Type (not Raw/empty) + Assigned Editor (not Unassigned)
             </p>
+            <div className="text-left text-xs space-y-1">
+              {uploadedFiles.map(file => {
+                const hasContentType = file.contentType && file.contentType !== '' && file.contentType !== 'raw';
+                const hasEditor = file.assignedEditor && file.assignedEditor !== 'unassigned';
+                return (
+                  <div key={file.id} className={`p-1 rounded ${hasContentType && hasEditor ? 'text-green-400' : 'text-red-400'}`}>
+                    {file.file.name}: Type="{file.contentType}" Editor="{file.assignedEditor}" Valid={hasContentType && hasEditor ? '✅' : '❌'}
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
       )}

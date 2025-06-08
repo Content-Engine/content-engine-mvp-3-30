@@ -61,7 +61,13 @@ export const useEditorAssignments = () => {
         throw error;
       }
       
-      setAssignments(data || []);
+      // Type cast the data to ensure proper typing
+      const typedData = (data || []).map(assignment => ({
+        ...assignment,
+        status: assignment.status as 'assigned' | 'in_progress' | 'submitted' | 'rejected' | 'approved'
+      }));
+      
+      setAssignments(typedData);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch assignments';
       setError(errorMessage);

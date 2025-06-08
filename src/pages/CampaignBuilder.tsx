@@ -1,3 +1,4 @@
+
 import { useState, lazy, Suspense } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -8,6 +9,7 @@ import ProgressBar from '@/components/ProgressBar';
 import Layout from '@/components/Layout';
 import { DEV_MODE } from '@/config/dev';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 
 // Lazy load step components
 const Step1Goal = lazy(() => import('@/pages/CampaignBuilderStep1'));
@@ -22,8 +24,8 @@ const CampaignBuilder = () => {
   const { createCampaign } = useCampaignData();
   const { state, updateState, clearState } = useCampaignBuilder();
   const { toast } = useToast();
+  const { user } = useAuth();
   
-  // Handle URL-based step or default to 1
   const initialStep = stepNumber ? parseInt(stepNumber) : 1;
   const [currentStep, setCurrentStep] = useState(Math.max(1, Math.min(5, initialStep)));
   const [isLaunching, setIsLaunching] = useState(false);
@@ -52,7 +54,8 @@ const CampaignBuilder = () => {
     try {
       console.log('Launching campaign with state:', state);
       
-      const campaign = await createCampaign({
+      // Link campaign to client (current user)
+      const campaignData = {
         name: state.name || `Campaign ${new Date().toLocaleDateString()}`,
         goal: state.goal,
         syndication_tier: state.syndicationTier,
@@ -67,13 +70,19 @@ const CampaignBuilder = () => {
         auto_fill_lookalike: state.auto_fill_lookalike,
         platform_targets: state.platform_targets,
         hashtags_caption: state.hashtags_caption,
-      });
+        // Client linkage
+        user_id: user?.id,
+        created_by: user?.id,
+        // Additional metadata for client tracking
+        notes: `Campaign created by client: ${user?.email}`,
+      };
 
+      const campaign = await createCampaign(campaignData);
       console.log('Campaign created successfully:', campaign);
       
       toast({
-        title: "🚀 Campaign Launched!",
-        description: "Your campaign has been created successfully and is now active.",
+        title: "🚀 Campaign Launched Successfully!",
+        description: "Your campaign is now active and will be assigned to our content team.",
       });
 
       clearState();
@@ -84,7 +93,7 @@ const CampaignBuilder = () => {
       let errorMessage = 'Failed to create campaign. Please try again.';
       if (error instanceof Error) {
         if (error.message.includes('row-level security')) {
-          errorMessage = 'You do not have permission to create campaigns. Please contact support.';
+          errorMessage = 'Authentication required. Please log in to create campaigns.';
         } else if (error.message.includes('authenticated')) {
           errorMessage = 'Please log in to create campaigns.';
         } else {
@@ -105,7 +114,7 @@ const CampaignBuilder = () => {
   const renderStepContent = () => {
     const LoadingSpinner = () => (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent"></div>
       </div>
     );
 
@@ -149,29 +158,33 @@ const CampaignBuilder = () => {
           </Suspense>
         );
       default:
-        return <div className="text-white text-center p-8">Invalid step: {currentStep}</div>;
+        return (
+          <div className="text-center py-12">
+            <p className="text-text-muted">Invalid step: {currentStep}</p>
+          </div>
+        );
     }
   };
 
   return (
     <Layout>
-      <div className="max-w-4xl mx-auto space-y-8">
+      <div className="container-narrow spacing-content">
         {/* Dev Mode Debug Panel */}
         {DEV_MODE.DISABLE_AUTH && (
-          <div className="glass-card-strong p-4 border-2 border-yellow-500/50">
-            <h3 className="text-yellow-400 font-bold mb-2">🔧 DEV MODE</h3>
-            <div className="text-sm space-y-1">
-              <p className="text-white/80">Step: {currentStep} | Goal: "{state.goal}" | Files: {state.contentFiles.length}</p>
-              <div className="flex gap-2">
+          <div className="card-glass p-4 border-2 border-yellow-500/50 mb-6">
+            <h3 className="text-heading-4 text-yellow-400 mb-2">🔧 DEV MODE</h3>
+            <div className="text-caption space-y-1">
+              <p className="text-text-muted">Step: {currentStep} | Goal: "{state.goal}" | Files: {state.contentFiles.length}</p>
+              <div className="flex gap-2 mt-2">
                 {[1, 2, 3, 4, 5].map(step => (
                   <Button 
                     key={step}
                     size="sm" 
+                    variant="secondary"
                     onClick={() => {
                       setCurrentStep(step);
                       navigate(`/campaign-builder/step/${step}`);
                     }}
-                    className="glass-button-secondary"
                   >
                     Step {step}
                   </Button>
@@ -190,18 +203,18 @@ const CampaignBuilder = () => {
             variant="ghost"
             onClick={handlePrevious}
             disabled={currentStep === 1}
-            className="text-white/90 hover:text-white"
+            className="text-text-muted hover:text-text-main"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Previous
           </Button>
           
-          <span className="text-white/60">Step {currentStep} of 5</span>
+          <span className="text-body-sm text-text-muted">Step {currentStep} of 5</span>
           
           {currentStep < 5 ? (
             <Button
               onClick={handleNext}
-              className="glass-button-primary"
+              className="btn-primary"
             >
               Next
               <ArrowRight className="h-4 w-4 ml-2" />
@@ -210,7 +223,7 @@ const CampaignBuilder = () => {
             <Button
               onClick={handleLaunch}
               disabled={isLaunching}
-              className="glass-button-primary"
+              className="btn-primary"
             >
               {isLaunching ? 'Launching...' : 'Launch Campaign'}
             </Button>
@@ -218,7 +231,7 @@ const CampaignBuilder = () => {
         </div>
 
         {/* Step Content */}
-        <div className="min-h-[400px]">
+        <div className="min-h-[500px]">
           {renderStepContent()}
         </div>
       </div>

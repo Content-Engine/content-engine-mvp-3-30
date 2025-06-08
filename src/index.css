@@ -148,8 +148,12 @@
     border-color: rgb(var(--border-subtle));
   }
 
-  .hover-surface {
+  .bg-surface-hover {
     background-color: rgb(var(--surface-hover));
+  }
+
+  .bg-hover-accent {
+    background-color: rgb(var(--hover-accent));
   }
 
   /* Card styles */

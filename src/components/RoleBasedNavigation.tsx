@@ -29,19 +29,19 @@ const navigationItems: NavItem[] = [
     path: '/dashboard',
     label: 'Dashboard',
     icon: Home,
-    roles: ['admin', 'editor', 'social_media_manager', 'client']
+    roles: ['admin', 'editor', 'social_media_manager']
   },
   {
     path: '/campaign-builder',
     label: 'Create Campaign',
     icon: Upload,
-    roles: ['admin', 'client']
+    roles: ['admin']
   },
   {
     path: '/calendar',
     label: 'Calendar',
     icon: Calendar,
-    roles: ['admin', 'social_media_manager', 'client']
+    roles: ['admin', 'social_media_manager']
   },
   {
     path: '/social-manager',
@@ -62,12 +62,6 @@ const navigationItems: NavItem[] = [
     roles: ['admin', 'social_media_manager']
   },
   {
-    path: '/client-portal',
-    label: 'Client Portal',
-    icon: User,
-    roles: ['client']
-  },
-  {
     path: '/user-management',
     label: 'User Management',
     icon: Users,
@@ -77,7 +71,7 @@ const navigationItems: NavItem[] = [
     path: '/payment-tiers',
     label: 'Plans & Billing',
     icon: CreditCard,
-    roles: ['admin', 'client']
+    roles: ['admin']
   }
 ];
 

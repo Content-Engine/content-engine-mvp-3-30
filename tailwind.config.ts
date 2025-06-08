@@ -108,10 +108,10 @@ export default {
 				},
 				'glow': {
 					'0%': {
-						boxShadow: '0 0 20px rgba(139, 92, 246, 0.4)'
+						boxShadow: '0 0 20px rgba(255, 45, 85, 0.4)'
 					},
 					'100%': {
-						boxShadow: '0 0 30px rgba(139, 92, 246, 0.8)'
+						boxShadow: '0 0 30px rgba(255, 45, 85, 0.8)'
 					}
 				}
 			},
@@ -132,6 +132,7 @@ export default {
 				'3xl': '32px'
 			},
 			fontFamily: {
+				'sf-pro': ['SF Pro Display', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
 				'inter': ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
 			}
 		}

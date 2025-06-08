@@ -19,7 +19,7 @@ const tiers = [
     ],
     avgViews: "10K-25K",
     engagement: "2-4%",
-    gradient: "from-gray-500/80 to-gray-600/80"
+    gradient: "from-secondary/20 to-muted/20"
   },
   {
     id: "pro", 
@@ -35,7 +35,7 @@ const tiers = [
     ],
     avgViews: "25K-75K",
     engagement: "4-8%",
-    gradient: "from-blue-500/80 to-purple-600/80",
+    gradient: "from-blue-500/20 to-purple-600/20",
     popular: true
   },
   {
@@ -53,7 +53,7 @@ const tiers = [
     ],
     avgViews: "75K-200K+",
     engagement: "8-15%",
-    gradient: "from-purple-500/80 to-pink-600/80"
+    gradient: "from-accent/20 to-accent/10"
   }
 ];
 
@@ -94,12 +94,12 @@ const CampaignBuilderStep3 = ({ campaignData, updateCampaignData, onNext }: Camp
       {/* Step Title */}
       <div className="text-center">
         <div className="glass-card-strong p-8 mb-6 inline-block">
-          <h2 className="text-4xl font-bold bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 bg-clip-text text-transparent mb-4">
+          <h2 className="text-4xl font-bold bg-gradient-to-r from-accent via-accent/80 to-accent bg-clip-text text-transparent mb-4">
             Choose Your Syndication Tier 🚀
           </h2>
-          <div className="h-1 w-full bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 rounded-full"></div>
+          <div className="h-1 w-full bg-gradient-to-r from-accent via-accent/80 to-accent rounded-full"></div>
         </div>
-        <p className="text-lg text-white/90 glass-card-strong p-4 inline-block">
+        <p className="text-lg text-foreground/90 glass-card-strong p-4 inline-block">
           Scale your content distribution across platforms
         </p>
       </div>
@@ -112,7 +112,7 @@ const CampaignBuilderStep3 = ({ campaignData, updateCampaignData, onNext }: Camp
               <Card
                 key={tier.id}
                 className={`frosted-glass bg-gradient-to-br ${tier.gradient} border-0 cursor-pointer hover:scale-105 transition-all duration-500 relative overflow-hidden group ${
-                  campaignData.syndicationTier === tier.id ? 'ring-4 ring-white/50 scale-105 glow-strong' : ''
+                  campaignData.syndicationTier === tier.id ? 'ring-4 ring-accent/50 scale-105 glow-strong' : ''
                 } ${tier.popular ? 'ring-2 ring-yellow-400/50' : ''}`}
                 onClick={() => handleTierSelect(tier.id)}
               >
@@ -123,12 +123,12 @@ const CampaignBuilderStep3 = ({ campaignData, updateCampaignData, onNext }: Camp
                 )}
                 
                 <CardHeader className="text-center">
-                  <CardTitle className="text-2xl font-bold text-white group-hover:scale-110 transition-transform duration-300">
+                  <CardTitle className="text-2xl font-bold text-foreground group-hover:scale-110 transition-transform duration-300">
                     {tier.name}
                   </CardTitle>
-                  <div className="text-4xl font-bold text-white">
+                  <div className="text-4xl font-bold text-foreground">
                     ${tier.price}
-                    <span className="text-lg font-normal text-white/80">/month</span>
+                    <span className="text-lg font-normal text-muted-foreground">/month</span>
                   </div>
                 </CardHeader>
 
@@ -137,26 +137,26 @@ const CampaignBuilderStep3 = ({ campaignData, updateCampaignData, onNext }: Camp
                   <div className="grid grid-cols-2 gap-4 text-center">
                     <div className="glass-card-subtle p-3 rounded-lg">
                       <Users className="h-5 w-5 text-blue-400 mx-auto mb-1" />
-                      <div className="text-sm text-white/80">Accounts</div>
-                      <div className="font-bold text-white">{tier.accounts}</div>
+                      <div className="text-sm text-muted-foreground">Accounts</div>
+                      <div className="font-bold text-foreground">{tier.accounts}</div>
                     </div>
                     <div className="glass-card-subtle p-3 rounded-lg">
                       <TrendingUp className="h-5 w-5 text-green-400 mx-auto mb-1" />
-                      <div className="text-sm text-white/80">Avg Views</div>
-                      <div className="font-bold text-white text-xs">{tier.avgViews}</div>
+                      <div className="text-sm text-muted-foreground">Avg Views</div>
+                      <div className="font-bold text-foreground text-xs">{tier.avgViews}</div>
                     </div>
                   </div>
 
                   <div className="text-center glass-card-subtle p-3 rounded-lg">
                     <Zap className="h-5 w-5 text-yellow-400 mx-auto mb-1" />
-                    <div className="text-sm text-white/80">Engagement Rate</div>
-                    <div className="font-bold text-white">{tier.engagement}</div>
+                    <div className="text-sm text-muted-foreground">Engagement Rate</div>
+                    <div className="font-bold text-foreground">{tier.engagement}</div>
                   </div>
 
                   {/* Features List */}
                   <div className="space-y-2">
                     {tier.features.map((feature, index) => (
-                      <div key={index} className="flex items-center text-white/90">
+                      <div key={index} className="flex items-center text-foreground/90">
                         <Check className="h-4 w-4 text-green-400 mr-2 flex-shrink-0" />
                         <span className="text-sm">{feature}</span>
                       </div>
@@ -178,7 +178,7 @@ const CampaignBuilderStep3 = ({ campaignData, updateCampaignData, onNext }: Camp
           {/* Help Text */}
           <div className="text-center">
             <div className="glass-card-strong p-4 inline-block">
-              <p className="text-white/80 font-medium">
+              <p className="text-muted-foreground font-medium">
                 💡 Click any tier to select and configure boost options
               </p>
             </div>

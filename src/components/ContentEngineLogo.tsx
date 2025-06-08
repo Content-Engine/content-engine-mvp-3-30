@@ -13,7 +13,7 @@ const ContentEngineLogo = ({ size = 'medium' }: ContentEngineLogoProps) => {
   };
 
   return (
-    <div className={`${sizeClasses[size]} bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg`}>
+    <div className={`${sizeClasses[size]} bg-gradient-to-br from-accent to-accent/80 rounded-xl flex items-center justify-center shadow-lg`}>
       <Zap className={`${size === 'small' ? 'h-4 w-4' : size === 'medium' ? 'h-6 w-6' : 'h-8 w-8'} text-white`} />
     </div>
   );

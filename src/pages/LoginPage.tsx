@@ -90,19 +90,19 @@ const LoginPage = () => {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       {/* Background decoration */}
-      <div className="absolute inset-0 bg-gradient-to-br from-neutral-900/50 via-transparent to-neutral-800/50"></div>
-      <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-neutral-700/10 rounded-full blur-3xl"></div>
-      <div className="absolute bottom-1/4 right-1/4 w-72 h-72 bg-neutral-600/10 rounded-full blur-3xl"></div>
+      <div className="absolute inset-0 bg-gradient-to-br from-card/20 via-transparent to-secondary/20"></div>
+      <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-accent/5 rounded-full blur-3xl"></div>
+      <div className="absolute bottom-1/4 right-1/4 w-72 h-72 bg-secondary/10 rounded-full blur-3xl"></div>
       
-      <Card className="card-secondary w-full max-w-md relative z-10 shadow-xl">
+      <Card className="card-primary w-full max-w-md relative z-10 shadow-xl">
         <CardHeader className="text-center pb-8">
           <div className="flex justify-center mb-4">
             <ContentEngineLogo size="large" />
           </div>
-          <CardTitle className="text-3xl font-bold bg-gradient-to-r from-neutral-700 via-neutral-800 to-neutral-900 bg-clip-text text-transparent">
+          <CardTitle className="text-3xl font-bold bg-gradient-to-r from-foreground via-muted-foreground to-foreground bg-clip-text text-transparent">
             Content Engine
           </CardTitle>
-          <p className="text-neutral-600 mt-2">
+          <p className="text-muted-foreground mt-2">
             Sign in to access your dashboard
           </p>
         </CardHeader>
@@ -110,31 +110,31 @@ const LoginPage = () => {
         <CardContent className="space-y-6">
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-neutral-700 font-medium text-sm">Email Address</Label>
+              <Label htmlFor="email" className="text-foreground font-medium text-sm">Email Address</Label>
               <Input
                 id="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="your.email@company.com"
-                className="h-11 border-neutral-300 focus:border-neutral-500 focus:ring-neutral-500 bg-white text-black"
+                className="h-11 focus:ring-accent"
                 required
                 disabled={loading}
               />
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="role" className="text-neutral-700 font-medium text-sm">Select Your Role</Label>
+              <Label htmlFor="role" className="text-foreground font-medium text-sm">Select Your Role</Label>
               <Select value={role} onValueChange={(value: UserRole) => setRole(value)} disabled={loading}>
-                <SelectTrigger className="h-11 border-neutral-300 focus:border-neutral-500 focus:ring-neutral-500 bg-white text-black">
+                <SelectTrigger className="h-11 focus:ring-accent bg-input text-foreground">
                   <SelectValue placeholder="Choose your role..." />
                 </SelectTrigger>
-                <SelectContent className="bg-white border-neutral-300">
+                <SelectContent className="bg-card border-border">
                   {roleOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value} className="text-black">
+                    <SelectItem key={option.value} value={option.value} className="text-foreground">
                       <div className="flex flex-col">
                         <span className="font-medium">{option.label}</span>
-                        <span className="text-xs text-neutral-500">{option.description}</span>
+                        <span className="text-xs text-muted-foreground">{option.description}</span>
                       </div>
                     </SelectItem>
                   ))}
@@ -144,7 +144,7 @@ const LoginPage = () => {
 
             <Button
               type="submit"
-              className="w-full h-11 btn-primary font-semibold text-base transition-all duration-200"
+              className="w-full h-11 btn-accent font-semibold text-base transition-all duration-200"
               disabled={loading}
             >
               {loading ? (
@@ -159,14 +159,14 @@ const LoginPage = () => {
           </form>
 
           {/* Demo accounts section */}
-          <div className="border-t border-neutral-200 pt-6">
-            <p className="text-sm text-neutral-600 mb-4 text-center font-medium">Quick Demo Access:</p>
+          <div className="border-t border-border pt-6">
+            <p className="text-sm text-muted-foreground mb-4 text-center font-medium">Quick Demo Access:</p>
             <div className="grid grid-cols-2 gap-2">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => handleDemoLogin('admin', 'admin@contentengine.com')}
-                className="text-xs py-2 hover:bg-red-50 hover:border-red-300 border-neutral-300 text-neutral-700"
+                className="text-xs py-2 hover:bg-red-500/10 hover:border-red-500/50 hover:text-red-400"
                 disabled={loading}
               >
                 Demo Admin
@@ -175,7 +175,7 @@ const LoginPage = () => {
                 variant="outline"
                 size="sm"
                 onClick={() => handleDemoLogin('client', 'client@contentengine.com')}
-                className="text-xs py-2 hover:bg-blue-50 hover:border-blue-300 border-neutral-300 text-neutral-700"
+                className="text-xs py-2 hover:bg-blue-500/10 hover:border-blue-500/50 hover:text-blue-400"
                 disabled={loading}
               >
                 Demo Client
@@ -184,7 +184,7 @@ const LoginPage = () => {
                 variant="outline"
                 size="sm"
                 onClick={() => handleDemoLogin('editor', 'editor@contentengine.com')}
-                className="text-xs py-2 hover:bg-green-50 hover:border-green-300 border-neutral-300 text-neutral-700"
+                className="text-xs py-2 hover:bg-green-500/10 hover:border-green-500/50 hover:text-green-400"
                 disabled={loading}
               >
                 Demo Editor
@@ -193,7 +193,7 @@ const LoginPage = () => {
                 variant="outline"
                 size="sm"
                 onClick={() => handleDemoLogin('social_media_manager', 'smm@contentengine.com')}
-                className="text-xs py-2 hover:bg-purple-50 hover:border-purple-300 border-neutral-300 text-neutral-700"
+                className="text-xs py-2 hover:bg-purple-500/10 hover:border-purple-500/50 hover:text-purple-400"
                 disabled={loading}
               >
                 Demo SMM

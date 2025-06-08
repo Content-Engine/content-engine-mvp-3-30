@@ -154,10 +154,10 @@ const CampaignBuilderStep2 = ({ campaignData, updateCampaignData, onNext, onPrev
       {uploadedFiles.length > 0 && (
         <div className="text-center">
           <div className="glass-card-strong p-4 inline-block">
-            <p className="text-white/80 text-sm mb-2">
+            <p className="text-muted-foreground text-sm mb-2">
               Debug: {uploadedFiles.length} files uploaded, canContinue: {canContinue.toString()}
             </p>
-            <p className="text-white/60 text-xs mb-2">
+            <p className="text-muted-foreground text-xs mb-2">
               Files need: Content Type (not Raw/empty) + Assigned Editor (not Unassigned)
             </p>
             <div className="text-left text-xs space-y-1">

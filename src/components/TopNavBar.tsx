@@ -86,7 +86,7 @@ const TopNavBar = () => {
       case 'social_media_manager':
         return 'bg-purple-500/20 text-purple-400 border-purple-500/30';
       default:
-        return 'bg-neutral-500/20 text-neutral-400 border-neutral-500/30';
+        return 'bg-muted/20 text-muted-foreground border-border';
     }
   };
 
@@ -101,14 +101,14 @@ const TopNavBar = () => {
   const buttons = getRoleButtons(currentUser.role);
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-neutral-800 shadow-lg">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border shadow-sm">
       <div className="max-w-7xl mx-auto px-6 py-4">
         <div className="flex items-center justify-between h-12">
           {/* Left side - Logo */}
           <div className="flex items-center gap-4">
             <ContentEngineLogo size="small" />
             <h1 
-              className="text-xl font-bold text-foreground cursor-pointer hover:text-neutral-300 transition-colors"
+              className="text-xl font-bold text-foreground cursor-pointer hover:text-muted-foreground transition-colors"
               onClick={() => navigate('/dashboard')}
             >
               Content Engine
@@ -137,8 +137,8 @@ const TopNavBar = () => {
           {/* Right side - User info and logout */}
           <div className="flex items-center gap-4">
             <div className="hidden sm:flex items-center gap-3">
-              <Avatar className="h-8 w-8 border border-neutral-700">
-                <AvatarFallback className="text-xs font-semibold bg-neutral-800 text-white">
+              <Avatar className="h-8 w-8 border border-border">
+                <AvatarFallback className="text-xs font-semibold bg-secondary text-foreground">
                   {getInitials(currentUser.email)}
                 </AvatarFallback>
               </Avatar>
@@ -159,7 +159,7 @@ const TopNavBar = () => {
               variant="ghost"
               size="sm"
               onClick={handleLogout}
-              className="text-neutral-400 hover:text-red-400 hover:bg-red-500/10"
+              className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
             >
               <LogOut className="h-4 w-4" />
               <span className="hidden sm:inline ml-1">Logout</span>
@@ -184,12 +184,12 @@ const TopNavBar = () => {
 
       {/* Mobile menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-background border-t border-neutral-800 shadow-lg">
+        <div className="md:hidden bg-background border-t border-border shadow-lg">
           <div className="px-6 py-4 space-y-2">
             {/* Mobile user info */}
-            <div className="flex items-center gap-3 pb-3 border-b border-neutral-800">
-              <Avatar className="h-8 w-8 border border-neutral-700">
-                <AvatarFallback className="text-xs font-semibold bg-neutral-800 text-white">
+            <div className="flex items-center gap-3 pb-3 border-b border-border">
+              <Avatar className="h-8 w-8 border border-border">
+                <AvatarFallback className="text-xs font-semibold bg-secondary text-foreground">
                   {getInitials(currentUser.email)}
                 </AvatarFallback>
               </Avatar>

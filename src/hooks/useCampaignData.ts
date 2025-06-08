@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Json } from '@/integrations/supabase/types';
-import { DEV_MODE } from '@/config/dev';
 
 interface Campaign {
   id: string;
@@ -69,27 +68,7 @@ export const useCampaignData = () => {
       throw new Error('User must be authenticated to create campaigns');
     }
 
-    console.log('Creating campaign with user:', user.id);
-    console.log('Campaign data:', campaignData);
-
     try {
-      // In dev mode, simulate successful campaign creation
-      if (DEV_MODE.DISABLE_AUTH) {
-        const mockCampaign: Campaign = {
-          id: crypto.randomUUID(),
-          name: campaignData.name || `Campaign ${new Date().toLocaleDateString()}`,
-          goal: campaignData.goal || '',
-          status: campaignData.status || 'draft',
-          created_at: new Date().toISOString(),
-          user_id: user.id,
-          ...campaignData
-        };
-        
-        setCampaigns(prev => [mockCampaign, ...prev]);
-        console.log('Mock campaign created:', mockCampaign);
-        return mockCampaign;
-      }
-
       const { data, error } = await supabase
         .from('campaigns')
         .insert({
@@ -102,7 +81,7 @@ export const useCampaignData = () => {
           budget_allocated: campaignData.budget_allocated || 0,
           budget_spent: campaignData.budget_spent || 0,
           boost_settings: campaignData.boost_settings || {},
-          user_id: user.id, // Use actual authenticated user ID
+          user_id: user.id,
           assigned_editor_id: campaignData.assigned_editor_id,
           platforms: campaignData.platforms || [],
           clips_count: campaignData.clips_count || 1,
@@ -120,10 +99,7 @@ export const useCampaignData = () => {
         .select()
         .single();
 
-      if (error) {
-        console.error('Supabase error creating campaign:', error);
-        throw error;
-      }
+      if (error) throw error;
       
       await fetchCampaigns();
       return data;

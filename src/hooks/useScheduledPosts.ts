@@ -44,7 +44,14 @@ export const useScheduledPosts = () => {
         throw error;
       }
       
-      setPosts(data || []);
+      // Convert database response to proper types
+      const typedPosts: ScheduledPost[] = (data || []).map(post => ({
+        ...post,
+        platforms: Array.isArray(post.platforms) ? post.platforms : [],
+        media_urls: Array.isArray(post.media_urls) ? post.media_urls : []
+      }));
+      
+      setPosts(typedPosts);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch scheduled posts';
       setError(errorMessage);

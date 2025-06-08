@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -16,7 +15,17 @@ interface Campaign {
   boost_settings?: any;
   created_at: string;
   user_id?: string;
-  // Add new boost-related fields with correct types
+  // Updated fields to match new schema
+  assigned_editor_id?: string;
+  platforms?: string[];
+  clips_count?: number;
+  cta_type?: string;
+  posting_start_date?: string;
+  posting_end_date?: string;
+  echo_boost_enabled?: boolean;
+  requires_approval?: boolean;
+  notes?: string;
+  // Keep existing boost-related fields
   echo_boost_platforms?: number;
   auto_fill_lookalike?: boolean;
   platform_targets?: any; // Use any to match Json type from database
@@ -64,6 +73,17 @@ export const useCampaignData = () => {
         budget_spent: campaignData.budget_spent || 0,
         boost_settings: campaignData.boost_settings || {},
         user_id: user.id,
+        // New fields
+        assigned_editor_id: campaignData.assigned_editor_id,
+        platforms: campaignData.platforms || [],
+        clips_count: campaignData.clips_count || 1,
+        cta_type: campaignData.cta_type || 'awareness',
+        posting_start_date: campaignData.posting_start_date,
+        posting_end_date: campaignData.posting_end_date,
+        echo_boost_enabled: campaignData.echo_boost_enabled || false,
+        requires_approval: campaignData.requires_approval !== undefined ? campaignData.requires_approval : true,
+        notes: campaignData.notes || '',
+        // Keep existing boost-related fields for backward compatibility
         echo_boost_platforms: campaignData.echo_boost_platforms || 1,
         auto_fill_lookalike: campaignData.auto_fill_lookalike || false,
         platform_targets: campaignData.platform_targets || [],

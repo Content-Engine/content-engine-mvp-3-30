@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -9,6 +10,7 @@ import RoleBasedRoute from "@/components/RoleBasedRoute";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
+import Campaigns from "./pages/Campaigns";
 import CampaignBuilder from "./pages/CampaignBuilder";
 import CalendarOverview from "./pages/CalendarOverview";
 import PerformanceDashboard from "./pages/PerformanceDashboard";
@@ -51,6 +53,14 @@ function App() {
                 <Layout>
                   <ProtectedRoute>
                     <Dashboard />
+                  </ProtectedRoute>
+                </Layout>
+              } />
+              
+              <Route path="/campaigns" element={
+                <Layout>
+                  <ProtectedRoute>
+                    <Campaigns />
                   </ProtectedRoute>
                 </Layout>
               } />

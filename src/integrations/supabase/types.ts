@@ -93,20 +93,29 @@ export type Database = {
       }
       campaigns: {
         Row: {
+          assigned_editor_id: string | null
           auto_fill_lookalike: boolean | null
           boost_settings: Json | null
           budget_allocated: number | null
           budget_spent: number | null
+          clips_count: number | null
           created_at: string
           created_by: string | null
+          cta_type: string | null
           description: string | null
+          echo_boost_enabled: boolean | null
           echo_boost_platforms: number | null
           end_date: string | null
           goal: string | null
           hashtags_caption: string | null
           id: string
           name: string
+          notes: string | null
           platform_targets: Json | null
+          platforms: Json | null
+          posting_end_date: string | null
+          posting_start_date: string | null
+          requires_approval: boolean | null
           start_date: string | null
           status: string | null
           syndication_tier: string | null
@@ -115,20 +124,29 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          assigned_editor_id?: string | null
           auto_fill_lookalike?: boolean | null
           boost_settings?: Json | null
           budget_allocated?: number | null
           budget_spent?: number | null
+          clips_count?: number | null
           created_at?: string
           created_by?: string | null
+          cta_type?: string | null
           description?: string | null
+          echo_boost_enabled?: boolean | null
           echo_boost_platforms?: number | null
           end_date?: string | null
           goal?: string | null
           hashtags_caption?: string | null
           id?: string
           name: string
+          notes?: string | null
           platform_targets?: Json | null
+          platforms?: Json | null
+          posting_end_date?: string | null
+          posting_start_date?: string | null
+          requires_approval?: boolean | null
           start_date?: string | null
           status?: string | null
           syndication_tier?: string | null
@@ -137,20 +155,29 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          assigned_editor_id?: string | null
           auto_fill_lookalike?: boolean | null
           boost_settings?: Json | null
           budget_allocated?: number | null
           budget_spent?: number | null
+          clips_count?: number | null
           created_at?: string
           created_by?: string | null
+          cta_type?: string | null
           description?: string | null
+          echo_boost_enabled?: boolean | null
           echo_boost_platforms?: number | null
           end_date?: string | null
           goal?: string | null
           hashtags_caption?: string | null
           id?: string
           name?: string
+          notes?: string | null
           platform_targets?: Json | null
+          platforms?: Json | null
+          posting_end_date?: string | null
+          posting_start_date?: string | null
+          requires_approval?: boolean | null
           start_date?: string | null
           status?: string | null
           syndication_tier?: string | null
@@ -159,6 +186,13 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "campaigns_assigned_editor_id_fkey"
+            columns: ["assigned_editor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "campaigns_user_id_fkey"
             columns: ["user_id"]

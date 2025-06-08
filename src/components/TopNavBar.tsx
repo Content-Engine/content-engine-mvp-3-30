@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -37,7 +36,8 @@ const TopNavBar = () => {
       case 'admin':
         return [
           { label: 'Dashboard', path: '/dashboard', icon: BarChart3 },
-          { label: 'Campaigns', path: '/campaign-builder', icon: Upload },
+          { label: 'Campaigns', path: '/campaigns', icon: Upload },
+          { label: 'Builder', path: '/campaign-builder', icon: Upload },
           { label: 'QC Panel', path: '/qc-panel', icon: CheckSquare },
           { label: 'Analytics', path: '/performance', icon: BarChart3 },
           { label: 'Settings', path: '/user-management', icon: Settings }
@@ -45,23 +45,28 @@ const TopNavBar = () => {
       case 'client':
         return [
           { label: 'Dashboard', path: '/dashboard', icon: BarChart3 },
-          { label: 'My Campaigns', path: '/campaign-builder', icon: Upload },
-          { label: 'Upload Content', path: '/campaign-builder', icon: Upload }
+          { label: 'Campaigns', path: '/campaigns', icon: Upload },
+          { label: 'Builder', path: '/campaign-builder', icon: Upload }
         ];
       case 'editor':
         return [
-          { label: 'Assigned Clips', path: '/editor-dashboard', icon: CheckSquare },
+          { label: 'Campaigns', path: '/campaigns', icon: Upload },
+          { label: 'Assigned', path: '/editor-dashboard', icon: CheckSquare },
           { label: 'QC Review', path: '/qc-panel', icon: CheckSquare },
           { label: 'Chat', path: '/dashboard', icon: MessageCircle }
         ];
       case 'social_media_manager':
         return [
+          { label: 'Campaigns', path: '/campaigns', icon: Upload },
           { label: 'Schedule', path: '/social/calendar', icon: Calendar },
           { label: 'Calendar', path: '/calendar', icon: Calendar },
           { label: 'Approvals', path: '/qc-panel', icon: CheckSquare }
         ];
       default:
-        return [{ label: 'Dashboard', path: '/dashboard', icon: BarChart3 }];
+        return [
+          { label: 'Dashboard', path: '/dashboard', icon: BarChart3 },
+          { label: 'Campaigns', path: '/campaigns', icon: Upload }
+        ];
     }
   };
 

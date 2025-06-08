@@ -35,7 +35,7 @@ const CampaignBuilderStep2 = ({ campaignData, updateCampaignData, onNext, onPrev
     const newFileMetadata: FileMetadata[] = validFiles.map(file => ({
       id: generateFileId(),
       file,
-      contentType: 'raw',
+      contentType: 'raw', // Start with 'raw', user must change this
       editorNotes: '',
       assignedEditor: 'unassigned',
       viralityScore: calculateViralityScore(file, file.name, bulkUpload)
@@ -60,7 +60,7 @@ const CampaignBuilderStep2 = ({ campaignData, updateCampaignData, onNext, onPrev
     updateCampaignData({ contentFiles: updatedFiles });
   };
 
-  // Updated canContinue logic - only require at least 1 file and all files to have content type and editor assigned
+  // Updated canContinue logic - require at least 1 file and all files to have proper content type and editor assigned
   const canContinue = uploadedFiles.length > 0 && 
     uploadedFiles.every(file => 
       file.contentType !== '' && 
@@ -73,8 +73,18 @@ const CampaignBuilderStep2 = ({ campaignData, updateCampaignData, onNext, onPrev
   console.log('Step 2 - Files validation:', uploadedFiles.map(f => ({
     id: f.id,
     contentType: f.contentType,
-    assignedEditor: f.assignedEditor
+    assignedEditor: f.assignedEditor,
+    valid: f.contentType !== '' && f.contentType !== 'raw' && f.assignedEditor !== 'unassigned'
   })));
+
+  const handleNext = () => {
+    console.log('Step 2 handleNext called, canContinue:', canContinue);
+    if (canContinue) {
+      onNext();
+    } else {
+      console.log('Cannot continue - validation failed');
+    }
+  };
 
   return (
     <div className="space-y-8">
@@ -103,7 +113,7 @@ const CampaignBuilderStep2 = ({ campaignData, updateCampaignData, onNext, onPrev
       <StepNavigation 
         canContinue={canContinue}
         uploadedFilesCount={uploadedFiles.length}
-        onNext={onNext}
+        onNext={handleNext}
         onPrevious={onPrevious}
       />
 
@@ -111,6 +121,17 @@ const CampaignBuilderStep2 = ({ campaignData, updateCampaignData, onNext, onPrev
         files={uploadedFiles}
         canContinue={canContinue}
       />
+
+      {/* Debug info for testing */}
+      {uploadedFiles.length > 0 && (
+        <div className="text-center">
+          <div className="glass-card-strong p-4 inline-block">
+            <p className="text-white/80 text-sm">
+              Debug: {uploadedFiles.length} files uploaded, canContinue: {canContinue.toString()}
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

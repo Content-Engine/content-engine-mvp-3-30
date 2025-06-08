@@ -12,9 +12,14 @@ const StepNavigation = ({ canContinue, uploadedFilesCount, onNext, onPrevious }:
   const handleNextClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    console.log('Next button clicked, canContinue:', canContinue);
+    console.log('StepNavigation - Next button clicked, canContinue:', canContinue);
+    console.log('StepNavigation - Uploaded files count:', uploadedFilesCount);
+    
     if (canContinue && onNext) {
+      console.log('StepNavigation - Calling onNext()');
       onNext();
+    } else {
+      console.log('StepNavigation - Cannot continue or onNext not provided');
     }
   };
 
@@ -32,6 +37,11 @@ const StepNavigation = ({ canContinue, uploadedFilesCount, onNext, onPrevious }:
     return 'Continue to Syndication';
   };
 
+  const getButtonColor = () => {
+    if (!canContinue) return 'glass-button-secondary';
+    return 'glass-button-primary';
+  };
+
   return (
     <div className="flex items-center justify-between max-w-7xl mx-auto">
       <Button
@@ -45,7 +55,7 @@ const StepNavigation = ({ canContinue, uploadedFilesCount, onNext, onPrevious }:
       <Button 
         onClick={handleNextClick} 
         size="lg" 
-        className="glass-button-primary"
+        className={getButtonColor()}
         disabled={!canContinue}
       >
         {getButtonText()}

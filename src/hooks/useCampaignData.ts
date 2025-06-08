@@ -1,6 +1,8 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { Json } from '@/integrations/supabase/types';
 
 interface Campaign {
   id: string;
@@ -12,12 +14,12 @@ interface Campaign {
   end_date?: string;
   budget_allocated?: number;
   budget_spent?: number;
-  boost_settings?: any;
+  boost_settings?: Json;
   created_at: string;
   user_id?: string;
   // Updated fields to match new schema
   assigned_editor_id?: string;
-  platforms?: string[];
+  platforms?: Json; // Changed from string[] to Json to match database type
   clips_count?: number;
   cta_type?: string;
   posting_start_date?: string;
@@ -28,7 +30,7 @@ interface Campaign {
   // Keep existing boost-related fields
   echo_boost_platforms?: number;
   auto_fill_lookalike?: boolean;
-  platform_targets?: any; // Use any to match Json type from database
+  platform_targets?: Json;
   hashtags_caption?: string;
 }
 
@@ -73,7 +75,7 @@ export const useCampaignData = () => {
         budget_spent: campaignData.budget_spent || 0,
         boost_settings: campaignData.boost_settings || {},
         user_id: user.id,
-        // New fields
+        // New fields - ensuring proper Json type casting
         assigned_editor_id: campaignData.assigned_editor_id,
         platforms: campaignData.platforms || [],
         clips_count: campaignData.clips_count || 1,

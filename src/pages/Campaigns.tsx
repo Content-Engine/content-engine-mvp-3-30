@@ -7,6 +7,7 @@ import { useCampaignData } from '@/hooks/useCampaignData';
 import { useAuth } from '@/hooks/useAuth';
 import CampaignsTable from '@/components/campaigns/CampaignsTable';
 import NewCampaignModal from '@/components/campaigns/NewCampaignModal';
+import { Json } from '@/integrations/supabase/types';
 
 const Campaigns = () => {
   const [isNewCampaignModalOpen, setIsNewCampaignModalOpen] = useState(false);
@@ -17,11 +18,18 @@ const Campaigns = () => {
 
   const canCreateCampaigns = userRole === 'admin' || userRole === 'social_media_manager';
 
+  // Helper function to safely parse platforms from Json
+  const getPlatformsArray = (platforms?: Json): string[] => {
+    if (!platforms) return [];
+    if (Array.isArray(platforms)) return platforms as string[];
+    if (typeof platforms === 'string') return [platforms];
+    return [];
+  };
+
   const filteredCampaigns = campaigns.filter(campaign => {
     const matchesSearch = campaign.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesPlatform = !selectedPlatform || 
-      (campaign.platforms && Array.isArray(campaign.platforms) && 
-       campaign.platforms.includes(selectedPlatform));
+    const campaignPlatforms = getPlatformsArray(campaign.platforms);
+    const matchesPlatform = !selectedPlatform || campaignPlatforms.includes(selectedPlatform);
     return matchesSearch && matchesPlatform;
   });
 

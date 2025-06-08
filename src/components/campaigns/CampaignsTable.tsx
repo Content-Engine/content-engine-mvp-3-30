@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Eye, Edit, Trash2, TrendingUp, Youtube, Instagram, AtSign } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { UserRole } from '@/hooks/useAuth';
+import { Json } from '@/integrations/supabase/types';
 
 interface Campaign {
   id: string;
@@ -12,7 +13,7 @@ interface Campaign {
   assigned_editor_id?: string;
   posting_start_date?: string;
   posting_end_date?: string;
-  platforms?: string[];
+  platforms?: Json; // Changed from string[] to Json
   cta_type?: string;
   echo_boost_enabled?: boolean;
   status?: string;
@@ -81,6 +82,14 @@ const CampaignsTable = ({ campaigns, loading, userRole }: CampaignsTableProps) =
   const formatDate = (dateString?: string) => {
     if (!dateString) return 'Not set';
     return new Date(dateString).toLocaleDateString();
+  };
+
+  // Helper function to safely parse platforms from Json
+  const getPlatformsArray = (platforms?: Json): string[] => {
+    if (!platforms) return [];
+    if (Array.isArray(platforms)) return platforms as string[];
+    if (typeof platforms === 'string') return [platforms];
+    return [];
   };
 
   if (loading) {
@@ -163,7 +172,7 @@ const CampaignsTable = ({ campaigns, loading, userRole }: CampaignsTableProps) =
                 </td>
                 <td className="p-4">
                   <div className="flex gap-2">
-                    {campaign.platforms?.map((platform) => (
+                    {getPlatformsArray(campaign.platforms).map((platform) => (
                       <div
                         key={platform}
                         className="flex items-center justify-center w-8 h-8 bg-accent/20 rounded-lg text-accent"

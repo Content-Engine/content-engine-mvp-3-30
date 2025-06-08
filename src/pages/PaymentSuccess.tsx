@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -17,13 +18,8 @@ const PaymentSuccess = () => {
   useEffect(() => {
     const handleVerification = async () => {
       if (sessionId) {
-        try {
-          await verifyPayment();
-          setVerificationSuccess(true);
-        } catch (error) {
-          console.error('Payment verification failed:', error);
-          setVerificationSuccess(false);
-        }
+        const success = await verifyPayment(sessionId);
+        setVerificationSuccess(success);
       }
       setIsVerifying(false);
     };

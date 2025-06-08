@@ -15,18 +15,18 @@ const boostOptions = [
   {
     id: "echoClone",
     name: "Echo Clone Generator",
-    description: "Creates viral content variants with optimized captions and hashtags",
+    description: "Creates viral content variants with optimized captions",
     impact: "+45% reach",
     cost: "$25",
-    gradient: "from-blue-500/10 to-cyan-600/10"
+    gradient: "from-blue-500/20 to-cyan-600/20"
   },
   {
     id: "commentSeeding",
     name: "Comment Seeding",
-    description: "Authentic engagement boost with strategic comments and interactions",
+    description: "Authentic engagement boost with strategic comments",
     impact: "+30% engagement",
     cost: "$15",
-    gradient: "from-green-500/10 to-emerald-600/10"
+    gradient: "from-green-500/20 to-emerald-600/20"
   }
 ];
 
@@ -41,32 +41,30 @@ const CampaignBuilderStep4 = ({ campaignData, updateCampaignData, onNext }: Camp
   };
 
   return (
-    <div className="animate-fade-in spacing-content">
-      {/* Step Header */}
-      <div className="text-center space-y-4">
-        <div className="card-glass p-8 inline-block">
-          <h2 className="text-display bg-gradient-to-r from-accent to-accent/80 bg-clip-text text-transparent mb-4">
+    <div className="space-y-8">
+      {/* Step Title */}
+      <div className="text-center">
+        <div className="glass-card-strong p-8 mb-6 inline-block">
+          <h2 className="text-4xl font-bold bg-gradient-to-r from-accent via-accent/80 to-accent bg-clip-text text-transparent mb-4">
             Boost Options ⚡
           </h2>
-          <div className="h-1 w-full bg-gradient-to-r from-accent to-accent/80 rounded-full"></div>
+          <div className="h-1 w-full bg-gradient-to-r from-accent via-accent/80 to-accent rounded-full"></div>
         </div>
-        <p className="text-body text-text-muted card-glass p-4 inline-block max-w-2xl">
-          Enhance your campaign performance with AI-powered engagement boosts
+        <p className="text-lg text-foreground/90 glass-card-strong p-4 inline-block">
+          Enhance your campaign performance with AI-powered boosts
         </p>
       </div>
 
-      {/* Boost Options Grid */}
+      {/* Boost Options */}
       <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
         {boostOptions.map((boost) => (
           <Card
             key={boost.id}
-            className="card-glass hover:scale-105 transition-all duration-300 relative overflow-hidden"
+            className={`frosted-glass bg-gradient-to-br ${boost.gradient} border-0 hover:scale-105 transition-all duration-500 relative overflow-hidden`}
           >
-            <div className={`absolute inset-0 bg-gradient-to-br ${boost.gradient}`} />
-            
-            <CardHeader className="relative z-10">
+            <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle className="text-heading-4 text-text-main">
+                <CardTitle className="text-foreground text-xl">
                   {boost.name}
                 </CardTitle>
                 <Switch
@@ -75,22 +73,14 @@ const CampaignBuilderStep4 = ({ campaignData, updateCampaignData, onNext }: Camp
                 />
               </div>
             </CardHeader>
-            
-            <CardContent className="space-y-4 relative z-10">
-              <p className="text-body-sm text-text-muted">{boost.description}</p>
-              
+            <CardContent className="space-y-4">
+              <p className="text-foreground/90">{boost.description}</p>
               <div className="flex items-center justify-between">
-                <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
+                <Badge className="bg-green-500/20 text-green-200">
                   {boost.impact}
                 </Badge>
-                <span className="text-heading-4 text-text-main font-bold">{boost.cost}</span>
+                <span className="text-foreground font-bold">{boost.cost}</span>
               </div>
-              
-              {campaignData.boosts?.[boost.id] && (
-                <div className="status-active w-fit">
-                  ✨ Enabled
-                </div>
-              )}
             </CardContent>
           </Card>
         ))}
@@ -98,22 +88,9 @@ const CampaignBuilderStep4 = ({ campaignData, updateCampaignData, onNext }: Camp
 
       {/* Continue Button */}
       <div className="text-center">
-        <Button 
-          onClick={onNext} 
-          size="lg" 
-          className="btn-primary"
-        >
+        <Button onClick={onNext} size="lg" className="glass-button-primary">
           Continue to Schedule
         </Button>
-      </div>
-
-      {/* Summary */}
-      <div className="text-center">
-        <div className="card-surface p-4 inline-block">
-          <p className="text-caption text-text-muted">
-            {Object.values(campaignData.boosts || {}).filter(Boolean).length} boost{Object.values(campaignData.boosts || {}).filter(Boolean).length !== 1 ? 's' : ''} selected
-          </p>
-        </div>
       </div>
     </div>
   );

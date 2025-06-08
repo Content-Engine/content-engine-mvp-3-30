@@ -62,18 +62,7 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
-				},
-				// Custom design tokens
-				'bg-main': 'rgb(var(--bg-main))',
-				'bg-card': 'rgb(var(--bg-card))',
-				'bg-surface': 'rgb(var(--bg-surface))',
-				'text-main': 'rgb(var(--text-main))',
-				'text-muted': 'rgb(var(--text-muted))',
-				'text-subtle': 'rgb(var(--text-subtle))',
-				'border-color': 'rgb(var(--border-color))',
-				'border-subtle': 'rgb(var(--border-subtle))',
-				'hover-accent': 'rgb(var(--hover-accent))',
-				'surface-hover': 'rgb(var(--surface-hover))'
+				}
 			},
 			borderRadius: {
 				lg: 'var(--radius)',

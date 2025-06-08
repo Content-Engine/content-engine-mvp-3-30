@@ -1,6 +1,6 @@
 
 export const DEV_MODE = {
-  DISABLE_AUTH: false,
+  DISABLE_AUTH: true,
   MOCK_USER: {
     id: 'dev-user-123',
     email: 'dev@contentengine.com',

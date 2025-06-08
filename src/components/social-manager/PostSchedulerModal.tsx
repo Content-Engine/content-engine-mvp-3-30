@@ -9,7 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { useScheduledPosts } from "@/hooks/useScheduledPosts";
 import { useCampaignData } from "@/hooks/useCampaignData";
-import { useToast } = "@/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { 
   Upload, 
   X, 

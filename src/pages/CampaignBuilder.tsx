@@ -1,4 +1,3 @@
-
 import { useState, lazy, Suspense } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -8,6 +7,7 @@ import { useCampaignBuilder } from '@/hooks/useCampaignBuilder';
 import ProgressBar from '@/components/ProgressBar';
 import Layout from '@/components/Layout';
 import { DEV_MODE } from '@/config/dev';
+import { useToast } from '@/hooks/use-toast';
 
 // Lazy load step components
 const Step1Goal = lazy(() => import('@/pages/CampaignBuilderStep1'));
@@ -21,10 +21,12 @@ const CampaignBuilder = () => {
   const { stepNumber } = useParams();
   const { createCampaign } = useCampaignData();
   const { state, updateState, clearState } = useCampaignBuilder();
+  const { toast } = useToast();
   
   // Handle URL-based step or default to 1
   const initialStep = stepNumber ? parseInt(stepNumber) : 1;
   const [currentStep, setCurrentStep] = useState(Math.max(1, Math.min(5, initialStep)));
+  const [isLaunching, setIsLaunching] = useState(false);
 
   const handleNext = () => {
     if (currentStep < 5) {
@@ -43,8 +45,14 @@ const CampaignBuilder = () => {
   };
 
   const handleLaunch = async () => {
+    if (isLaunching) return;
+    
+    setIsLaunching(true);
+    
     try {
-      await createCampaign({
+      console.log('Launching campaign with state:', state);
+      
+      const campaign = await createCampaign({
         name: state.name || `Campaign ${new Date().toLocaleDateString()}`,
         goal: state.goal,
         syndication_tier: state.syndicationTier,
@@ -61,10 +69,36 @@ const CampaignBuilder = () => {
         hashtags_caption: state.hashtags_caption,
       });
 
+      console.log('Campaign created successfully:', campaign);
+      
+      toast({
+        title: "🚀 Campaign Launched!",
+        description: "Your campaign has been created successfully and is now active.",
+      });
+
       clearState();
       navigate('/dashboard');
     } catch (error) {
       console.error('Failed to create campaign:', error);
+      
+      let errorMessage = 'Failed to create campaign. Please try again.';
+      if (error instanceof Error) {
+        if (error.message.includes('row-level security')) {
+          errorMessage = 'You do not have permission to create campaigns. Please contact support.';
+        } else if (error.message.includes('authenticated')) {
+          errorMessage = 'Please log in to create campaigns.';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
+      toast({
+        title: "Error Creating Campaign",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setIsLaunching(false);
     }
   };
 
@@ -175,9 +209,10 @@ const CampaignBuilder = () => {
           ) : (
             <Button
               onClick={handleLaunch}
+              disabled={isLaunching}
               className="glass-button-primary"
             >
-              Launch Campaign
+              {isLaunching ? 'Launching...' : 'Launch Campaign'}
             </Button>
           )}
         </div>

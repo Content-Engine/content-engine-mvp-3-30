@@ -7,6 +7,7 @@ import { DEV_MODE } from '@/config/dev';
 
 interface PaymentState {
   currentTier: string | null;
+  paymentTier: string | null;
   isLoading: boolean;
   error: string | null;
 }
@@ -14,6 +15,7 @@ interface PaymentState {
 export const usePayments = () => {
   const [state, setState] = useState<PaymentState>({
     currentTier: null,
+    paymentTier: null,
     isLoading: false,
     error: null,
   });
@@ -28,6 +30,7 @@ export const usePayments = () => {
       setState(prev => ({
         ...prev,
         currentTier: 'pro',
+        paymentTier: 'pro',
         isLoading: false,
         error: null
       }));
@@ -54,6 +57,7 @@ export const usePayments = () => {
       setState(prev => ({
         ...prev,
         currentTier: data?.payment_tier || null,
+        paymentTier: data?.payment_tier || null,
         isLoading: false,
       }));
     } catch (error) {
@@ -84,7 +88,8 @@ export const usePayments = () => {
       });
       setState(prev => ({
         ...prev,
-        currentTier: tierId
+        currentTier: tierId,
+        paymentTier: tierId
       }));
       return { url: '#dev-mode-payment' };
     }
@@ -120,6 +125,12 @@ export const usePayments = () => {
     }
   };
 
+  const initiatePayment = createPayment; // Alias for backward compatibility
+
+  const verifyPayment = async () => {
+    return checkPaymentStatus();
+  };
+
   useEffect(() => {
     if (user) {
       checkPaymentStatus();
@@ -129,6 +140,8 @@ export const usePayments = () => {
   return {
     ...state,
     createPayment,
+    initiatePayment,
+    verifyPayment,
     refreshPaymentStatus: checkPaymentStatus,
   };
 };

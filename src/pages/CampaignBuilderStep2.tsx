@@ -60,11 +60,21 @@ const CampaignBuilderStep2 = ({ campaignData, updateCampaignData, onNext, onPrev
     updateCampaignData({ contentFiles: updatedFiles });
   };
 
+  // Updated canContinue logic - only require at least 1 file and all files to have content type and editor assigned
   const canContinue = uploadedFiles.length > 0 && 
     uploadedFiles.every(file => 
       file.contentType !== '' && 
+      file.contentType !== 'raw' && // Don't allow 'raw' as final content type
       file.assignedEditor !== 'unassigned'
     );
+
+  console.log('Step 2 - Can continue:', canContinue);
+  console.log('Step 2 - Files:', uploadedFiles.length);
+  console.log('Step 2 - Files validation:', uploadedFiles.map(f => ({
+    id: f.id,
+    contentType: f.contentType,
+    assignedEditor: f.assignedEditor
+  })));
 
   return (
     <div className="space-y-8">

@@ -12,6 +12,7 @@ const StepNavigation = ({ canContinue, uploadedFilesCount, onNext, onPrevious }:
   const handleNextClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    console.log('Next button clicked, canContinue:', canContinue);
     if (canContinue && onNext) {
       onNext();
     }
@@ -26,9 +27,9 @@ const StepNavigation = ({ canContinue, uploadedFilesCount, onNext, onPrevious }:
   };
 
   const getButtonText = () => {
-    if (canContinue) return 'Continue to Syndication';
     if (uploadedFilesCount === 0) return 'Upload at least 1 file to continue';
-    return 'Complete all assignments to continue';
+    if (!canContinue) return 'Complete all assignments to continue';
+    return 'Continue to Syndication';
   };
 
   return (

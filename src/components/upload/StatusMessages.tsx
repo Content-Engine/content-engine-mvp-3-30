@@ -22,9 +22,9 @@ const StatusMessages = ({ files, canContinue }: StatusMessagesProps) => {
               ⚠️ Please assign editors to all files before continuing
             </p>
           )}
-          {files.some(f => f.contentType === '') && (
+          {files.some(f => f.contentType === '' || f.contentType === 'raw') && (
             <p className="text-yellow-400 text-sm">
-              📝 Please select content types for all files
+              📝 Please select content types for all files (can't be "Raw Content")
             </p>
           )}
         </div>

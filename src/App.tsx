@@ -30,6 +30,7 @@ const queryClient = new QueryClient({
     queries: {
       retry: 1,
       refetchOnWindowFocus: false,
+      staleTime: 5 * 60 * 1000, // 5 minutes
     },
   },
 });
@@ -130,11 +131,9 @@ function App() {
               } />
               
               <Route path="/social/*" element={
-                <Layout>
-                  <RoleBasedRoute allowedRoles={['admin', 'social_media_manager']}>
-                    <SocialManagerDashboard />
-                  </RoleBasedRoute>
-                </Layout>
+                <RoleBasedRoute allowedRoles={['admin', 'social_media_manager']}>
+                  <SocialManagerDashboard />
+                </RoleBasedRoute>
               } />
               
               <Route path="*" element={<NotFound />} />

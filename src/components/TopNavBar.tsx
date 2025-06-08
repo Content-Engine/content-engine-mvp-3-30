@@ -1,34 +1,21 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { LogOut, Menu, X, Settings, BarChart3, Calendar, Users, Upload, MessageCircle, CheckSquare } from 'lucide-react';
 import ContentEngineLogo from '@/components/ContentEngineLogo';
 
-interface User {
-  email: string;
-  role: 'admin' | 'client' | 'editor' | 'social_media_manager';
-}
-
 const TopNavBar = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const { user, userRole, signOut } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  useEffect(() => {
-    // Load user from localStorage
-    const storedUser = localStorage.getItem('contentEngineUser');
-    if (storedUser) {
-      setCurrentUser(JSON.parse(storedUser));
-    }
-  }, []);
-
-  const handleLogout = () => {
-    localStorage.removeItem('contentEngineUser');
-    setCurrentUser(null);
+  const handleLogout = async () => {
+    await signOut();
     navigate('/login');
   };
 
@@ -41,6 +28,7 @@ const TopNavBar = () => {
           { label: 'Builder', path: '/campaign-builder', icon: Upload },
           { label: 'QC Panel', path: '/qc-panel', icon: CheckSquare },
           { label: 'Analytics', path: '/performance', icon: BarChart3 },
+          { label: 'Social', path: '/social', icon: Calendar },
           { label: 'Settings', path: '/user-management', icon: Settings }
         ];
       case 'client':
@@ -53,8 +41,7 @@ const TopNavBar = () => {
         return [
           { label: 'Campaigns', path: '/campaigns', icon: Upload },
           { label: 'Assigned', path: '/editor-dashboard', icon: CheckSquare },
-          { label: 'QC Review', path: '/qc-panel', icon: CheckSquare },
-          { label: 'Chat', path: '/dashboard', icon: MessageCircle }
+          { label: 'QC Review', path: '/qc-panel', icon: CheckSquare }
         ];
       case 'social_media_manager':
         return [
@@ -100,11 +87,11 @@ const TopNavBar = () => {
     return role.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
   };
 
-  if (!currentUser) {
+  if (!user || !userRole) {
     return null;
   }
 
-  const buttons = getRoleButtons(currentUser.role);
+  const buttons = getRoleButtons(userRole);
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-bg-main/95 backdrop-blur-sm border-b border-border-color shadow-sm">
@@ -145,18 +132,18 @@ const TopNavBar = () => {
             <div className="hidden sm:flex items-center gap-3">
               <Avatar className="h-8 w-8 border border-border-color">
                 <AvatarFallback className="text-xs font-semibold bg-secondary text-text-main">
-                  {getInitials(currentUser.email)}
+                  {getInitials(user.email || 'U')}
                 </AvatarFallback>
               </Avatar>
               <div className="flex flex-col">
                 <span className="text-sm font-medium text-text-main">
-                  {currentUser.email}
+                  {user.email}
                 </span>
                 <Badge 
                   variant="outline" 
-                  className={`text-xs px-2 py-0 ${getRoleColor(currentUser.role)}`}
+                  className={`text-xs px-2 py-0 ${getRoleColor(userRole)}`}
                 >
-                  {formatRoleName(currentUser.role)}
+                  {formatRoleName(userRole)}
                 </Badge>
               </div>
             </div>
@@ -196,18 +183,18 @@ const TopNavBar = () => {
             <div className="flex items-center gap-3 pb-3 border-b border-border-color">
               <Avatar className="h-8 w-8 border border-border-color">
                 <AvatarFallback className="text-xs font-semibold bg-secondary text-text-main">
-                  {getInitials(currentUser.email)}
+                  {getInitials(user.email || 'U')}
                 </AvatarFallback>
               </Avatar>
               <div className="flex flex-col">
                 <span className="text-sm font-medium text-text-main">
-                  {currentUser.email}
+                  {user.email}
                 </span>
                 <Badge 
                   variant="outline" 
-                  className={`text-xs px-2 py-0 w-fit ${getRoleColor(currentUser.role)}`}
+                  className={`text-xs px-2 py-0 w-fit ${getRoleColor(userRole)}`}
                 >
-                  {formatRoleName(currentUser.role)}
+                  {formatRoleName(userRole)}
                 </Badge>
               </div>
             </div>

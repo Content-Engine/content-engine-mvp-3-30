@@ -15,7 +15,8 @@ import {
   ArrowLeft,
   Bell,
   Search,
-  Settings
+  Settings,
+  AlertCircle
 } from "lucide-react";
 import SocialCalendarView from "@/components/social-manager/SocialCalendarView";
 import EditorsPanel from "@/components/social-manager/EditorsPanel";
@@ -28,7 +29,7 @@ const SocialManagerDashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
-  const { userRole, loading } = useAuth();
+  const { userRole, loading, user } = useAuth();
   const [currentCampaign, setCurrentCampaign] = useState("All Campaigns");
 
   const sidebarItems = [
@@ -54,16 +55,42 @@ const SocialManagerDashboard = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-bg-main flex items-center justify-center">
-        <div className="animate-pulse">
-          <div className="h-8 loading-skeleton w-48 mb-4"></div>
-          <div className="h-4 loading-skeleton w-32"></div>
+        <div className="animate-pulse text-center">
+          <div className="h-8 loading-skeleton w-48 mb-4 mx-auto"></div>
+          <div className="h-4 loading-skeleton w-32 mx-auto"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-bg-main flex items-center justify-center">
+        <div className="text-center">
+          <AlertCircle className="h-12 w-12 text-accent mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-text-main mb-2">Authentication Required</h2>
+          <p className="text-text-muted mb-4">Please log in to access the Social Manager Dashboard.</p>
+          <Button onClick={() => navigate('/login')} className="btn-primary">
+            Go to Login
+          </Button>
         </div>
       </div>
     );
   }
 
   if (!userRole || !['admin', 'social_media_manager'].includes(userRole)) {
-    return null;
+    return (
+      <div className="min-h-screen bg-bg-main flex items-center justify-center">
+        <div className="text-center">
+          <AlertCircle className="h-12 w-12 text-accent mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-text-main mb-2">Access Denied</h2>
+          <p className="text-text-muted mb-4">You don't have permission to access this area.</p>
+          <Button onClick={() => navigate('/dashboard')} className="btn-primary">
+            Back to Dashboard
+          </Button>
+        </div>
+      </div>
+    );
   }
 
   const getCurrentPageTitle = () => {
@@ -103,7 +130,7 @@ const SocialManagerDashboard = () => {
           <div className="p-4 border-b border-border-color">
             <label className="text-sm text-text-muted mb-2 block">Active Campaign</label>
             <select 
-              className="w-full bg-card-bg border border-border-color rounded-lg px-3 py-2 text-text-main text-sm"
+              className="w-full bg-card-bg border border-border-color rounded-lg px-3 py-2 text-text-main text-sm focus:outline-none focus:ring-2 focus:ring-accent transition-colors"
               value={currentCampaign}
               onChange={(e) => setCurrentCampaign(e.target.value)}
             >

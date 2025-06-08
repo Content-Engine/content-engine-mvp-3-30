@@ -24,9 +24,6 @@ interface EditorAssignmentWithDetails extends EditorAssignment {
       name: string;
     };
   };
-  editor?: {
-    name: string;
-  };
 }
 
 export const useEditorAssignments = () => {
@@ -48,8 +45,7 @@ export const useEditorAssignments = () => {
             file_name,
             file_type,
             campaign:campaigns(name)
-          ),
-          editor:editors(name)
+          )
         `)
         .order('assigned_at', { ascending: false });
       

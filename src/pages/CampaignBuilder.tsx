@@ -27,6 +27,12 @@ interface CampaignData {
     startDate: string;
     autoBoost: boolean;
   };
+  // Enhanced fields
+  echo_boost_platforms: number;
+  auto_fill_lookalike: boolean;
+  comment_templates: string[];
+  platform_targets: string[];
+  hashtags_caption: string;
 }
 
 const CampaignBuilder = () => {
@@ -48,6 +54,12 @@ const CampaignBuilder = () => {
       startDate: '',
       autoBoost: false,
     },
+    // Enhanced fields
+    echo_boost_platforms: 1,
+    auto_fill_lookalike: false,
+    comment_templates: [],
+    platform_targets: [],
+    hashtags_caption: '',
   });
 
   // Load data from localStorage on mount
@@ -96,6 +108,10 @@ const CampaignBuilder = () => {
           comment_seeding: campaignData.boosts.commentSeeding,
           auto_boost: campaignData.schedule.autoBoost,
         },
+        echo_boost_platforms: campaignData.echo_boost_platforms,
+        auto_fill_lookalike: campaignData.auto_fill_lookalike,
+        platform_targets: campaignData.platform_targets,
+        hashtags_caption: campaignData.hashtags_caption,
       });
 
       localStorage.removeItem('campaignBuilderData');

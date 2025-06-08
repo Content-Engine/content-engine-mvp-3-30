@@ -1,4 +1,3 @@
-
 export interface FileMetadata {
   id: string;
   file: File;
@@ -6,7 +5,7 @@ export interface FileMetadata {
   editorNotes: string;
   assignedEditor: string;
   viralityScore: number;
-  preview?: string;
+  songId?: string; // Add songId for video files
 }
 
 export const generateFileId = () => {

@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { X, FileVideo, Music, FileImage, File } from 'lucide-react';
 import { FileMetadata, getViralityScoreColor, formatFileSize, getFileTypeIcon } from '@/utils/fileUtils';
+import SongPicker from '@/components/upload/SongPicker';
 
 interface FileCardProps {
   fileData: FileMetadata;
@@ -44,6 +45,12 @@ const FileCard = ({ fileData, onUpdate, onRemove }: FileCardProps) => {
   
   const IconComponent = iconMap[getFileTypeIcon(fileData.file) as keyof typeof iconMap];
 
+  const handleSongSelect = (songId: string) => {
+    onUpdate(fileData.id, { songId });
+  };
+
+  const isVideoFile = fileData.file.type.startsWith('video/');
+
   return (
     <Card className={`frosted-glass bg-gradient-to-br from-gray-600/40 to-gray-700/40 border-0 ${
       fileData.assignedEditor === 'unassigned' ? 'ring-2 ring-red-400/50' : ''
@@ -64,6 +71,14 @@ const FileCard = ({ fileData, onUpdate, onRemove }: FileCardProps) => {
             <Badge className={`${viralityData.bgColor} ${viralityData.color} border-0`}>
               {fileData.viralityScore} - {viralityData.label}
             </Badge>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="text-blue-400 hover:text-blue-300 p-1"
+            >
+              {isExpanded ? 'Less' : 'More'}
+            </Button>
             <Button
               variant="ghost"
               size="sm"
@@ -135,15 +150,30 @@ const FileCard = ({ fileData, onUpdate, onRemove }: FileCardProps) => {
             </div>
           </div>
 
-          <div>
-            <label className="text-white/90 text-sm font-medium mb-1 block">Editor Notes</label>
-            <Textarea
-              value={fileData.editorNotes}
-              onChange={(e) => onUpdate(fileData.id, { editorNotes: e.target.value })}
-              placeholder="Add notes for the assigned editor..."
-              className="glass-card-subtle border-white/20 text-white placeholder:text-white/50 resize-none h-20"
-            />
-          </div>
+          {isExpanded && (
+            <>
+              {/* Song Selection for Video Files */}
+              {isVideoFile && (
+                <div>
+                  <label className="text-white/90 text-sm font-medium mb-2 block">Background Music</label>
+                  <SongPicker
+                    selectedSongId={fileData.songId || null}
+                    onSongSelect={handleSongSelect}
+                  />
+                </div>
+              )}
+
+              <div>
+                <label className="text-white/90 text-sm font-medium mb-1 block">Editor Notes</label>
+                <Textarea
+                  value={fileData.editorNotes}
+                  onChange={(e) => onUpdate(fileData.id, { editorNotes: e.target.value })}
+                  placeholder="Add notes for the assigned editor..."
+                  className="glass-card-subtle border-white/20 text-white placeholder:text-white/50 resize-none h-20"
+                />
+              </div>
+            </>
+          )}
         </div>
       </CardContent>
     </Card>

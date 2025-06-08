@@ -93,16 +93,20 @@ export type Database = {
       }
       campaigns: {
         Row: {
+          auto_fill_lookalike: boolean | null
           boost_settings: Json | null
           budget_allocated: number | null
           budget_spent: number | null
           created_at: string
           created_by: string | null
           description: string | null
+          echo_boost_platforms: number | null
           end_date: string | null
           goal: string | null
+          hashtags_caption: string | null
           id: string
           name: string
+          platform_targets: Json | null
           start_date: string | null
           status: string | null
           syndication_tier: string | null
@@ -111,16 +115,20 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          auto_fill_lookalike?: boolean | null
           boost_settings?: Json | null
           budget_allocated?: number | null
           budget_spent?: number | null
           created_at?: string
           created_by?: string | null
           description?: string | null
+          echo_boost_platforms?: number | null
           end_date?: string | null
           goal?: string | null
+          hashtags_caption?: string | null
           id?: string
           name: string
+          platform_targets?: Json | null
           start_date?: string | null
           status?: string | null
           syndication_tier?: string | null
@@ -129,16 +137,20 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          auto_fill_lookalike?: boolean | null
           boost_settings?: Json | null
           budget_allocated?: number | null
           budget_spent?: number | null
           created_at?: string
           created_by?: string | null
           description?: string | null
+          echo_boost_platforms?: number | null
           end_date?: string | null
           goal?: string | null
+          hashtags_caption?: string | null
           id?: string
           name?: string
+          platform_targets?: Json | null
           start_date?: string | null
           status?: string | null
           syndication_tier?: string | null
@@ -207,6 +219,51 @@ export type Database = {
           },
         ]
       }
+      comment_templates: {
+        Row: {
+          campaign_id: string | null
+          comment_text: string
+          content_item_id: string | null
+          created_at: string
+          id: string
+          tone_type: string | null
+          updated_at: string
+        }
+        Insert: {
+          campaign_id?: string | null
+          comment_text: string
+          content_item_id?: string | null
+          created_at?: string
+          id?: string
+          tone_type?: string | null
+          updated_at?: string
+        }
+        Update: {
+          campaign_id?: string | null
+          comment_text?: string
+          content_item_id?: string | null
+          created_at?: string
+          id?: string
+          tone_type?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comment_templates_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comment_templates_content_item_id_fkey"
+            columns: ["content_item_id"]
+            isOneToOne: false
+            referencedRelation: "content_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       comments: {
         Row: {
           comment_text: string
@@ -250,6 +307,7 @@ export type Database = {
           file_type: string
           file_url: string
           id: string
+          song_id: string | null
           status: string | null
           thumbnail_url: string | null
         }
@@ -260,6 +318,7 @@ export type Database = {
           file_type: string
           file_url: string
           id?: string
+          song_id?: string | null
           status?: string | null
           thumbnail_url?: string | null
         }
@@ -270,6 +329,7 @@ export type Database = {
           file_type?: string
           file_url?: string
           id?: string
+          song_id?: string | null
           status?: string | null
           thumbnail_url?: string | null
         }
@@ -279,6 +339,13 @@ export type Database = {
             columns: ["campaign_id"]
             isOneToOne: false
             referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_items_song_id_fkey"
+            columns: ["song_id"]
+            isOneToOne: false
+            referencedRelation: "songs"
             referencedColumns: ["id"]
           },
         ]
@@ -528,11 +595,14 @@ export type Database = {
       songs: {
         Row: {
           artist: string | null
+          bpm: number | null
           created_at: string | null
           duration: number | null
+          energy_level: string | null
           file_url: string | null
           genre: string | null
           id: string
+          key: string | null
           mood: string | null
           platform_compatibility: Json | null
           title: string
@@ -540,11 +610,14 @@ export type Database = {
         }
         Insert: {
           artist?: string | null
+          bpm?: number | null
           created_at?: string | null
           duration?: number | null
+          energy_level?: string | null
           file_url?: string | null
           genre?: string | null
           id?: string
+          key?: string | null
           mood?: string | null
           platform_compatibility?: Json | null
           title: string
@@ -552,11 +625,14 @@ export type Database = {
         }
         Update: {
           artist?: string | null
+          bpm?: number | null
           created_at?: string | null
           duration?: number | null
+          energy_level?: string | null
           file_url?: string | null
           genre?: string | null
           id?: string
+          key?: string | null
           mood?: string | null
           platform_compatibility?: Json | null
           title?: string

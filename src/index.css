@@ -166,7 +166,7 @@
   }
 
   .card-glass {
-    @apply bg-card-bg/80 border border-border-color rounded-xl backdrop-blur-md;
+    @apply bg-card/80 border border-border-color rounded-xl backdrop-blur-md;
   }
 
   /* Input styles */

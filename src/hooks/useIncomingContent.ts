@@ -45,7 +45,8 @@ export const useIncomingContent = () => {
       // Filter based on user role
       if (userRole === 'editor') {
         query = query.eq('assigned_editor_id', user?.id);
-      } else if (userRole === 'client') {
+      } else if (userRole === 'user') {
+        // Users with 'user' role are treated as clients
         query = query.eq('client_id', user?.id);
       }
 
@@ -58,9 +59,19 @@ export const useIncomingContent = () => {
       
       const typedSubmissions: IncomingContentSubmission[] = (data || []).map(submission => ({
         ...submission,
+        content_type: submission.content_type as 'short' | 'graphic' | 'quote' | 'meme' | 'testimonial' | 'ad',
+        status: submission.status as 'pending' | 'assigned' | 'scheduled' | 'rejected',
         preferred_platforms: Array.isArray(submission.preferred_platforms) 
           ? submission.preferred_platforms.filter((p): p is string => typeof p === 'string') 
-          : []
+          : [],
+        boost_requested: submission.boost_requested ?? false,
+        submit_date: submission.submit_date,
+        created_at: submission.created_at,
+        updated_at: submission.updated_at,
+        campaign_tag: submission.campaign_tag || undefined,
+        submitted_caption: submission.submitted_caption || undefined,
+        internal_notes: submission.internal_notes || undefined,
+        assigned_editor_id: submission.assigned_editor_id || undefined
       }));
       
       setSubmissions(typedSubmissions);
@@ -184,7 +195,7 @@ export const useIncomingContent = () => {
   };
 
   useEffect(() => {
-    if (user && userRole && ['admin', 'social_media_manager', 'editor'].includes(userRole)) {
+    if (user && userRole && ['admin', 'social_media_manager', 'editor', 'user'].includes(userRole)) {
       fetchSubmissions();
       fetchErrors();
     }

@@ -5,23 +5,24 @@
 
 @layer base {
   :root {
-    --background: 18 18 18; /* #121212 */
-    --foreground: 255 255 255; /* #FFFFFF */
+    /* Apple Music Dark Theme - Updated */
+    --background: 15 15 15; /* #0F0F0F - True black background */
+    --foreground: 255 255 255; /* #FFFFFF - Pure white text */
 
-    --card: 28 28 30; /* #1C1C1E */
+    --card: 26 26 26; /* #1A1A1A - Dark card background */
     --card-foreground: 255 255 255;
 
-    --popover: 28 28 30;
+    --popover: 26 26 26;
     --popover-foreground: 255 255 255;
 
     --primary: 255 255 255; /* White */
-    --primary-foreground: 18 18 18;
+    --primary-foreground: 15 15 15;
 
-    --secondary: 44 44 46; /* #2C2C2E */
+    --secondary: 32 32 32; /* #202020 - Slightly lighter than card */
     --secondary-foreground: 255 255 255;
 
-    --muted: 44 44 46;
-    --muted-foreground: 161 161 170; /* #A1A1AA */
+    --muted: 40 40 40; /* #282828 */
+    --muted-foreground: 180 180 180; /* #B4B4B4 */
 
     --accent: 255 45 85; /* #FF2D55 - Apple Music Red */
     --accent-foreground: 255 255 255;
@@ -29,11 +30,19 @@
     --destructive: 255 69 58; /* Apple Red */
     --destructive-foreground: 255 255 255;
 
-    --border: 44 44 46; /* #2C2C2E */
-    --input: 28 28 30; /* #1C1C1E */
+    --border: 40 40 40; /* #282828 */
+    --input: 26 26 26; /* #1A1A1A */
     --ring: 255 45 85;
 
     --radius: 1rem;
+
+    /* Custom design tokens */
+    --bg-main: 15 15 15; /* #0F0F0F */
+    --bg-card: 26 26 26; /* #1A1A1A */
+    --text-main: 255 255 255; /* #FFFFFF */
+    --text-muted: 180 180 180; /* #B4B4B4 */
+    --border-color: 40 40 40; /* #282828 */
+    --hover-accent: 255 55 95; /* #FF375F */
   }
 }
 
@@ -45,6 +54,8 @@
   body {
     @apply bg-background text-foreground font-sans;
     font-family: 'SF Pro Display', 'Inter', system-ui, -apple-system, sans-serif;
+    background-color: rgb(var(--bg-main));
+    color: rgb(var(--text-main));
   }
 
   html {
@@ -53,78 +64,97 @@
 }
 
 @layer components {
-  /* Button variants */
-  .btn-primary {
-    @apply bg-secondary text-white hover:bg-secondary/80 transition-colors duration-200 rounded-xl h-10 px-4 font-medium shadow-sm;
+  /* Consistent color classes */
+  .bg-bg-main {
+    background-color: rgb(var(--bg-main));
   }
 
-  .btn-accent {
-    @apply bg-accent text-white hover:bg-accent/90 transition-colors duration-200 rounded-xl h-10 px-4 font-medium shadow-md;
+  .bg-card-bg {
+    background-color: rgb(var(--bg-card));
+  }
+
+  .text-text-main {
+    color: rgb(var(--text-main));
+  }
+
+  .text-text-muted {
+    color: rgb(var(--text-muted));
+  }
+
+  .border-border-color {
+    border-color: rgb(var(--border-color));
+  }
+
+  .hover-accent {
+    background-color: rgb(var(--hover-accent));
+  }
+
+  /* Button variants - Apple Music style */
+  .btn-primary {
+    @apply bg-accent text-white hover:bg-hover-accent transition-colors duration-200 rounded-xl h-10 px-4 font-semibold shadow-md;
   }
 
   .btn-secondary {
-    @apply border border-border text-foreground hover:bg-secondary/50 bg-transparent transition-colors duration-200 rounded-xl h-10 px-4 font-medium;
+    @apply border border-border-color text-text-main hover:bg-secondary/50 bg-transparent transition-colors duration-200 rounded-xl h-10 px-4 font-semibold;
   }
 
   .btn-ghost {
-    @apply text-muted-foreground hover:bg-secondary/50 hover:text-foreground bg-transparent transition-colors duration-200 rounded-xl h-10 px-4 font-medium;
+    @apply text-text-muted hover:bg-secondary/50 hover:text-text-main bg-transparent transition-colors duration-200 rounded-xl h-10 px-4 font-semibold;
   }
 
   /* Input styles */
   .input-primary {
-    @apply bg-input text-foreground placeholder:text-muted-foreground border border-border rounded-xl h-10 px-3 focus:outline-none focus:ring-2 focus:ring-accent transition-colors duration-200;
+    @apply bg-card-bg text-text-main placeholder:text-text-muted border border-border-color rounded-xl h-12 px-4 focus:outline-none focus:ring-2 focus:ring-accent transition-colors duration-200;
   }
 
   /* Card styles */
   .card-primary {
-    @apply bg-card border border-border rounded-xl shadow-sm;
-  }
-
-  .card-secondary {
-    @apply bg-secondary border border-border rounded-xl shadow-sm;
+    @apply bg-card-bg border border-border-color rounded-xl shadow-sm;
   }
 
   /* Form labels */
   .label-primary {
-    @apply text-sm font-semibold text-foreground tracking-wide mb-2 block;
+    @apply text-sm font-semibold text-text-main tracking-wide mb-2 block;
   }
 
   .hint-text {
-    @apply text-xs text-muted-foreground mt-1;
+    @apply text-xs text-text-muted mt-1;
   }
 
   /* Navigation styles */
   .nav-button {
-    @apply text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors duration-200 rounded-lg px-3 py-2 font-medium;
+    @apply text-text-muted hover:text-text-main hover:bg-secondary/50 transition-colors duration-200 rounded-lg px-3 py-2 font-semibold;
   }
 
   .nav-button-active {
-    @apply text-foreground bg-secondary font-semibold;
+    @apply text-text-main bg-secondary font-semibold;
   }
 
-  /* Glass effects for campaign builder */
-  .glass-card-strong {
-    @apply bg-card/90 backdrop-blur-sm border border-border rounded-xl shadow-md;
+  /* Responsive utilities */
+  .mobile-hidden {
+    @apply hidden md:flex;
   }
 
-  .glass-card-subtle {
-    @apply bg-card/60 backdrop-blur-sm border border-border/50 rounded-lg;
+  .mobile-only {
+    @apply flex md:hidden;
   }
 
-  .glass-button-primary {
-    @apply bg-accent text-white hover:bg-accent/90 transition-all duration-200 rounded-xl font-medium shadow-md backdrop-blur-sm;
+  /* Status indicators */
+  .status-active {
+    @apply bg-green-500/20 text-green-400 border-green-500/30;
   }
 
-  .glass-button-secondary {
-    @apply bg-secondary/80 text-foreground hover:bg-secondary transition-all duration-200 rounded-xl font-medium border border-border backdrop-blur-sm;
+  .status-paused {
+    @apply bg-yellow-500/20 text-yellow-400 border-yellow-500/30;
   }
 
-  .frosted-glass {
-    @apply backdrop-blur-md border border-border/30 shadow-lg;
+  .status-draft {
+    @apply bg-gray-500/20 text-gray-400 border-gray-500/30;
   }
 
-  .glow-strong {
-    @apply shadow-[0_0_30px_rgba(255,45,85,0.3)];
+  /* Loading states */
+  .loading-skeleton {
+    @apply animate-pulse bg-border-color rounded;
   }
 
   /* Animations */

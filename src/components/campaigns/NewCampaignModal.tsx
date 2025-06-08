@@ -1,27 +1,37 @@
 
 import { useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Switch } from '@/components/ui/switch';
-import { X, Calendar } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
+import { X } from 'lucide-react';
 
 interface NewCampaignModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (campaignData: any) => Promise<void>;
+  onSubmit: (data: any) => void;
+}
+
+interface CampaignFormData {
+  name: string;
+  assigned_editor_id: string;
+  platforms: string[];
+  clips_count: number;
+  cta_type: string;
+  posting_start_date: string;
+  posting_end_date: string;
+  echo_boost_enabled: boolean;
+  requires_approval: boolean;
+  notes: string;
 }
 
 const NewCampaignModal = ({ isOpen, onClose, onSubmit }: NewCampaignModalProps) => {
-  const { user } = useAuth();
-  const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<CampaignFormData>({
     name: '',
     assigned_editor_id: '',
-    platforms: [] as string[],
+    platforms: [],
     clips_count: 1,
     cta_type: 'awareness',
     posting_start_date: '',
@@ -30,6 +40,8 @@ const NewCampaignModal = ({ isOpen, onClose, onSubmit }: NewCampaignModalProps) 
     requires_approval: true,
     notes: ''
   });
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const platforms = [
     { id: 'tiktok', label: 'TikTok' },
@@ -44,16 +56,33 @@ const NewCampaignModal = ({ isOpen, onClose, onSubmit }: NewCampaignModalProps) 
     { value: 'conversion', label: 'Conversion' }
   ];
 
+  const handlePlatformChange = (platformId: string, checked: boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      platforms: checked 
+        ? [...prev.platforms, platformId]
+        : prev.platforms.filter(p => p !== platformId)
+    }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    
+    // Basic validation
+    if (!formData.name.trim()) {
+      alert('Campaign name is required');
+      return;
+    }
+    
+    if (formData.platforms.length === 0) {
+      alert('Please select at least one platform');
+      return;
+    }
 
+    setIsSubmitting(true);
+    
     try {
-      await onSubmit({
-        ...formData,
-        user_id: user?.id,
-        status: 'draft'
-      });
+      await onSubmit(formData);
       
       // Reset form
       setFormData({
@@ -69,203 +98,196 @@ const NewCampaignModal = ({ isOpen, onClose, onSubmit }: NewCampaignModalProps) 
         notes: ''
       });
     } catch (error) {
-      console.error('Failed to create campaign:', error);
+      console.error('Error creating campaign:', error);
+      alert('Failed to create campaign. Please try again.');
     } finally {
-      setLoading(false);
+      setIsSubmitting(false);
     }
   };
 
-  const handlePlatformChange = (platform: string, checked: boolean) => {
-    if (checked) {
-      setFormData(prev => ({
-        ...prev,
-        platforms: [...prev.platforms, platform]
-      }));
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        platforms: prev.platforms.filter(p => p !== platform)
-      }));
+  const handleClose = () => {
+    if (!isSubmitting) {
+      onClose();
     }
   };
-
-  if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-card-bg rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <div className="p-6">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-text-main">Create New Campaign</h2>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onClose}
-              className="text-text-muted hover:text-text-main"
-            >
-              <X className="h-5 w-5" />
-            </Button>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
+      <DialogContent className="bg-card-bg border-border-color max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader className="flex flex-row items-center justify-between">
+          <DialogTitle className="text-text-main text-xl font-semibold">
+            Create New Campaign
+          </DialogTitle>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleClose}
+            disabled={isSubmitting}
+            className="text-text-muted hover:text-text-main"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </DialogHeader>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Campaign Name */}
+          <div>
+            <Label htmlFor="name" className="label-primary">
+              Campaign Name *
+            </Label>
+            <Input
+              id="name"
+              value={formData.name}
+              onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+              placeholder="Enter campaign name"
+              className="input-primary"
+              required
+            />
           </div>
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Campaign Name */}
+          {/* Platforms */}
+          <div>
+            <Label className="label-primary">Platforms *</Label>
+            <div className="grid grid-cols-2 gap-3 mt-2">
+              {platforms.map((platform) => (
+                <div key={platform.id} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={platform.id}
+                    checked={formData.platforms.includes(platform.id)}
+                    onCheckedChange={(checked) => handlePlatformChange(platform.id, checked as boolean)}
+                  />
+                  <Label htmlFor={platform.id} className="text-text-main">
+                    {platform.label}
+                  </Label>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Clips Count */}
+          <div>
+            <Label htmlFor="clips_count" className="label-primary">
+              Number of Clips
+            </Label>
+            <Input
+              id="clips_count"
+              type="number"
+              min="1"
+              max="100"
+              value={formData.clips_count}
+              onChange={(e) => setFormData(prev => ({ ...prev, clips_count: parseInt(e.target.value) || 1 }))}
+              className="input-primary"
+            />
+          </div>
+
+          {/* CTA Type */}
+          <div>
+            <Label htmlFor="cta_type" className="label-primary">
+              CTA Type
+            </Label>
+            <select
+              id="cta_type"
+              value={formData.cta_type}
+              onChange={(e) => setFormData(prev => ({ ...prev, cta_type: e.target.value }))}
+              className="input-primary"
+            >
+              {ctaTypes.map((type) => (
+                <option key={type.value} value={type.value}>
+                  {type.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Posting Window */}
+          <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="name">Campaign Name *</Label>
+              <Label htmlFor="start_date" className="label-primary">
+                Start Date
+              </Label>
               <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="Enter campaign name"
-                required
-                className="mt-1"
+                id="start_date"
+                type="date"
+                value={formData.posting_start_date}
+                onChange={(e) => setFormData(prev => ({ ...prev, posting_start_date: e.target.value }))}
+                className="input-primary"
               />
             </div>
-
-            {/* Platforms */}
             <div>
-              <Label>Platforms *</Label>
-              <div className="grid grid-cols-2 gap-3 mt-2">
-                {platforms.map((platform) => (
-                  <div key={platform.id} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={platform.id}
-                      checked={formData.platforms.includes(platform.id)}
-                      onCheckedChange={(checked) => 
-                        handlePlatformChange(platform.id, checked as boolean)
-                      }
-                    />
-                    <Label htmlFor={platform.id} className="text-sm">
-                      {platform.label}
-                    </Label>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Clips Count */}
-            <div>
-              <Label htmlFor="clips_count">Number of Clips</Label>
+              <Label htmlFor="end_date" className="label-primary">
+                End Date
+              </Label>
               <Input
-                id="clips_count"
-                type="number"
-                min="1"
-                value={formData.clips_count}
-                onChange={(e) => setFormData(prev => ({ 
-                  ...prev, 
-                  clips_count: parseInt(e.target.value) || 1 
-                }))}
-                className="mt-1"
+                id="end_date"
+                type="date"
+                value={formData.posting_end_date}
+                onChange={(e) => setFormData(prev => ({ ...prev, posting_end_date: e.target.value }))}
+                className="input-primary"
+              />
+            </div>
+          </div>
+
+          {/* Toggle Options */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="echo_boost" className="text-text-main">
+                Enable Echo Boost
+              </Label>
+              <Checkbox
+                id="echo_boost"
+                checked={formData.echo_boost_enabled}
+                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, echo_boost_enabled: checked as boolean }))}
               />
             </div>
 
-            {/* CTA Type */}
-            <div>
-              <Label htmlFor="cta_type">CTA Focus</Label>
-              <select
-                id="cta_type"
-                value={formData.cta_type}
-                onChange={(e) => setFormData(prev => ({ ...prev, cta_type: e.target.value }))}
-                className="mt-1 w-full px-3 py-2 bg-card-bg border border-border-color rounded-xl text-text-main"
-              >
-                {ctaTypes.map((type) => (
-                  <option key={type.value} value={type.value}>
-                    {type.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Posting Window */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="posting_start_date">Start Date</Label>
-                <Input
-                  id="posting_start_date"
-                  type="date"
-                  value={formData.posting_start_date}
-                  onChange={(e) => setFormData(prev => ({ 
-                    ...prev, 
-                    posting_start_date: e.target.value 
-                  }))}
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="posting_end_date">End Date</Label>
-                <Input
-                  id="posting_end_date"
-                  type="date"
-                  value={formData.posting_end_date}
-                  onChange={(e) => setFormData(prev => ({ 
-                    ...prev, 
-                    posting_end_date: e.target.value 
-                  }))}
-                  className="mt-1"
-                />
-              </div>
-            </div>
-
-            {/* Toggles */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="echo_boost">Echo Boost</Label>
-                <Switch
-                  id="echo_boost"
-                  checked={formData.echo_boost_enabled}
-                  onCheckedChange={(checked) => 
-                    setFormData(prev => ({ ...prev, echo_boost_enabled: checked }))
-                  }
-                />
-              </div>
-              <div className="flex items-center justify-between">
-                <Label htmlFor="requires_approval">Requires Approval</Label>
-                <Switch
-                  id="requires_approval"
-                  checked={formData.requires_approval}
-                  onCheckedChange={(checked) => 
-                    setFormData(prev => ({ ...prev, requires_approval: checked }))
-                  }
-                />
-              </div>
-            </div>
-
-            {/* Notes */}
-            <div>
-              <Label htmlFor="notes">Campaign Notes</Label>
-              <Textarea
-                id="notes"
-                value={formData.notes}
-                onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
-                placeholder="Add any additional notes or requirements..."
-                rows={3}
-                className="mt-1"
+            <div className="flex items-center justify-between">
+              <Label htmlFor="requires_approval" className="text-text-main">
+                Requires Approval
+              </Label>
+              <Checkbox
+                id="requires_approval"
+                checked={formData.requires_approval}
+                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, requires_approval: checked as boolean }))}
               />
             </div>
+          </div>
 
-            {/* Actions */}
-            <div className="flex gap-3 pt-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={onClose}
-                className="flex-1"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                disabled={loading || !formData.name || formData.platforms.length === 0}
-                className="flex-1 bg-accent hover:bg-hover-accent text-white"
-              >
-                {loading ? 'Creating...' : 'Create Campaign'}
-              </Button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
+          {/* Notes */}
+          <div>
+            <Label htmlFor="notes" className="label-primary">
+              Campaign Notes
+            </Label>
+            <Textarea
+              id="notes"
+              value={formData.notes}
+              onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+              placeholder="Add any additional notes or instructions..."
+              className="input-primary min-h-[100px] resize-none"
+            />
+          </div>
+
+          {/* Submit Button */}
+          <div className="flex justify-end gap-3 pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleClose}
+              disabled={isSubmitting}
+              className="btn-secondary"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="btn-primary"
+            >
+              {isSubmitting ? 'Creating...' : 'Create Campaign'}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 };
 

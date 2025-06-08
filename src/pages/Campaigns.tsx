@@ -55,7 +55,7 @@ const Campaigns = () => {
           {canCreateCampaigns && (
             <Button
               onClick={() => setIsNewCampaignModalOpen(true)}
-              className="bg-accent hover:bg-hover-accent text-white"
+              className="btn-primary"
             >
               <Plus className="h-4 w-4 mr-2" />
               New Campaign
@@ -71,7 +71,7 @@ const Campaigns = () => {
               placeholder="Search campaigns..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
+              className="input-primary pl-10"
             />
           </div>
           <div className="relative">
@@ -79,7 +79,7 @@ const Campaigns = () => {
             <select
               value={selectedPlatform}
               onChange={(e) => setSelectedPlatform(e.target.value)}
-              className="pl-10 pr-4 py-2 bg-card-bg border border-border-color rounded-xl text-text-main appearance-none min-w-[160px]"
+              className="input-primary pl-10 pr-4 appearance-none min-w-[160px]"
             >
               <option value="">All Platforms</option>
               <option value="tiktok">TikTok</option>

@@ -13,7 +13,7 @@ interface Campaign {
   assigned_editor_id?: string;
   posting_start_date?: string;
   posting_end_date?: string;
-  platforms?: Json; // Changed from string[] to Json
+  platforms?: Json;
   cta_type?: string;
   echo_boost_enabled?: boolean;
   status?: string;
@@ -54,7 +54,7 @@ const CampaignsTable = ({ campaigns, loading, userRole }: CampaignsTableProps) =
   const getPlatformIcon = (platform: string) => {
     switch (platform) {
       case 'tiktok':
-        return <TrendingUp className="h-4 w-4" />; // Using TrendingUp as substitute for TikTok
+        return <TrendingUp className="h-4 w-4" />;
       case 'instagram':
         return <Instagram className="h-4 w-4" />;
       case 'youtube':
@@ -69,11 +69,11 @@ const CampaignsTable = ({ campaigns, loading, userRole }: CampaignsTableProps) =
   const getStatusColor = (status: string) => {
     switch (status?.toLowerCase()) {
       case 'active':
-        return 'bg-green-500/20 text-green-400 border-green-500/30';
+        return 'status-active';
       case 'paused':
-        return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
+        return 'status-paused';
       case 'draft':
-        return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
+        return 'status-draft';
       default:
         return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
     }
@@ -94,10 +94,10 @@ const CampaignsTable = ({ campaigns, loading, userRole }: CampaignsTableProps) =
 
   if (loading) {
     return (
-      <div className="bg-card-bg rounded-xl p-8 text-center">
+      <div className="card-primary p-8 text-center">
         <div className="animate-pulse">
-          <div className="h-4 bg-border-color rounded w-1/4 mx-auto mb-4"></div>
-          <div className="h-4 bg-border-color rounded w-1/2 mx-auto"></div>
+          <div className="h-4 loading-skeleton w-1/4 mx-auto mb-4"></div>
+          <div className="h-4 loading-skeleton w-1/2 mx-auto"></div>
         </div>
       </div>
     );
@@ -105,7 +105,7 @@ const CampaignsTable = ({ campaigns, loading, userRole }: CampaignsTableProps) =
 
   if (campaigns.length === 0) {
     return (
-      <div className="bg-card-bg rounded-xl p-8 text-center">
+      <div className="card-primary p-8 text-center">
         <h3 className="text-lg font-semibold text-text-main mb-2">No campaigns found</h3>
         <p className="text-text-muted">Create your first campaign to get started.</p>
       </div>
@@ -113,7 +113,7 @@ const CampaignsTable = ({ campaigns, loading, userRole }: CampaignsTableProps) =
   }
 
   return (
-    <div className="bg-card-bg rounded-xl overflow-hidden shadow-sm">
+    <div className="card-primary overflow-hidden shadow-sm">
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead className="border-b border-border-color">

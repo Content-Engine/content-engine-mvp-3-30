@@ -158,7 +158,8 @@
 
   /* Loading states */
   .loading-skeleton {
-    @apply animate-pulse bg-border-color rounded;
+    @apply animate-pulse rounded;
+    background-color: rgb(var(--border-color));
   }
 
   /* Animations */

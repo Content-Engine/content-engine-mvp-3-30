@@ -91,7 +91,11 @@
 
   /* Button variants - Apple Music style */
   .btn-primary {
-    @apply bg-accent text-white hover:bg-hover-accent transition-colors duration-200 rounded-xl h-10 px-4 font-semibold shadow-md;
+    @apply bg-accent text-white transition-colors duration-200 rounded-xl h-10 px-4 font-semibold shadow-md;
+  }
+
+  .btn-primary:hover {
+    background-color: rgb(var(--hover-accent));
   }
 
   .btn-secondary {

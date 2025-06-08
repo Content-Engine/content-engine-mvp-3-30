@@ -22,6 +22,11 @@ const Step2Upload = ({ contentFiles, onFilesUpdate, onNext, onPrevious }: Step2U
   const { toast } = useToast();
 
   const getFileIcon = (file: File) => {
+    // Add null checks to prevent the error
+    if (!file || !file.type) {
+      return <FileImage className="h-8 w-8" />;
+    }
+    
     if (file.type.startsWith('video/')) return <FileVideo className="h-8 w-8" />;
     if (file.type.startsWith('image/')) return <FileImage className="h-8 w-8" />;
     if (file.type.startsWith('audio/')) return <FileAudio className="h-8 w-8" />;
@@ -213,9 +218,9 @@ const Step2Upload = ({ contentFiles, onFilesUpdate, onNext, onPrevious }: Step2U
                         {getFileIcon(fileData.file)}
                       </div>
                       <div>
-                        <h4 className="font-medium text-gray-900">{fileData.file.name}</h4>
+                        <h4 className="font-medium text-gray-900">{fileData.file?.name || 'Unknown file'}</h4>
                         <p className="text-sm text-gray-500">
-                          {formatFileSize(fileData.file.size)} • {fileData.file.type}
+                          {formatFileSize(fileData.file?.size || 0)} • {fileData.file?.type || 'Unknown type'}
                         </p>
                       </div>
                     </div>

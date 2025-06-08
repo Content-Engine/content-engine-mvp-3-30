@@ -1,224 +1,182 @@
-
-import { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { LogOut, Menu, X, Settings, BarChart3, Calendar, Users, Upload, MessageCircle, CheckSquare } from 'lucide-react';
-import ContentEngineLogo from '@/components/ContentEngineLogo';
+import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
+import { LogOut, User, Menu, X, CreditCard } from 'lucide-react';
+import { usePayments } from '@/hooks/usePayments';
 
 const TopNavBar = () => {
+  const { user, signOut } = useAuth();
+  const { paymentTier } = usePayments();
   const navigate = useNavigate();
-  const location = useLocation();
-  const { user, userRole, signOut } = useAuth();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const handleLogout = async () => {
+  const handleSignOut = async () => {
     await signOut();
-    navigate('/login');
+    navigate('/');
   };
 
-  const getRoleButtons = (role: string) => {
-    switch (role) {
-      case 'admin':
-        return [
-          { label: 'Dashboard', path: '/dashboard', icon: BarChart3 },
-          { label: 'Campaigns', path: '/campaigns', icon: Upload },
-          { label: 'Builder', path: '/campaign-builder', icon: Upload },
-          { label: 'QC Panel', path: '/qc-panel', icon: CheckSquare },
-          { label: 'Analytics', path: '/performance', icon: BarChart3 },
-          { label: 'Social', path: '/social', icon: Calendar },
-          { label: 'Settings', path: '/user-management', icon: Settings }
-        ];
-      case 'client':
-        return [
-          { label: 'Dashboard', path: '/dashboard', icon: BarChart3 },
-          { label: 'Campaigns', path: '/campaigns', icon: Upload },
-          { label: 'Builder', path: '/campaign-builder', icon: Upload }
-        ];
-      case 'editor':
-        return [
-          { label: 'Campaigns', path: '/campaigns', icon: Upload },
-          { label: 'Assigned', path: '/editor-dashboard', icon: CheckSquare },
-          { label: 'QC Review', path: '/qc-panel', icon: CheckSquare }
-        ];
-      case 'social_media_manager':
-        return [
-          { label: 'Campaigns', path: '/campaigns', icon: Upload },
-          { label: 'Schedule', path: '/social/calendar', icon: Calendar },
-          { label: 'Calendar', path: '/calendar', icon: Calendar },
-          { label: 'Approvals', path: '/qc-panel', icon: CheckSquare }
-        ];
-      default:
-        return [
-          { label: 'Dashboard', path: '/dashboard', icon: BarChart3 },
-          { label: 'Campaigns', path: '/campaigns', icon: Upload }
-        ];
+  const getTierBadgeColor = (tier: string | null) => {
+    switch (tier) {
+      case 'basic': return 'bg-blue-100 text-blue-800';
+      case 'pro': return 'bg-purple-100 text-purple-800';
+      case 'executive': return 'bg-gold-100 text-gold-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
-
-  const isActivePath = (path: string) => {
-    return location.pathname === path || 
-           (path === '/dashboard' && location.pathname === '/') ||
-           (path === '/campaign-builder' && location.pathname.startsWith('/campaign-builder'));
-  };
-
-  const getInitials = (email: string) => {
-    return email.substring(0, 2).toUpperCase();
-  };
-
-  const getRoleColor = (role: string) => {
-    switch (role) {
-      case 'admin':
-        return 'bg-red-500/20 text-red-400 border-red-500/30';
-      case 'client':
-        return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
-      case 'editor':
-        return 'bg-green-500/20 text-green-400 border-green-500/30';
-      case 'social_media_manager':
-        return 'bg-purple-500/20 text-purple-400 border-purple-500/30';
-      default:
-        return 'bg-muted/20 text-text-muted border-border-color';
-    }
-  };
-
-  const formatRoleName = (role: string) => {
-    return role.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
-  };
-
-  if (!user || !userRole) {
-    return null;
-  }
-
-  const buttons = getRoleButtons(userRole);
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-bg-main/95 backdrop-blur-sm border-b border-border-color shadow-sm">
-      <div className="max-w-7xl mx-auto px-6 py-4">
-        <div className="flex items-center justify-between h-12">
-          {/* Left side - Logo */}
-          <div className="flex items-center gap-4">
-            <ContentEngineLogo size="small" />
-            <h1 
-              className="text-xl font-bold text-text-main cursor-pointer hover:text-text-muted transition-colors"
-              onClick={() => navigate('/dashboard')}
+    <nav className="bg-white/10 backdrop-blur-md border-b border-white/20 sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo */}
+          <div className="flex items-center">
+            <button
+              onClick={() => navigate('/')}
+              className="text-white font-bold text-xl hover:text-white/80 transition-colors"
             >
               Content Engine
-            </h1>
+            </button>
           </div>
 
           {/* Desktop Navigation */}
-          <div className="mobile-hidden items-center gap-2">
-            {buttons.map((button) => {
-              const Icon = button.icon;
-              return (
-                <Button
-                  key={button.label}
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => navigate(button.path)}
-                  className={`nav-button ${isActivePath(button.path) ? 'nav-button-active' : ''}`}
-                >
-                  <Icon className="h-4 w-4" />
-                  {button.label}
-                </Button>
-              );
-            })}
+          <div className="hidden md:block">
+            <div className="ml-10 flex items-baseline space-x-4">
+              {user && (
+                <>
+                  <Button
+                    variant="ghost"
+                    onClick={() => navigate('/dashboard')}
+                    className="text-white/90 hover:text-white hover:bg-white/10"
+                  >
+                    Dashboard
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    onClick={() => navigate('/campaign-builder')}
+                    className="text-white/90 hover:text-white hover:bg-white/10"
+                  >
+                    Campaign Builder
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    onClick={() => navigate('/payment-tiers')}
+                    className="text-white/90 hover:text-white hover:bg-white/10"
+                  >
+                    <CreditCard className="h-4 w-4 mr-2" />
+                    Plans
+                  </Button>
+                </>
+              )}
+            </div>
           </div>
 
-          {/* Right side - User info and logout */}
-          <div className="flex items-center gap-4">
-            <div className="hidden sm:flex items-center gap-3">
-              <Avatar className="h-8 w-8 border border-border-color">
-                <AvatarFallback className="text-xs font-semibold bg-secondary text-text-main">
-                  {getInitials(user.email || 'U')}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex flex-col">
-                <span className="text-sm font-medium text-text-main">
-                  {user.email}
-                </span>
-                <Badge 
-                  variant="outline" 
-                  className={`text-xs px-2 py-0 ${getRoleColor(userRole)}`}
-                >
-                  {formatRoleName(userRole)}
-                </Badge>
-              </div>
-            </div>
-
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleLogout}
-              className="text-text-muted hover:text-destructive hover:bg-destructive/10"
-            >
-              <LogOut className="h-4 w-4" />
-              <span className="hidden sm:inline ml-1">Logout</span>
-            </Button>
-
-            {/* Mobile menu button */}
-            <Button
-              variant="ghost"
-              size="sm"
-              className="mobile-only"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            >
-              {mobileMenuOpen ? (
-                <X className="h-5 w-5" />
+          {/* User Menu */}
+          <div className="hidden md:block">
+            <div className="ml-4 flex items-center md:ml-6 space-x-3">
+              {user ? (
+                <>
+                  {/* Payment Tier Badge */}
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTierBadgeColor(paymentTier)}`}>
+                    {paymentTier || 'free'}
+                  </span>
+                  
+                  <div className="flex items-center space-x-2">
+                    <User className="h-4 w-4 text-white/70" />
+                    <span className="text-white/90 text-sm">{user.email}</span>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleSignOut}
+                    className="text-white/90 hover:text-white hover:bg-white/10"
+                  >
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Sign Out
+                  </Button>
+                </>
               ) : (
-                <Menu className="h-5 w-5" />
+                <Button
+                  onClick={() => navigate('/auth')}
+                  className="bg-white/20 hover:bg-white/30 text-white border-white/30"
+                >
+                  Sign In
+                </Button>
               )}
+            </div>
+          </div>
+
+          {/* Mobile menu button */}
+          <div className="md:hidden">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="text-white hover:bg-white/10"
+            >
+              {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </Button>
           </div>
         </div>
       </div>
 
-      {/* Mobile menu */}
-      {mobileMenuOpen && (
-        <div className="mobile-only bg-bg-main border-t border-border-color shadow-lg">
-          <div className="px-6 py-4 space-y-2">
-            {/* Mobile user info */}
-            <div className="flex items-center gap-3 pb-3 border-b border-border-color">
-              <Avatar className="h-8 w-8 border border-border-color">
-                <AvatarFallback className="text-xs font-semibold bg-secondary text-text-main">
-                  {getInitials(user.email || 'U')}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex flex-col">
-                <span className="text-sm font-medium text-text-main">
-                  {user.email}
-                </span>
-                <Badge 
-                  variant="outline" 
-                  className={`text-xs px-2 py-0 w-fit ${getRoleColor(userRole)}`}
-                >
-                  {formatRoleName(userRole)}
-                </Badge>
-              </div>
-            </div>
-
-            {/* Mobile navigation buttons */}
-            {buttons.map((button) => {
-              const Icon = button.icon;
-              return (
+      {/* Mobile Navigation */}
+      {isMenuOpen && (
+        <div className="md:hidden">
+          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white/5 backdrop-blur-md">
+            {user && (
+              <>
                 <Button
-                  key={button.label}
                   variant="ghost"
                   onClick={() => {
-                    navigate(button.path);
-                    setMobileMenuOpen(false);
+                    navigate('/dashboard');
+                    setIsMenuOpen(false);
                   }}
-                  className={`w-full justify-start nav-button ${
-                    isActivePath(button.path) ? 'nav-button-active' : ''
-                  }`}
+                  className="w-full justify-start text-white/90 hover:text-white hover:bg-white/10"
                 >
-                  <Icon className="h-4 w-4" />
-                  {button.label}
+                  Dashboard
                 </Button>
-              );
-            })}
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    navigate('/campaign-builder');
+                    setIsMenuOpen(false);
+                  }}
+                  className="w-full justify-start text-white/90 hover:text-white hover:bg-white/10"
+                >
+                  Campaign Builder
+                </Button>
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    navigate('/payment-tiers');
+                    setIsMenuOpen(false);
+                  }}
+                  className="w-full justify-start text-white/90 hover:text-white hover:bg-white/10"
+                >
+                  <CreditCard className="h-4 w-4 mr-2" />
+                  Plans
+                </Button>
+                <div className="border-t border-white/20 pt-3 mt-3">
+                  <div className="flex items-center px-3 mb-2">
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTierBadgeColor(paymentTier)}`}>
+                      {paymentTier || 'free'}
+                    </span>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    onClick={() => {
+                      handleSignOut();
+                      setIsMenuOpen(false);
+                    }}
+                    className="w-full justify-start text-white/90 hover:text-white hover:bg-white/10"
+                  >
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Sign Out
+                  </Button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}

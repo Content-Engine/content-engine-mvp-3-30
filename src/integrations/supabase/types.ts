@@ -729,6 +729,8 @@ export type Database = {
           email: string
           full_name: string | null
           id: string
+          payment_tier: string | null
+          stripe_customer_id: string | null
           subscription_tier: string | null
           updated_at: string | null
         }
@@ -738,6 +740,8 @@ export type Database = {
           email: string
           full_name?: string | null
           id: string
+          payment_tier?: string | null
+          stripe_customer_id?: string | null
           subscription_tier?: string | null
           updated_at?: string | null
         }
@@ -747,6 +751,8 @@ export type Database = {
           email?: string
           full_name?: string | null
           id?: string
+          payment_tier?: string | null
+          stripe_customer_id?: string | null
           subscription_tier?: string | null
           updated_at?: string | null
         }
@@ -993,6 +999,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_payments: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string | null
+          id: string
+          payment_tier: string
+          status: string
+          stripe_customer_id: string | null
+          stripe_session_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string | null
+          id?: string
+          payment_tier: string
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_session_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string | null
+          id?: string
+          payment_tier?: string
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_session_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {

@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -6,150 +7,92 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import RoleBasedRoute from "@/components/RoleBasedRoute";
+
+// Pages
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
-import Campaigns from "./pages/Campaigns";
 import CampaignBuilder from "./pages/CampaignBuilder";
 import CalendarOverview from "./pages/CalendarOverview";
-import PerformanceDashboard from "./pages/PerformanceDashboard";
-import QualityControlPanel from "./pages/QualityControlPanel";
-import PaymentTiers from "./pages/PaymentTiers";
 import SocialMediaManagerView from "./pages/SocialMediaManagerView";
 import EditorView from "./pages/EditorView";
-import SocialManagerDashboard from "./pages/SocialManagerDashboard";
-import NotFound from "./pages/NotFound";
+import QualityControlPanel from "./pages/QualityControlPanel";
 import UserManagement from "./pages/UserManagement";
+import PaymentTiers from "./pages/PaymentTiers";
+import PaymentSuccess from "./pages/PaymentSuccess";
+import PaymentCancel from "./pages/PaymentCancel";
+import NotFound from "./pages/NotFound";
 import Unauthorized from "./pages/Unauthorized";
-import Layout from "@/components/Layout";
-import LoginPage from "./pages/LoginPage";
-import ClientPortal from "./pages/ClientPortal";
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      refetchOnWindowFocus: false,
-      staleTime: 5 * 60 * 1000, // 5 minutes
-    },
-  },
-});
+const queryClient = new QueryClient();
 
-function App() {
-  return (
-    <QueryClientProvider client={queryClient}>
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
       <AuthProvider>
+        <Toaster />
+        <Sonner />
         <BrowserRouter>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/unauthorized" element={<Unauthorized />} />
-              
-              {/* Client Portal Route */}
-              <Route path="/client-portal" element={
-                <ProtectedRoute>
-                  <ClientPortal />
-                </ProtectedRoute>
-              } />
-              
-              {/* Protected Routes wrapped with Layout */}
-              <Route path="/dashboard" element={
-                <Layout>
-                  <ProtectedRoute>
-                    <Dashboard />
-                  </ProtectedRoute>
-                </Layout>
-              } />
-              
-              <Route path="/campaigns" element={
-                <Layout>
-                  <ProtectedRoute>
-                    <Campaigns />
-                  </ProtectedRoute>
-                </Layout>
-              } />
-              
-              <Route path="/user-management" element={
-                <Layout>
-                  <RoleBasedRoute allowedRoles={['admin']}>
-                    <UserManagement />
-                  </RoleBasedRoute>
-                </Layout>
-              } />
-              
-              <Route path="/campaign-builder/*" element={
-                <Layout>
-                  <ProtectedRoute>
-                    <CampaignBuilder />
-                  </ProtectedRoute>
-                </Layout>
-              } />
-              
-              <Route path="/calendar" element={
-                <Layout>
-                  <ProtectedRoute>
-                    <CalendarOverview />
-                  </ProtectedRoute>
-                </Layout>
-              } />
-              
-              <Route path="/performance" element={
-                <Layout>
-                  <ProtectedRoute>
-                    <PerformanceDashboard />
-                  </ProtectedRoute>
-                </Layout>
-              } />
-              
-              <Route path="/qc-panel" element={
-                <Layout>
-                  <RoleBasedRoute allowedRoles={['admin', 'social_media_manager']}>
-                    <QualityControlPanel />
-                  </RoleBasedRoute>
-                </Layout>
-              } />
-              
-              <Route path="/payment-tiers" element={
-                <Layout>
-                  <ProtectedRoute>
-                    <PaymentTiers />
-                  </ProtectedRoute>
-                </Layout>
-              } />
-              
-              <Route path="/social-manager" element={
-                <Layout>
-                  <RoleBasedRoute allowedRoles={['admin', 'social_media_manager']}>
-                    <SocialMediaManagerView />
-                  </RoleBasedRoute>
-                </Layout>
-              } />
-              
-              <Route path="/editor-dashboard" element={
-                <Layout>
-                  <RoleBasedRoute allowedRoles={['admin', 'editor']}>
-                    <EditorView />
-                  </RoleBasedRoute>
-                </Layout>
-              } />
-              
-              <Route path="/social/*" element={
-                <RoleBasedRoute allowedRoles={['admin', 'social_media_manager']}>
-                  <SocialManagerDashboard />
-                </RoleBasedRoute>
-              } />
-              
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </TooltipProvider>
+          <Routes>
+            {/* Public routes */}
+            <Route path="/" element={<Index />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/payment-tiers" element={<PaymentTiers />} />
+            <Route path="/payment-success" element={<PaymentSuccess />} />
+            <Route path="/payment-cancel" element={<PaymentCancel />} />
+            <Route path="/unauthorized" element={<Unauthorized />} />
+            
+            {/* Protected routes */}
+            <Route path="/dashboard" element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/campaign-builder" element={
+              <ProtectedRoute>
+                <CampaignBuilder />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/calendar" element={
+              <ProtectedRoute>
+                <CalendarOverview />
+              </ProtectedRoute>
+            } />
+            
+            {/* Role-based routes */}
+            <Route path="/social-manager" element={
+              <RoleBasedRoute allowedRoles={['admin', 'social_media_manager']}>
+                <SocialMediaManagerView />
+              </RoleBasedRoute>
+            } />
+            
+            <Route path="/editor" element={
+              <RoleBasedRoute allowedRoles={['admin', 'editor']}>
+                <EditorView />
+              </RoleBasedRoute>
+            } />
+            
+            <Route path="/quality-control" element={
+              <RoleBasedRoute allowedRoles={['admin', 'social_media_manager']}>
+                <QualityControlPanel />
+              </RoleBasedRoute>
+            } />
+            
+            <Route path="/user-management" element={
+              <RoleBasedRoute allowedRoles={['admin']}>
+                <UserManagement />
+              </RoleBasedRoute>
+            } />
+            
+            {/* Catch all */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
         </BrowserRouter>
       </AuthProvider>
-    </QueryClientProvider>
-  );
-}
+    </TooltipProvider>
+  </QueryClientProvider>
+);
 
 export default App;

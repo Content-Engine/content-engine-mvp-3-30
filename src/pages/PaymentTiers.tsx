@@ -28,7 +28,7 @@ const PaymentTiers = () => {
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back
           </Button>
-          <h1 className="text-3xl font-bold text-white">Subscription Plans</h1>
+          <h1 className="text-3xl font-bold text-white">Payment Plans</h1>
         </div>
 
         {/* Current Subscription Status */}
@@ -39,10 +39,10 @@ const PaymentTiers = () => {
         {/* Title */}
         <div className="text-center mb-12">
           <h2 className="text-4xl font-bold bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent mb-4">
-            Choose Your Syndication Power
+            Choose Your Content Engine Power
           </h2>
           <p className="text-xl text-white/80">
-            Scale your content across platforms with our tiered syndication network
+            One-time payment for lifetime access to your chosen tier
           </p>
         </div>
 
@@ -54,7 +54,7 @@ const PaymentTiers = () => {
               tier={tier}
               currentTier={currentTier}
               onSelectTier={handleSelectTier}
-              isPopular={index === 1} // Plus tier is popular
+              isPopular={index === 1} // Pro tier is popular
             />
           ))}
         </div>
@@ -71,8 +71,8 @@ const PaymentTiers = () => {
                   <tr className="border-b border-white/20">
                     <th className="text-left py-3">Feature</th>
                     <th className="text-center py-3">Basic</th>
-                    <th className="text-center py-3">Plus</th>
-                    <th className="text-center py-3">Enterprise</th>
+                    <th className="text-center py-3">Pro</th>
+                    <th className="text-center py-3">Executive</th>
                   </tr>
                 </thead>
                 <tbody className="space-y-2">
@@ -110,6 +110,13 @@ const PaymentTiers = () => {
               </table>
             </div>
           </div>
+        </div>
+
+        {/* Payment Security Notice */}
+        <div className="mt-12 text-center">
+          <p className="text-white/60 text-sm">
+            🔒 Secure payments powered by Stripe • One-time purchase • No recurring charges
+          </p>
         </div>
       </div>
     </div>

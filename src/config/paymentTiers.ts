@@ -16,8 +16,8 @@ export const PAYMENT_TIERS: PaymentTier[] = [
     },
   },
   {
-    id: 'plus',
-    name: 'Plus',
+    id: 'pro',
+    name: 'Pro',
     price: 299,
     description: 'Ideal for labels, managers, and growing teams',
     features: {
@@ -29,8 +29,8 @@ export const PAYMENT_TIERS: PaymentTier[] = [
     },
   },
   {
-    id: 'enterprise',
-    name: 'Enterprise',
+    id: 'executive',
+    name: 'Executive',
     price: 599,
     description: 'For agencies and multi-artist operations',
     features: {

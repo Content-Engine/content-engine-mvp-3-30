@@ -12,15 +12,33 @@ const SubscriptionManager = () => {
     currentTier, 
     isLoading, 
     upgradeToTier, 
-    openCustomerPortal, 
     getCurrentTier,
-    refreshSubscription 
   } = useSubscription();
   const [showManagement, setShowManagement] = useState(false);
   
   const currentTierData = getCurrentTier();
 
-  if (!currentTierData) return null;
+  if (!currentTierData) {
+    return (
+      <Card className="bg-gradient-to-br from-gray-500/10 to-gray-500/10 border-gray-200">
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <Zap className="h-5 w-5 mr-2 text-gray-600" />
+            Free Plan
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-gray-600 mb-4">Upgrade to unlock premium features</p>
+          <Button
+            onClick={() => setShowManagement(true)}
+            className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+          >
+            View Plans
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -73,23 +91,15 @@ const SubscriptionManager = () => {
               disabled={isLoading}
             >
               <Settings className="h-4 w-4 mr-2" />
-              Manage Subscription
+              Manage Plan
             </Button>
             <Button
               variant="outline"
-              onClick={openCustomerPortal}
+              onClick={() => window.location.href = '/payment-tiers'}
               disabled={isLoading}
             >
               <CreditCard className="h-4 w-4 mr-2" />
-              {isLoading ? 'Loading...' : 'Billing'}
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={refreshSubscription}
-              disabled={isLoading}
-            >
-              <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+              {isLoading ? 'Loading...' : 'Upgrade'}
             </Button>
           </div>
         </CardContent>
@@ -107,16 +117,16 @@ const SubscriptionManager = () => {
                 <div key={tier.id} className="border rounded-lg p-4">
                   <h4 className="font-bold text-lg mb-2">{tier.name}</h4>
                   <div className="text-2xl font-bold text-purple-600 mb-2">
-                    ${tier.price}/mo
+                    ${tier.price}
                   </div>
                   <p className="text-sm text-gray-600 mb-4">{tier.description}</p>
                   <Button
                     onClick={() => upgradeToTier(tier.id)}
                     disabled={isLoading}
                     className="w-full"
-                    variant={tier.id === 'plus' ? 'default' : 'outline'}
+                    variant={tier.id === 'pro' ? 'default' : 'outline'}
                   >
-                    {isLoading ? 'Processing...' : `Upgrade to ${tier.name}`}
+                    {isLoading ? 'Processing...' : `Get ${tier.name}`}
                   </Button>
                 </div>
               ))}

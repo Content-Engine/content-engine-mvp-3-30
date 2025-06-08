@@ -41,6 +41,11 @@ const CampaignBuilder = () => {
   const currentStep = parseInt(step || '1');
   const { createCampaign } = useCampaignData();
 
+  console.log('=== CAMPAIGN BUILDER MAIN ===');
+  console.log('Current step from URL:', step);
+  console.log('Parsed currentStep:', currentStep);
+  console.log('Current URL pathname:', window.location.pathname);
+
   const [campaignData, setCampaignData] = useState<CampaignData>({
     name: '',
     goal: '',
@@ -67,7 +72,9 @@ const CampaignBuilder = () => {
     const saved = localStorage.getItem('campaignBuilderData');
     if (saved) {
       try {
-        setCampaignData(JSON.parse(saved));
+        const parsedData = JSON.parse(saved);
+        console.log('Loading saved campaign data:', parsedData);
+        setCampaignData(parsedData);
       } catch (error) {
         console.error('Failed to parse saved campaign data:', error);
       }
@@ -76,26 +83,57 @@ const CampaignBuilder = () => {
 
   // Save data to localStorage whenever it changes
   useEffect(() => {
+    console.log('Saving campaign data to localStorage:', campaignData);
     localStorage.setItem('campaignBuilderData', JSON.stringify(campaignData));
   }, [campaignData]);
 
   const updateCampaignData = (updates: Partial<CampaignData>) => {
-    setCampaignData(prev => ({ ...prev, ...updates }));
+    console.log('=== UPDATE CAMPAIGN DATA ===');
+    console.log('Current campaignData:', campaignData);
+    console.log('Updates to apply:', updates);
+    
+    setCampaignData(prev => {
+      const newData = { ...prev, ...updates };
+      console.log('New campaignData after update:', newData);
+      return newData;
+    });
   };
 
   const handleNext = () => {
+    console.log('=== HANDLE NEXT ===');
+    console.log('Current step:', currentStep);
+    console.log('Campaign data:', campaignData);
+    
     if (currentStep < 5) {
-      navigate(`/campaign-builder/step/${currentStep + 1}`);
+      const nextStep = currentStep + 1;
+      const nextUrl = `/campaign-builder/step/${nextStep}`;
+      console.log('Navigating to:', nextUrl);
+      navigate(nextUrl);
+      console.log('✅ Navigation triggered');
+    } else {
+      console.log('Already at final step');
     }
   };
 
   const handlePrevious = () => {
+    console.log('=== HANDLE PREVIOUS ===');
+    console.log('Current step:', currentStep);
+    
     if (currentStep > 1) {
-      navigate(`/campaign-builder/step/${currentStep - 1}`);
+      const prevStep = currentStep - 1;
+      const prevUrl = `/campaign-builder/step/${prevStep}`;
+      console.log('Navigating to:', prevUrl);
+      navigate(prevUrl);
+      console.log('✅ Previous navigation triggered');
+    } else {
+      console.log('Already at first step');
     }
   };
 
   const handleLaunch = async () => {
+    console.log('=== HANDLE LAUNCH ===');
+    console.log('Final campaign data:', campaignData);
+    
     try {
       await createCampaign({
         name: campaignData.name || `Campaign ${new Date().toLocaleDateString()}`,
@@ -115,16 +153,25 @@ const CampaignBuilder = () => {
       });
 
       localStorage.removeItem('campaignBuilderData');
+      console.log('✅ Campaign created successfully, navigating to dashboard');
       navigate('/dashboard');
     } catch (error) {
-      console.error('Failed to create campaign:', error);
+      console.error('❌ Failed to create campaign:', error);
     }
   };
 
-  // Validate step before rendering
+  // Validate step before rendering - with better error handling
   if (isNaN(currentStep) || currentStep < 1 || currentStep > 5) {
+    console.log('Invalid step detected, redirecting to step 1');
+    console.log('Invalid step value:', step, 'parsed as:', currentStep);
     navigate('/campaign-builder/step/1', { replace: true });
-    return null;
+    return (
+      <Layout>
+        <div className="text-white text-center p-8">
+          <p>Redirecting to step 1...</p>
+        </div>
+      </Layout>
+    );
   }
 
   const stepProps = {
@@ -135,19 +182,29 @@ const CampaignBuilder = () => {
   };
 
   const renderStepContent = () => {
+    console.log('=== RENDERING STEP CONTENT ===');
+    console.log('Rendering step:', currentStep);
+    console.log('Step props:', stepProps);
+    
     switch (currentStep) {
       case 1:
+        console.log('Rendering Step 1 (Goal Selection)');
         return <CampaignBuilderStep1 {...stepProps} />;
       case 2:
+        console.log('Rendering Step 2 (Content Upload)');
         return <CampaignBuilderStep2 {...stepProps} />;
       case 3:
+        console.log('Rendering Step 3 (Syndication)');
         return <CampaignBuilderStep3 {...stepProps} />;
       case 4:
+        console.log('Rendering Step 4 (Boost Settings)');
         return <CampaignBuilderStep4 {...stepProps} />;
       case 5:
+        console.log('Rendering Step 5 (Schedule & Launch)');
         return <CampaignBuilderStep5 {...stepProps} onLaunch={handleLaunch} />;
       default:
-        return <div className="text-white text-center p-8">Invalid step</div>;
+        console.log('Invalid step, rendering error');
+        return <div className="text-white text-center p-8">Invalid step: {currentStep}</div>;
     }
   };
 
@@ -192,6 +249,15 @@ const CampaignBuilder = () => {
         {/* Step Content */}
         <div className="min-h-[400px]">
           {renderStepContent()}
+        </div>
+
+        {/* Debug info */}
+        <div className="text-center">
+          <div className="glass-card-strong p-3 inline-block">
+            <p className="text-white/60 text-xs">
+              Debug: Step {currentStep} | Goal: "{campaignData.goal}" | URL: {window.location.pathname}
+            </p>
+          </div>
         </div>
       </div>
     </Layout>

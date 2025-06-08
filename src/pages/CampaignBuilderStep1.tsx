@@ -30,21 +30,51 @@ interface CampaignBuilderStep1Props {
 }
 
 const CampaignBuilderStep1 = ({ campaignData, updateCampaignData, onNext }: CampaignBuilderStep1Props) => {
+  console.log('=== STEP 1 DEBUG ===');
+  console.log('Current campaignData:', campaignData);
+  console.log('Current goal:', campaignData.goal);
+  console.log('onNext function exists:', !!onNext);
+
   const handleGoalSelect = (goalId: string) => {
+    console.log('=== GOAL SELECTION ===');
     console.log('Goal selected:', goalId);
+    console.log('Updating campaign data with goal:', goalId);
+    
     updateCampaignData({ goal: goalId });
     
-    // Add a small delay to show the selection feedback, then navigate
+    console.log('Campaign data after update should have goal:', goalId);
+    console.log('Will navigate to step 2 in 500ms');
+    
+    // Shorter delay and immediate navigation
     setTimeout(() => {
-      console.log('Navigating to next step');
-      onNext();
-    }, 1000);
+      console.log('=== NAVIGATION TRIGGER ===');
+      console.log('About to call onNext() to navigate to step 2');
+      console.log('onNext function:', onNext);
+      if (onNext) {
+        onNext();
+        console.log('✅ onNext() called successfully');
+      } else {
+        console.error('❌ onNext function is not available');
+      }
+    }, 500);
   };
 
-  const handleContinueClick = () => {
+  const handleManualContinue = () => {
+    console.log('=== MANUAL CONTINUE CLICKED ===');
+    console.log('Current goal in campaignData:', campaignData.goal);
+    console.log('onNext function exists:', !!onNext);
+    
     if (campaignData.goal && onNext) {
-      console.log('Continue button clicked, proceeding to step 2');
+      console.log('✅ Manual continue - calling onNext()');
       onNext();
+    } else {
+      console.log('❌ Cannot continue - missing goal or onNext');
+      if (!campaignData.goal) {
+        console.log('Missing goal in campaignData');
+      }
+      if (!onNext) {
+        console.log('Missing onNext function');
+      }
     }
   };
 
@@ -90,18 +120,30 @@ const CampaignBuilderStep1 = ({ campaignData, updateCampaignData, onNext }: Camp
         ))}
       </div>
 
-      {/* Manual Continue Button (fallback) */}
+      {/* Always show continue button when goal is selected */}
       {campaignData.goal && (
         <div className="text-center">
           <Button 
-            onClick={handleContinueClick}
+            onClick={handleManualContinue}
             size="lg" 
             className="glass-button-primary"
           >
-            Continue to Upload Content
+            Continue to Upload Content →
           </Button>
+          <p className="text-white/60 text-sm mt-2">
+            Goal selected: {campaignData.goal}
+          </p>
         </div>
       )}
+
+      {/* Debug info */}
+      <div className="text-center">
+        <div className="glass-card-strong p-4 inline-block">
+          <p className="text-white/80 text-sm">
+            Debug: Current goal = "{campaignData.goal || 'none'}" | onNext = {!!onNext ? 'available' : 'missing'}
+          </p>
+        </div>
+      </div>
 
       {/* Help Text */}
       <div className="text-center">

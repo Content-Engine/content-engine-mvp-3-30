@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, User, Target, Zap } from "lucide-react";
+import { Calendar, Clock, User, Target, Zap, FileText, Users } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
 interface CampaignBuilderStep5Props {
@@ -17,7 +17,7 @@ interface CampaignBuilderStep5Props {
 const CampaignBuilderStep5 = ({ campaignData, updateCampaignData, onLaunch }: CampaignBuilderStep5Props) => {
   const { user } = useAuth();
   const [selectedDate, setSelectedDate] = useState<string>("");
-  const [selectedTime, setSelectedTime] = useState<string>("");
+  const [selectedTime, setSelectedTime] = useState<string>("09:00");
 
   const handleScheduleUpdate = () => {
     updateCampaignData({
@@ -41,6 +41,15 @@ const CampaignBuilderStep5 = ({ campaignData, updateCampaignData, onLaunch }: Ca
       .map(([boost, _]) => boost);
   };
 
+  const getSyndicationTierInfo = () => {
+    const tiers = {
+      basic: { name: "Basic Syndication", price: "$49", platforms: 3 },
+      pro: { name: "Pro Syndication", price: "$99", platforms: 5 },
+      enterprise: { name: "Enterprise Syndication", price: "$199", platforms: 8 }
+    };
+    return tiers[campaignData.syndicationTier as keyof typeof tiers] || { name: "Not selected", price: "$0", platforms: 0 };
+  };
+
   return (
     <div className="animate-fade-in spacing-content">
       {/* Step Header */}
@@ -52,7 +61,7 @@ const CampaignBuilderStep5 = ({ campaignData, updateCampaignData, onLaunch }: Ca
           <div className="h-1 w-full bg-gradient-to-r from-accent to-accent/80 rounded-full"></div>
         </div>
         <p className="text-body text-text-muted card-glass p-4 inline-block max-w-2xl">
-          Set your launch window and review campaign details before going live
+          Review your campaign details and set your launch schedule
         </p>
       </div>
 
@@ -109,6 +118,7 @@ const CampaignBuilderStep5 = ({ campaignData, updateCampaignData, onLaunch }: Ca
               <div>
                 <p className="text-caption text-text-muted">Client</p>
                 <p className="text-body-sm text-text-main font-medium">{user?.email}</p>
+                <p className="text-caption text-text-muted">ID: {user?.id?.slice(0, 8)}...</p>
               </div>
             </div>
 
@@ -125,63 +135,91 @@ const CampaignBuilderStep5 = ({ campaignData, updateCampaignData, onLaunch }: Ca
               </div>
               
               <div className="flex justify-between items-center">
-                <span className="text-body-sm text-text-muted">Syndication Tier:</span>
+                <span className="text-body-sm text-text-muted flex items-center gap-2">
+                  <Zap className="h-4 w-4" />
+                  Syndication:
+                </span>
                 <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">
-                  {campaignData.syndicationTier || 'Not selected'}
+                  {getSyndicationTierInfo().name}
                 </Badge>
               </div>
               
               <div className="flex justify-between items-center">
-                <span className="text-body-sm text-text-muted">Content Files:</span>
+                <span className="text-body-sm text-text-muted flex items-center gap-2">
+                  <FileText className="h-4 w-4" />
+                  Content Files:
+                </span>
                 <span className="text-body-sm text-text-main font-medium">
                   {campaignData.contentFiles?.length || 0} files
                 </span>
               </div>
-              
+
               <div className="flex justify-between items-center">
                 <span className="text-body-sm text-text-muted flex items-center gap-2">
-                  <Zap className="h-4 w-4" />
-                  Active Boosts:
+                  <Users className="h-4 w-4" />
+                  Platforms:
                 </span>
                 <span className="text-body-sm text-text-main font-medium">
-                  {getActiveBoosts().length} enabled
+                  {getSyndicationTierInfo().platforms} platforms
                 </span>
               </div>
             </div>
 
-            {/* Boost Details */}
+            {/* Active Boosts */}
             {getActiveBoosts().length > 0 && (
-              <div className="card-surface p-4 space-y-2">
-                <p className="text-caption text-text-muted mb-2">Enabled Boosts:</p>
-                {getActiveBoosts().map((boost) => (
-                  <div key={boost} className="status-active w-fit">
-                    {boost === 'echoClone' ? 'Echo Clone Generator' : 'Comment Seeding'}
-                  </div>
-                ))}
+              <div>
+                <p className="text-body-sm text-text-muted mb-2">Active Boosts:</p>
+                <div className="space-y-1">
+                  {getActiveBoosts().map((boost) => (
+                    <div key={boost} className="status-active w-fit">
+                      {boost === 'echoClone' ? 'Echo Clone Generator' : 'Comment Seeding'}
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
+
+            {/* Estimated Cost */}
+            <div className="border-t border-border-color pt-4">
+              <div className="flex justify-between items-center">
+                <span className="text-body font-medium text-text-main">Estimated Total:</span>
+                <span className="text-heading-4 text-accent font-bold">
+                  {getSyndicationTierInfo().price}
+                  {getActiveBoosts().length > 0 && ' + boosts'}
+                </span>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
 
       {/* Launch Button */}
       <div className="text-center space-y-4">
-        <Button
+        <Button 
           onClick={handleLaunch}
           disabled={!isFormValid}
-          size="xl"
-          className="btn-primary px-12"
+          size="lg"
+          className={isFormValid ? "btn-primary" : "btn-secondary"}
         >
-          🚀 Launch Campaign
+          {isFormValid ? "🚀 Launch Campaign" : "Set schedule to launch"}
         </Button>
         
-        {!isFormValid && (
+        {isFormValid && (
           <div className="card-surface p-3 inline-block">
-            <p className="text-caption text-text-muted">
-              Please set a launch date and time to continue
+            <p className="text-caption text-green-400">
+              ✅ Ready to launch! Your campaign will be created and assigned to editors.
             </p>
           </div>
         )}
+      </div>
+
+      {/* Final Notes */}
+      <div className="text-center">
+        <div className="card-surface p-4 inline-block max-w-md">
+          <p className="text-caption text-text-muted">
+            💡 After launch, you'll receive updates via email and can track progress in your dashboard
+          </p>
+        </div>
       </div>
     </div>
   );

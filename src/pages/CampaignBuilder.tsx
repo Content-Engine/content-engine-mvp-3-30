@@ -53,10 +53,11 @@ const CampaignBuilder = () => {
     
     try {
       console.log('Launching campaign with state:', state);
+      console.log('User creating campaign:', user);
       
-      // Link campaign to client (current user)
+      // Build comprehensive campaign data with client linkage
       const campaignData = {
-        name: state.name || `Campaign ${new Date().toLocaleDateString()}`,
+        name: state.name || `${user?.email?.split('@')[0]} Campaign ${new Date().toLocaleDateString()}`,
         goal: state.goal,
         syndication_tier: state.syndicationTier,
         start_date: state.schedule.startDate || new Date().toISOString(),
@@ -66,23 +67,32 @@ const CampaignBuilder = () => {
           comment_seeding: state.boosts.commentSeeding,
           auto_boost: state.schedule.autoBoost,
         },
-        echo_boost_platforms: state.echo_boost_platforms,
-        auto_fill_lookalike: state.auto_fill_lookalike,
-        platform_targets: state.platform_targets,
-        hashtags_caption: state.hashtags_caption,
-        // Client linkage
+        echo_boost_platforms: state.echo_boost_platforms || 1,
+        auto_fill_lookalike: state.auto_fill_lookalike || false,
+        platform_targets: state.platform_targets || [],
+        hashtags_caption: state.hashtags_caption || '',
+        // Client linkage - critical for tracking
         user_id: user?.id,
         created_by: user?.id,
-        // Additional metadata for client tracking
-        notes: `Campaign created by client: ${user?.email}`,
+        // Client metadata for editor visibility
+        notes: `Client: ${user?.email} | Goal: ${state.goal} | Files: ${state.contentFiles?.length || 0} | Tier: ${state.syndicationTier}`,
+        // Content file count for planning
+        clips_count: state.contentFiles?.length || 0,
       };
 
       const campaign = await createCampaign(campaignData);
       console.log('Campaign created successfully:', campaign);
       
+      // TODO: Auto-generate editor assignments for uploaded files
+      // This would happen here after campaign creation
+      if (state.contentFiles && state.contentFiles.length > 0) {
+        console.log('Files to process:', state.contentFiles);
+        // Future: Create editor assignments for each file
+      }
+      
       toast({
         title: "🚀 Campaign Launched Successfully!",
-        description: "Your campaign is now active and will be assigned to our content team.",
+        description: `Your campaign "${campaignData.name}" is now active and will be assigned to our content team.`,
       });
 
       clearState();
@@ -169,12 +179,29 @@ const CampaignBuilder = () => {
   return (
     <Layout>
       <div className="container-narrow spacing-content">
+        {/* Client Info Header */}
+        {user && (
+          <div className="card-glass p-4 mb-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-heading-4 text-text-main">Creating Campaign For:</h3>
+                <p className="text-body-sm text-text-muted">{user.email}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-caption text-text-muted">Campaign ID will be auto-generated</p>
+                <p className="text-caption text-accent">Client: {user.id?.slice(0, 8)}...</p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Dev Mode Debug Panel */}
         {DEV_MODE.DISABLE_AUTH && (
           <div className="card-glass p-4 border-2 border-yellow-500/50 mb-6">
             <h3 className="text-heading-4 text-yellow-400 mb-2">🔧 DEV MODE</h3>
             <div className="text-caption space-y-1">
-              <p className="text-text-muted">Step: {currentStep} | Goal: "{state.goal}" | Files: {state.contentFiles.length}</p>
+              <p className="text-text-muted">Step: {currentStep} | Goal: "{state.goal}" | Files: {state.contentFiles?.length || 0}</p>
+              <p className="text-text-muted">Tier: {state.syndicationTier} | Client: {user?.email}</p>
               <div className="flex gap-2 mt-2">
                 {[1, 2, 3, 4, 5].map(step => (
                   <Button 

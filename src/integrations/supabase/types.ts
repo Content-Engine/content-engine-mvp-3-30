@@ -9,6 +9,68 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      archived_submissions: {
+        Row: {
+          archived_at: string
+          assigned_editor_id: string | null
+          boost_requested: boolean | null
+          campaign_tag: string | null
+          client_id: string
+          content_type: string
+          content_url: string
+          id: string
+          internal_notes: string | null
+          original_submission_id: string
+          preferred_platforms: Json | null
+          scheduled_post_id: string | null
+          status: string
+          submit_date: string
+          submitted_caption: string | null
+        }
+        Insert: {
+          archived_at?: string
+          assigned_editor_id?: string | null
+          boost_requested?: boolean | null
+          campaign_tag?: string | null
+          client_id: string
+          content_type: string
+          content_url: string
+          id?: string
+          internal_notes?: string | null
+          original_submission_id: string
+          preferred_platforms?: Json | null
+          scheduled_post_id?: string | null
+          status: string
+          submit_date: string
+          submitted_caption?: string | null
+        }
+        Update: {
+          archived_at?: string
+          assigned_editor_id?: string | null
+          boost_requested?: boolean | null
+          campaign_tag?: string | null
+          client_id?: string
+          content_type?: string
+          content_url?: string
+          id?: string
+          internal_notes?: string | null
+          original_submission_id?: string
+          preferred_platforms?: Json | null
+          scheduled_post_id?: string | null
+          status?: string
+          submit_date?: string
+          submitted_caption?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "archived_submissions_scheduled_post_id_fkey"
+            columns: ["scheduled_post_id"]
+            isOneToOne: false
+            referencedRelation: "scheduled_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       boost_history: {
         Row: {
           amount: number
@@ -514,6 +576,57 @@ export type Database = {
         }
         Relationships: []
       }
+      incoming_content_submissions: {
+        Row: {
+          assigned_editor_id: string | null
+          boost_requested: boolean | null
+          campaign_tag: string | null
+          client_id: string
+          content_type: string
+          content_url: string
+          created_at: string
+          id: string
+          internal_notes: string | null
+          preferred_platforms: Json | null
+          status: string | null
+          submit_date: string
+          submitted_caption: string | null
+          updated_at: string
+        }
+        Insert: {
+          assigned_editor_id?: string | null
+          boost_requested?: boolean | null
+          campaign_tag?: string | null
+          client_id: string
+          content_type: string
+          content_url: string
+          created_at?: string
+          id?: string
+          internal_notes?: string | null
+          preferred_platforms?: Json | null
+          status?: string | null
+          submit_date?: string
+          submitted_caption?: string | null
+          updated_at?: string
+        }
+        Update: {
+          assigned_editor_id?: string | null
+          boost_requested?: boolean | null
+          campaign_tag?: string | null
+          client_id?: string
+          content_type?: string
+          content_url?: string
+          created_at?: string
+          id?: string
+          internal_notes?: string | null
+          preferred_platforms?: Json | null
+          status?: string | null
+          submit_date?: string
+          submitted_caption?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       metrics: {
         Row: {
           campaign_id: string | null
@@ -804,6 +917,38 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      submission_errors: {
+        Row: {
+          created_at: string
+          error_message: string
+          error_type: string
+          id: string
+          submission_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          error_message: string
+          error_type: string
+          id?: string
+          submission_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          error_message?: string
+          error_type?: string
+          id?: string
+          submission_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "submission_errors_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "incoming_content_submissions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       training_progress: {
         Row: {

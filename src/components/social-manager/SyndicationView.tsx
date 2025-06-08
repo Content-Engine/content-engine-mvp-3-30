@@ -7,9 +7,11 @@ import {
   Share2,
   Calendar,
   BarChart3,
-  Zap
+  Zap,
+  Inbox
 } from "lucide-react";
 import ContentCalendarView from "./ContentCalendarView";
+import IncomingContentView from "./IncomingContentView";
 
 interface SyndicationViewProps {
   currentCampaign: string;
@@ -33,14 +35,18 @@ const SyndicationView = ({ currentCampaign }: SyndicationViewProps) => {
         </CardHeader>
         <CardContent>
           <p className="text-text-muted">
-            Manage your social media content calendar and schedule posts across multiple platforms using Ayrshare integration.
+            Manage your social media content calendar, review incoming submissions, and schedule posts across multiple platforms using Ayrshare integration.
           </p>
         </CardContent>
       </Card>
 
       {/* Main Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4 lg:w-fit lg:grid-cols-4 bg-card-bg border-border-color">
+        <TabsList className="grid w-full grid-cols-5 lg:w-fit lg:grid-cols-5 bg-card-bg border-border-color">
+          <TabsTrigger value="incoming" className="flex items-center gap-2 text-text-muted data-[state=active]:text-text-main">
+            <Inbox className="h-4 w-4" />
+            <span className="hidden sm:inline">Incoming</span>
+          </TabsTrigger>
           <TabsTrigger value="calendar" className="flex items-center gap-2 text-text-muted data-[state=active]:text-text-main">
             <Calendar className="h-4 w-4" />
             <span className="hidden sm:inline">Calendar</span>
@@ -58,6 +64,11 @@ const SyndicationView = ({ currentCampaign }: SyndicationViewProps) => {
             <span className="hidden sm:inline">Settings</span>
           </TabsTrigger>
         </TabsList>
+
+        {/* Incoming Content Tab */}
+        <TabsContent value="incoming">
+          <IncomingContentView currentCampaign={currentCampaign} />
+        </TabsContent>
 
         {/* Calendar Tab */}
         <TabsContent value="calendar">

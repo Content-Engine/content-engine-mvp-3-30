@@ -48,7 +48,12 @@ export const useScheduledPosts = () => {
       const typedPosts: ScheduledPost[] = (data || []).map(post => ({
         ...post,
         platforms: Array.isArray(post.platforms) ? post.platforms.filter((p): p is string => typeof p === 'string') : [],
-        media_urls: Array.isArray(post.media_urls) ? post.media_urls.filter((u): u is string => typeof u === 'string') : []
+        media_urls: Array.isArray(post.media_urls) ? post.media_urls.filter((u): u is string => typeof u === 'string') : [],
+        status: (post.status as 'scheduled' | 'posted' | 'failed' | 'cancelled') || 'scheduled',
+        boost_enabled: post.boost_enabled || false,
+        campaign_id: post.campaign_id || undefined,
+        content_item_id: post.content_item_id || undefined,
+        ayrshare_post_id: post.ayrshare_post_id || undefined
       }));
       
       setPosts(typedPosts);

@@ -38,23 +38,34 @@ interface CampaignData {
 
 const CampaignBuilder = () => {
   const navigate = useNavigate();
-  const { step } = useParams();
+  const params = useParams();
   
-  // Parse step more carefully
+  // Fix step parameter parsing
+  const stepParam = params.step;
   let currentStep = 1;
-  if (step) {
-    const parsed = parseInt(step, 10);
+  
+  console.log('=== STEP PARAMETER DEBUG ===');
+  console.log('Raw params:', params);
+  console.log('Step param from URL:', stepParam);
+  console.log('Current pathname:', window.location.pathname);
+  
+  if (stepParam) {
+    const parsed = parseInt(stepParam, 10);
+    console.log('Parsed step number:', parsed);
     if (!isNaN(parsed) && parsed >= 1 && parsed <= 5) {
       currentStep = parsed;
+      console.log('✅ Valid step set to:', currentStep);
+    } else {
+      console.log('❌ Invalid step, defaulting to 1');
     }
+  } else {
+    console.log('❌ No step param found, defaulting to 1');
   }
   
   const { createCampaign } = useCampaignData();
 
   console.log('=== CAMPAIGN BUILDER MAIN ===');
-  console.log('URL step param:', step);
-  console.log('Parsed currentStep:', currentStep);
-  console.log('Current URL pathname:', window.location.pathname);
+  console.log('Final currentStep:', currentStep);
   console.log('DEV_MODE active:', DEV_MODE.DISABLE_AUTH);
 
   const [campaignData, setCampaignData] = useState<CampaignData>({
@@ -120,7 +131,7 @@ const CampaignBuilder = () => {
       const nextUrl = `/campaign-builder/step/${nextStep}`;
       console.log('Navigating to:', nextUrl);
       navigate(nextUrl);
-      console.log('✅ Navigation triggered');
+      console.log('✅ Navigation triggered to step', nextStep);
     } else {
       console.log('Already at final step');
     }
@@ -135,7 +146,7 @@ const CampaignBuilder = () => {
       const prevUrl = `/campaign-builder/step/${prevStep}`;
       console.log('Navigating to:', prevUrl);
       navigate(prevUrl);
-      console.log('✅ Previous navigation triggered');
+      console.log('✅ Previous navigation triggered to step', prevStep);
     } else {
       console.log('Already at first step');
     }
@@ -181,7 +192,7 @@ const CampaignBuilder = () => {
   const renderStepContent = () => {
     console.log('=== RENDERING STEP CONTENT ===');
     console.log('Rendering step:', currentStep);
-    console.log('Step props:', stepProps);
+    console.log('Step props goal:', stepProps.campaignData.goal);
     
     switch (currentStep) {
       case 1:
@@ -215,8 +226,9 @@ const CampaignBuilder = () => {
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
                 <p className="text-white/80">Current Step: <span className="text-green-400">{currentStep}</span></p>
-                <p className="text-white/80">URL Param: <span className="text-blue-400">"{step}"</span></p>
+                <p className="text-white/80">URL Param: <span className="text-blue-400">"{stepParam}"</span></p>
                 <p className="text-white/80">Goal: <span className="text-purple-400">"{campaignData.goal || 'none'}"</span></p>
+                <p className="text-white/80">Full URL: <span className="text-cyan-400">{window.location.pathname}</span></p>
               </div>
               <div>
                 <p className="text-white/80">Can Navigate: <span className="text-green-400">✅ Yes (Dev Mode)</span></p>
@@ -294,7 +306,7 @@ const CampaignBuilder = () => {
         <div className="text-center">
           <div className="glass-card-strong p-3 inline-block">
             <p className="text-white/60 text-xs">
-              Debug: Step {currentStep} | Goal: "{campaignData.goal}" | URL: {window.location.pathname}
+              Debug: Step {currentStep} | Goal: "{campaignData.goal}" | URL: {window.location.pathname} | Param: "{stepParam}"
             </p>
           </div>
         </div>

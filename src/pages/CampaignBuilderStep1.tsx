@@ -31,7 +31,7 @@ interface CampaignBuilderStep1Props {
 }
 
 const CampaignBuilderStep1 = ({ campaignData, updateCampaignData, onNext }: CampaignBuilderStep1Props) => {
-  console.log('=== STEP 1 DEBUG ===');
+  console.log('=== STEP 1 COMPONENT LOADED ===');
   console.log('Current campaignData:', campaignData);
   console.log('Current goal:', campaignData.goal);
   console.log('onNext function exists:', !!onNext);
@@ -58,7 +58,9 @@ const CampaignBuilderStep1 = ({ campaignData, updateCampaignData, onNext }: Camp
     
     if (canProceed && onNext) {
       console.log('✅ Proceeding to next step');
+      console.log('Calling onNext() now...');
       onNext();
+      console.log('✅ onNext() called successfully');
     } else {
       console.log('❌ Cannot continue');
       if (!campaignData.goal && !DEV_MODE.DISABLE_AUTH) {
@@ -119,7 +121,7 @@ const CampaignBuilderStep1 = ({ campaignData, updateCampaignData, onNext }: Camp
         ))}
       </div>
 
-      {/* Continue Button - Always show in dev mode or when goal is selected */}
+      {/* Continue Button - Enhanced for debugging */}
       <div className="text-center">
         <Button 
           onClick={handleContinue}
@@ -149,15 +151,16 @@ const CampaignBuilderStep1 = ({ campaignData, updateCampaignData, onNext }: Camp
         </div>
       </div>
 
-      {/* Debug Panel */}
+      {/* Enhanced Debug Panel */}
       <div className="text-center">
         <div className="glass-card-strong p-4 inline-block">
           <div className="text-white/80 text-sm space-y-1">
-            <p>🔍 Debug Info:</p>
+            <p>🔍 Step 1 Debug Info:</p>
             <p>Selected Goal: "{campaignData.goal || 'none'}"</p>
             <p>Can Continue: {canContinue ? '✅' : '❌'}</p>
             <p>Dev Mode: {DEV_MODE.DISABLE_AUTH ? '🔧 Active' : '❌ Disabled'}</p>
             <p>onNext Available: {!!onNext ? '✅' : '❌'}</p>
+            <p>Button Enabled: {canContinue ? '✅' : '❌'}</p>
           </div>
         </div>
       </div>

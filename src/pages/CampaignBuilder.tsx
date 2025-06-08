@@ -1,217 +1,143 @@
 
-import { useState, useEffect } from 'react';
+import { useState, lazy, Suspense } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { useCampaignData } from '@/hooks/useCampaignData';
+import { useCampaignBuilder } from '@/hooks/useCampaignBuilder';
 import ProgressBar from '@/components/ProgressBar';
 import Layout from '@/components/Layout';
 import { DEV_MODE } from '@/config/dev';
 
-// Import step components
-import CampaignBuilderStep1 from '@/pages/CampaignBuilderStep1';
-import CampaignBuilderStep2 from '@/pages/CampaignBuilderStep2';
-import CampaignBuilderStep3 from '@/pages/CampaignBuilderStep3';
-import CampaignBuilderStep4 from '@/pages/CampaignBuilderStep4';
-import CampaignBuilderStep5 from '@/pages/CampaignBuilderStep5';
-
-interface CampaignData {
-  name: string;
-  goal: string;
-  contentFiles: File[];
-  syndicationTier: string;
-  boosts: {
-    echoClone: boolean;
-    commentSeeding: boolean;
-  };
-  schedule: {
-    startDate: string;
-    autoBoost: boolean;
-  };
-  // Enhanced fields
-  echo_boost_platforms: number;
-  auto_fill_lookalike: boolean;
-  comment_templates: string[];
-  platform_targets: string[];
-  hashtags_caption: string;
-}
+// Lazy load step components
+const Step1Goal = lazy(() => import('@/components/CampaignBuilder/Step1Goal'));
+const Step2Upload = lazy(() => import('@/components/CampaignBuilder/Step2Upload'));
+const Step3Boost = lazy(() => import('@/components/CampaignBuilder/Step3Boost'));
+const Step4Schedule = lazy(() => import('@/components/CampaignBuilder/Step4Schedule'));
+const Step5Launch = lazy(() => import('@/components/CampaignBuilder/Step5Launch'));
 
 const CampaignBuilder = () => {
   const navigate = useNavigate();
   const params = useParams();
-  
-  // Fix step parameter parsing
-  const stepParam = params.step;
-  let currentStep = 1;
-  
-  console.log('=== STEP PARAMETER DEBUG ===');
-  console.log('Raw params:', params);
-  console.log('Step param from URL:', stepParam);
-  console.log('Current pathname:', window.location.pathname);
-  
-  if (stepParam) {
-    const parsed = parseInt(stepParam, 10);
-    console.log('Parsed step number:', parsed);
-    if (!isNaN(parsed) && parsed >= 1 && parsed <= 5) {
-      currentStep = parsed;
-      console.log('✅ Valid step set to:', currentStep);
-    } else {
-      console.log('❌ Invalid step, defaulting to 1');
-    }
-  } else {
-    console.log('❌ No step param found, defaulting to 1');
-  }
-  
   const { createCampaign } = useCampaignData();
-
-  console.log('=== CAMPAIGN BUILDER MAIN ===');
-  console.log('Final currentStep:', currentStep);
-  console.log('DEV_MODE active:', DEV_MODE.DISABLE_AUTH);
-
-  const [campaignData, setCampaignData] = useState<CampaignData>({
-    name: '',
-    goal: '',
-    contentFiles: [],
-    syndicationTier: '',
-    boosts: {
-      echoClone: false,
-      commentSeeding: false,
-    },
-    schedule: {
-      startDate: '',
-      autoBoost: false,
-    },
-    // Enhanced fields
-    echo_boost_platforms: 1,
-    auto_fill_lookalike: false,
-    comment_templates: [],
-    platform_targets: [],
-    hashtags_caption: '',
-  });
-
-  // Load data from localStorage on mount
-  useEffect(() => {
-    const saved = localStorage.getItem('campaignBuilderData');
-    if (saved) {
-      try {
-        const parsedData = JSON.parse(saved);
-        console.log('Loading saved campaign data:', parsedData);
-        setCampaignData(parsedData);
-      } catch (error) {
-        console.error('Failed to parse saved campaign data:', error);
-      }
-    }
-  }, []);
-
-  // Save data to localStorage whenever it changes
-  useEffect(() => {
-    console.log('Saving campaign data to localStorage:', campaignData);
-    localStorage.setItem('campaignBuilderData', JSON.stringify(campaignData));
-  }, [campaignData]);
-
-  const updateCampaignData = (updates: Partial<CampaignData>) => {
-    console.log('=== UPDATE CAMPAIGN DATA ===');
-    console.log('Current campaignData:', campaignData);
-    console.log('Updates to apply:', updates);
-    
-    setCampaignData(prev => {
-      const newData = { ...prev, ...updates };
-      console.log('New campaignData after update:', newData);
-      return newData;
-    });
-  };
+  const { state, updateState, clearState } = useCampaignBuilder();
+  
+  // Parse step from URL
+  const stepParam = params.step;
+  const currentStep = stepParam ? parseInt(stepParam, 10) : 1;
 
   const handleNext = () => {
-    console.log('=== HANDLE NEXT ===');
-    console.log('Current step:', currentStep);
-    console.log('Campaign data:', campaignData);
-    
     if (currentStep < 5) {
-      const nextStep = currentStep + 1;
-      const nextUrl = `/campaign-builder/step/${nextStep}`;
-      console.log('Navigating to:', nextUrl);
-      navigate(nextUrl);
-      console.log('✅ Navigation triggered to step', nextStep);
-    } else {
-      console.log('Already at final step');
+      navigate(`/campaign-builder/step/${currentStep + 1}`);
     }
   };
 
   const handlePrevious = () => {
-    console.log('=== HANDLE PREVIOUS ===');
-    console.log('Current step:', currentStep);
-    
     if (currentStep > 1) {
-      const prevStep = currentStep - 1;
-      const prevUrl = `/campaign-builder/step/${prevStep}`;
-      console.log('Navigating to:', prevUrl);
-      navigate(prevUrl);
-      console.log('✅ Previous navigation triggered to step', prevStep);
-    } else {
-      console.log('Already at first step');
+      navigate(`/campaign-builder/step/${currentStep - 1}`);
     }
   };
 
   const handleLaunch = async () => {
-    console.log('=== HANDLE LAUNCH ===');
-    console.log('Final campaign data:', campaignData);
-    
     try {
       await createCampaign({
-        name: campaignData.name || `Campaign ${new Date().toLocaleDateString()}`,
-        goal: campaignData.goal,
-        syndication_tier: campaignData.syndicationTier,
-        start_date: campaignData.schedule.startDate || new Date().toISOString(),
+        name: state.name || `Campaign ${new Date().toLocaleDateString()}`,
+        goal: state.goal,
+        syndication_tier: state.syndicationTier,
+        start_date: state.schedule.startDate || new Date().toISOString(),
         status: 'active',
         boost_settings: {
-          echo_clone: campaignData.boosts.echoClone,
-          comment_seeding: campaignData.boosts.commentSeeding,
-          auto_boost: campaignData.schedule.autoBoost,
+          echo_clone: state.boosts.echoClone,
+          comment_seeding: state.boosts.commentSeeding,
+          auto_boost: state.schedule.autoBoost,
         },
-        echo_boost_platforms: campaignData.echo_boost_platforms,
-        auto_fill_lookalike: campaignData.auto_fill_lookalike,
-        platform_targets: campaignData.platform_targets,
-        hashtags_caption: campaignData.hashtags_caption,
+        echo_boost_platforms: state.echo_boost_platforms,
+        auto_fill_lookalike: state.auto_fill_lookalike,
+        platform_targets: state.platform_targets,
+        hashtags_caption: state.hashtags_caption,
       });
 
-      localStorage.removeItem('campaignBuilderData');
-      console.log('✅ Campaign created successfully, navigating to dashboard');
+      clearState();
       navigate('/dashboard');
     } catch (error) {
-      console.error('❌ Failed to create campaign:', error);
+      console.error('Failed to create campaign:', error);
     }
   };
 
-  const stepProps = {
-    campaignData,
-    updateCampaignData,
-    onNext: handleNext,
-    onPrevious: handlePrevious,
-  };
-
   const renderStepContent = () => {
-    console.log('=== RENDERING STEP CONTENT ===');
-    console.log('Rendering step:', currentStep);
-    console.log('Step props goal:', stepProps.campaignData.goal);
-    
+    const LoadingSpinner = () => (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+      </div>
+    );
+
     switch (currentStep) {
       case 1:
-        console.log('Rendering Step 1 (Goal Selection)');
-        return <CampaignBuilderStep1 {...stepProps} />;
+        return (
+          <Suspense fallback={<LoadingSpinner />}>
+            <Step1Goal
+              selectedGoal={state.goal}
+              onGoalSelect={(goal) => updateState({ goal })}
+              onNext={handleNext}
+            />
+          </Suspense>
+        );
       case 2:
-        console.log('Rendering Step 2 (Content Upload)');
-        return <CampaignBuilderStep2 {...stepProps} />;
+        return (
+          <Suspense fallback={<LoadingSpinner />}>
+            <Step2Upload
+              contentFiles={state.contentFiles}
+              onFilesUpdate={(files) => updateState({ contentFiles: files })}
+              onNext={handleNext}
+              onPrevious={handlePrevious}
+            />
+          </Suspense>
+        );
       case 3:
-        console.log('Rendering Step 3 (Syndication)');
-        return <CampaignBuilderStep3 {...stepProps} />;
+        return (
+          <Suspense fallback={<LoadingSpinner />}>
+            <Step3Boost
+              syndicationTier={state.syndicationTier}
+              echoPlatforms={state.echo_boost_platforms}
+              autoFillLookalike={state.auto_fill_lookalike}
+              commentTemplates={state.comment_templates}
+              onTierSelect={(tier) => updateState({ syndicationTier: tier })}
+              onEchoPlatformsChange={(platforms) => updateState({ echo_boost_platforms: platforms })}
+              onAutoFillToggle={(enabled) => updateState({ auto_fill_lookalike: enabled })}
+              onCommentTemplatesChange={(templates) => updateState({ comment_templates: templates })}
+              onNext={handleNext}
+            />
+          </Suspense>
+        );
       case 4:
-        console.log('Rendering Step 4 (Boost Settings)');
-        return <CampaignBuilderStep4 {...stepProps} />;
+        return (
+          <Suspense fallback={<LoadingSpinner />}>
+            <Step4Schedule
+              boosts={state.boosts}
+              onBoostToggle={(boostId, enabled) => 
+                updateState({ 
+                  boosts: { ...state.boosts, [boostId]: enabled } 
+                })
+              }
+              onNext={handleNext}
+            />
+          </Suspense>
+        );
       case 5:
-        console.log('Rendering Step 5 (Schedule & Launch)');
-        return <CampaignBuilderStep5 {...stepProps} onLaunch={handleLaunch} />;
+        return (
+          <Suspense fallback={<LoadingSpinner />}>
+            <Step5Launch
+              campaignName={state.name}
+              startDate={state.schedule.startDate}
+              autoBoost={state.schedule.autoBoost}
+              onNameChange={(name) => updateState({ name })}
+              onDateChange={(date) => updateState({ schedule: { ...state.schedule, startDate: date } })}
+              onAutoBoostToggle={(enabled) => updateState({ schedule: { ...state.schedule, autoBoost: enabled } })}
+              onLaunch={handleLaunch}
+            />
+          </Suspense>
+        );
       default:
-        console.log('Invalid step, rendering error');
         return <div className="text-white text-center p-8">Invalid step: {currentStep}</div>;
     }
   };
@@ -219,45 +145,24 @@ const CampaignBuilder = () => {
   return (
     <Layout>
       <div className="max-w-4xl mx-auto space-y-8">
-        {/* Debug Panel for Dev Mode */}
+        {/* Dev Mode Debug Panel */}
         {DEV_MODE.DISABLE_AUTH && (
           <div className="glass-card-strong p-4 border-2 border-yellow-500/50">
-            <h3 className="text-yellow-400 font-bold mb-2">🔧 DEV MODE DEBUG PANEL</h3>
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <p className="text-white/80">Current Step: <span className="text-green-400">{currentStep}</span></p>
-                <p className="text-white/80">URL Param: <span className="text-blue-400">"{stepParam}"</span></p>
-                <p className="text-white/80">Goal: <span className="text-purple-400">"{campaignData.goal || 'none'}"</span></p>
-                <p className="text-white/80">Full URL: <span className="text-cyan-400">{window.location.pathname}</span></p>
+            <h3 className="text-yellow-400 font-bold mb-2">🔧 DEV MODE</h3>
+            <div className="text-sm space-y-1">
+              <p className="text-white/80">Step: {currentStep} | Goal: "{state.goal}" | Files: {state.contentFiles.length}</p>
+              <div className="flex gap-2">
+                {[1, 2, 3, 4, 5].map(step => (
+                  <Button 
+                    key={step}
+                    size="sm" 
+                    onClick={() => navigate(`/campaign-builder/step/${step}`)}
+                    className="glass-button-secondary"
+                  >
+                    Step {step}
+                  </Button>
+                ))}
               </div>
-              <div>
-                <p className="text-white/80">Can Navigate: <span className="text-green-400">✅ Yes (Dev Mode)</span></p>
-                <p className="text-white/80">Files: <span className="text-cyan-400">{campaignData.contentFiles.length}</span></p>
-                <p className="text-white/80">Tier: <span className="text-orange-400">"{campaignData.syndicationTier || 'none'}"</span></p>
-              </div>
-            </div>
-            <div className="mt-2 flex gap-2">
-              <Button 
-                size="sm" 
-                onClick={() => navigate('/campaign-builder/step/1')}
-                className="glass-button-secondary"
-              >
-                Go to Step 1
-              </Button>
-              <Button 
-                size="sm" 
-                onClick={() => navigate('/campaign-builder/step/2')}
-                className="glass-button-secondary"
-              >
-                Go to Step 2
-              </Button>
-              <Button 
-                size="sm" 
-                onClick={() => navigate('/campaign-builder/step/3')}
-                className="glass-button-secondary"
-              >
-                Go to Step 3
-              </Button>
             </div>
           </div>
         )}
@@ -300,15 +205,6 @@ const CampaignBuilder = () => {
         {/* Step Content */}
         <div className="min-h-[400px]">
           {renderStepContent()}
-        </div>
-
-        {/* Debug info */}
-        <div className="text-center">
-          <div className="glass-card-strong p-3 inline-block">
-            <p className="text-white/60 text-xs">
-              Debug: Step {currentStep} | Goal: "{campaignData.goal}" | URL: {window.location.pathname} | Param: "{stepParam}"
-            </p>
-          </div>
         </div>
       </div>
     </Layout>

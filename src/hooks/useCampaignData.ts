@@ -16,6 +16,11 @@ interface Campaign {
   boost_settings?: any;
   created_at: string;
   user_id?: string;
+  // Add new boost-related fields
+  echo_boost_platforms?: number;
+  auto_fill_lookalike?: boolean;
+  platform_targets?: string[];
+  hashtags_caption?: string;
 }
 
 export const useCampaignData = () => {
@@ -59,6 +64,10 @@ export const useCampaignData = () => {
         budget_spent: campaignData.budget_spent || 0,
         boost_settings: campaignData.boost_settings || {},
         user_id: user.id,
+        echo_boost_platforms: campaignData.echo_boost_platforms || 1,
+        auto_fill_lookalike: campaignData.auto_fill_lookalike || false,
+        platform_targets: campaignData.platform_targets || [],
+        hashtags_caption: campaignData.hashtags_caption || '',
       })
       .select()
       .single();

@@ -21,6 +21,7 @@ import UserManagement from "./pages/UserManagement";
 import PaymentTiers from "./pages/PaymentTiers";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCancel from "./pages/PaymentCancel";
+import ClientPortal from "./pages/ClientPortal";
 import NotFound from "./pages/NotFound";
 import Unauthorized from "./pages/Unauthorized";
 
@@ -55,9 +56,29 @@ const App = () => (
               </ProtectedRoute>
             } />
             
+            {/* Fix missing syndication route */}
+            <Route path="/syndication" element={
+              <ProtectedRoute>
+                <CampaignBuilder />
+              </ProtectedRoute>
+            } />
+            
+            {/* Fix campaign builder step routes */}
+            <Route path="/campaign-builder/step/:stepNumber" element={
+              <ProtectedRoute>
+                <CampaignBuilder />
+              </ProtectedRoute>
+            } />
+            
             <Route path="/calendar" element={
               <ProtectedRoute>
                 <CalendarOverview />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/client-portal" element={
+              <ProtectedRoute>
+                <ClientPortal />
               </ProtectedRoute>
             } />
             

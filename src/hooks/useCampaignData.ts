@@ -16,10 +16,10 @@ interface Campaign {
   boost_settings?: any;
   created_at: string;
   user_id?: string;
-  // Add new boost-related fields
+  // Add new boost-related fields with correct types
   echo_boost_platforms?: number;
   auto_fill_lookalike?: boolean;
-  platform_targets?: string[];
+  platform_targets?: any; // Use any to match Json type from database
   hashtags_caption?: string;
 }
 

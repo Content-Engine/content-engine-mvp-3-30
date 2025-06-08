@@ -124,7 +124,7 @@ const SubscriptionManager = () => {
                     onClick={() => upgradeToTier(tier.id)}
                     disabled={isLoading}
                     className="w-full"
-                    variant={tier.id === 'pro' ? 'default' : 'outline'}
+                    variant={tier.id === 'executive' ? 'default' : 'outline'}
                   >
                     {isLoading ? 'Processing...' : `Get ${tier.name}`}
                   </Button>

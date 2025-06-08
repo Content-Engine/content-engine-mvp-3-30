@@ -47,8 +47,8 @@ export const useScheduledPosts = () => {
       // Convert database response to proper types
       const typedPosts: ScheduledPost[] = (data || []).map(post => ({
         ...post,
-        platforms: Array.isArray(post.platforms) ? post.platforms : [],
-        media_urls: Array.isArray(post.media_urls) ? post.media_urls : []
+        platforms: Array.isArray(post.platforms) ? post.platforms.filter((p): p is string => typeof p === 'string') : [],
+        media_urls: Array.isArray(post.media_urls) ? post.media_urls.filter((u): u is string => typeof u === 'string') : []
       }));
       
       setPosts(typedPosts);

@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -24,6 +23,7 @@ import UserManagement from "./pages/UserManagement";
 import Unauthorized from "./pages/Unauthorized";
 import Layout from "@/components/Layout";
 import LoginPage from "./pages/LoginPage";
+import ClientPortal from "./pages/ClientPortal";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -48,6 +48,13 @@ function App() {
               <Route path="/auth" element={<Auth />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/unauthorized" element={<Unauthorized />} />
+              
+              {/* Client Portal Route */}
+              <Route path="/client-portal" element={
+                <ProtectedRoute>
+                  <ClientPortal />
+                </ProtectedRoute>
+              } />
               
               {/* Protected Routes wrapped with Layout */}
               <Route path="/dashboard" element={

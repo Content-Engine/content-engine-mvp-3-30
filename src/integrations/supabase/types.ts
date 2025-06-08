@@ -202,6 +202,39 @@ export type Database = {
           },
         ]
       }
+      client_tokens: {
+        Row: {
+          ayrshare_api_key: string
+          ayrshare_user_id: string
+          client_name: string | null
+          created_at: string
+          id: string
+          is_active: boolean | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ayrshare_api_key: string
+          ayrshare_user_id: string
+          client_name?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ayrshare_api_key?: string
+          ayrshare_user_id?: string
+          client_name?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       comment_seedings: {
         Row: {
           actual_count: number | null
@@ -541,6 +574,41 @@ export type Database = {
           },
         ]
       }
+      post_status_logs: {
+        Row: {
+          created_at: string
+          id: string
+          message: string | null
+          response_data: Json | null
+          scheduled_post_id: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message?: string | null
+          response_data?: Json | null
+          scheduled_post_id: string
+          status: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string | null
+          response_data?: Json | null
+          scheduled_post_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_status_logs_scheduled_post_id_fkey"
+            columns: ["scheduled_post_id"]
+            isOneToOne: false
+            referencedRelation: "scheduled_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -622,6 +690,69 @@ export type Database = {
             columns: ["submitted_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      scheduled_posts: {
+        Row: {
+          ayrshare_post_id: string | null
+          boost_enabled: boolean | null
+          campaign_id: string | null
+          caption: string
+          content_item_id: string | null
+          created_at: string
+          id: string
+          media_urls: Json | null
+          platforms: Json
+          schedule_time: string
+          status: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ayrshare_post_id?: string | null
+          boost_enabled?: boolean | null
+          campaign_id?: string | null
+          caption: string
+          content_item_id?: string | null
+          created_at?: string
+          id?: string
+          media_urls?: Json | null
+          platforms?: Json
+          schedule_time: string
+          status?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ayrshare_post_id?: string | null
+          boost_enabled?: boolean | null
+          campaign_id?: string | null
+          caption?: string
+          content_item_id?: string | null
+          created_at?: string
+          id?: string
+          media_urls?: Json | null
+          platforms?: Json
+          schedule_time?: string
+          status?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scheduled_posts_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scheduled_posts_content_item_id_fkey"
+            columns: ["content_item_id"]
+            isOneToOne: false
+            referencedRelation: "content_items"
             referencedColumns: ["id"]
           },
         ]

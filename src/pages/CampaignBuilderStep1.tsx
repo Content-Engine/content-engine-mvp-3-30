@@ -1,6 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { DEV_MODE } from "@/config/dev";
 
 const goals = [
   {
@@ -34,6 +35,7 @@ const CampaignBuilderStep1 = ({ campaignData, updateCampaignData, onNext }: Camp
   console.log('Current campaignData:', campaignData);
   console.log('Current goal:', campaignData.goal);
   console.log('onNext function exists:', !!onNext);
+  console.log('DEV_MODE.DISABLE_AUTH:', DEV_MODE.DISABLE_AUTH);
 
   const handleGoalSelect = (goalId: string) => {
     console.log('=== GOAL SELECTION ===');
@@ -43,40 +45,37 @@ const CampaignBuilderStep1 = ({ campaignData, updateCampaignData, onNext }: Camp
     updateCampaignData({ goal: goalId });
     
     console.log('Campaign data after update should have goal:', goalId);
-    console.log('Will navigate to step 2 in 500ms');
-    
-    // Shorter delay and immediate navigation
-    setTimeout(() => {
-      console.log('=== NAVIGATION TRIGGER ===');
-      console.log('About to call onNext() to navigate to step 2');
-      console.log('onNext function:', onNext);
-      if (onNext) {
-        onNext();
-        console.log('✅ onNext() called successfully');
-      } else {
-        console.error('❌ onNext function is not available');
-      }
-    }, 500);
   };
 
-  const handleManualContinue = () => {
-    console.log('=== MANUAL CONTINUE CLICKED ===');
+  const handleContinue = () => {
+    console.log('=== CONTINUE BUTTON CLICKED ===');
     console.log('Current goal in campaignData:', campaignData.goal);
+    console.log('DEV_MODE bypass active:', DEV_MODE.DISABLE_AUTH);
     console.log('onNext function exists:', !!onNext);
     
-    if (campaignData.goal && onNext) {
-      console.log('✅ Manual continue - calling onNext()');
+    // In dev mode, allow bypassing validation
+    const canProceed = DEV_MODE.DISABLE_AUTH || campaignData.goal;
+    
+    if (canProceed && onNext) {
+      console.log('✅ Proceeding to next step');
       onNext();
     } else {
-      console.log('❌ Cannot continue - missing goal or onNext');
-      if (!campaignData.goal) {
-        console.log('Missing goal in campaignData');
+      console.log('❌ Cannot continue');
+      if (!campaignData.goal && !DEV_MODE.DISABLE_AUTH) {
+        console.log('Reason: No goal selected and not in dev mode');
       }
       if (!onNext) {
-        console.log('Missing onNext function');
+        console.log('Reason: onNext function missing');
       }
     }
   };
+
+  // Determine if we can continue
+  const canContinue = DEV_MODE.DISABLE_AUTH || !!campaignData.goal;
+  
+  console.log('=== VALIDATION STATE ===');
+  console.log('Can continue:', canContinue);
+  console.log('Reason: Dev mode bypass =', DEV_MODE.DISABLE_AUTH, '|| Goal selected =', !!campaignData.goal);
 
   return (
     <div className="space-y-8">
@@ -112,7 +111,7 @@ const CampaignBuilderStep1 = ({ campaignData, updateCampaignData, onNext }: Camp
               </p>
               {campaignData.goal === goal.id && (
                 <div className="mt-4 text-white text-sm font-semibold">
-                  ✨ Selected! Moving to next step...
+                  ✨ Selected!
                 </div>
               )}
             </CardContent>
@@ -120,28 +119,46 @@ const CampaignBuilderStep1 = ({ campaignData, updateCampaignData, onNext }: Camp
         ))}
       </div>
 
-      {/* Always show continue button when goal is selected */}
-      {campaignData.goal && (
-        <div className="text-center">
-          <Button 
-            onClick={handleManualContinue}
-            size="lg" 
-            className="glass-button-primary"
-          >
-            Continue to Upload Content →
-          </Button>
-          <p className="text-white/60 text-sm mt-2">
-            Goal selected: {campaignData.goal}
-          </p>
+      {/* Continue Button - Always show in dev mode or when goal is selected */}
+      <div className="text-center">
+        <Button 
+          onClick={handleContinue}
+          size="lg" 
+          className={canContinue ? "glass-button-primary" : "glass-button-secondary"}
+          disabled={!canContinue}
+        >
+          {canContinue ? 
+            "Continue to Upload Content →" : 
+            "Select a goal to continue"
+          }
+        </Button>
+        
+        {/* Status info */}
+        <div className="mt-4 space-y-2">
+          {campaignData.goal && (
+            <p className="text-green-400 text-sm">
+              ✅ Goal selected: {campaignData.goal}
+            </p>
+          )}
+          
+          {DEV_MODE.DISABLE_AUTH && (
+            <p className="text-yellow-400 text-sm">
+              🔧 Dev Mode: Can bypass validation
+            </p>
+          )}
         </div>
-      )}
+      </div>
 
-      {/* Debug info */}
+      {/* Debug Panel */}
       <div className="text-center">
         <div className="glass-card-strong p-4 inline-block">
-          <p className="text-white/80 text-sm">
-            Debug: Current goal = "{campaignData.goal || 'none'}" | onNext = {!!onNext ? 'available' : 'missing'}
-          </p>
+          <div className="text-white/80 text-sm space-y-1">
+            <p>🔍 Debug Info:</p>
+            <p>Selected Goal: "{campaignData.goal || 'none'}"</p>
+            <p>Can Continue: {canContinue ? '✅' : '❌'}</p>
+            <p>Dev Mode: {DEV_MODE.DISABLE_AUTH ? '🔧 Active' : '❌ Disabled'}</p>
+            <p>onNext Available: {!!onNext ? '✅' : '❌'}</p>
+          </div>
         </div>
       </div>
 

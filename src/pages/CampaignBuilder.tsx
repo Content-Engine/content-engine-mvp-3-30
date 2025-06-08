@@ -6,6 +6,7 @@ import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { useCampaignData } from '@/hooks/useCampaignData';
 import ProgressBar from '@/components/ProgressBar';
 import Layout from '@/components/Layout';
+import { DEV_MODE } from '@/config/dev';
 
 // Import step components
 import CampaignBuilderStep1 from '@/pages/CampaignBuilderStep1';
@@ -38,13 +39,23 @@ interface CampaignData {
 const CampaignBuilder = () => {
   const navigate = useNavigate();
   const { step } = useParams();
-  const currentStep = parseInt(step || '1');
+  
+  // Parse step more carefully
+  let currentStep = 1;
+  if (step) {
+    const parsed = parseInt(step, 10);
+    if (!isNaN(parsed) && parsed >= 1 && parsed <= 5) {
+      currentStep = parsed;
+    }
+  }
+  
   const { createCampaign } = useCampaignData();
 
   console.log('=== CAMPAIGN BUILDER MAIN ===');
-  console.log('Current step from URL:', step);
+  console.log('URL step param:', step);
   console.log('Parsed currentStep:', currentStep);
   console.log('Current URL pathname:', window.location.pathname);
+  console.log('DEV_MODE active:', DEV_MODE.DISABLE_AUTH);
 
   const [campaignData, setCampaignData] = useState<CampaignData>({
     name: '',
@@ -160,20 +171,6 @@ const CampaignBuilder = () => {
     }
   };
 
-  // Validate step before rendering - with better error handling
-  if (isNaN(currentStep) || currentStep < 1 || currentStep > 5) {
-    console.log('Invalid step detected, redirecting to step 1');
-    console.log('Invalid step value:', step, 'parsed as:', currentStep);
-    navigate('/campaign-builder/step/1', { replace: true });
-    return (
-      <Layout>
-        <div className="text-white text-center p-8">
-          <p>Redirecting to step 1...</p>
-        </div>
-      </Layout>
-    );
-  }
-
   const stepProps = {
     campaignData,
     updateCampaignData,
@@ -211,6 +208,48 @@ const CampaignBuilder = () => {
   return (
     <Layout>
       <div className="max-w-4xl mx-auto space-y-8">
+        {/* Debug Panel for Dev Mode */}
+        {DEV_MODE.DISABLE_AUTH && (
+          <div className="glass-card-strong p-4 border-2 border-yellow-500/50">
+            <h3 className="text-yellow-400 font-bold mb-2">🔧 DEV MODE DEBUG PANEL</h3>
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <p className="text-white/80">Current Step: <span className="text-green-400">{currentStep}</span></p>
+                <p className="text-white/80">URL Param: <span className="text-blue-400">"{step}"</span></p>
+                <p className="text-white/80">Goal: <span className="text-purple-400">"{campaignData.goal || 'none'}"</span></p>
+              </div>
+              <div>
+                <p className="text-white/80">Can Navigate: <span className="text-green-400">✅ Yes (Dev Mode)</span></p>
+                <p className="text-white/80">Files: <span className="text-cyan-400">{campaignData.contentFiles.length}</span></p>
+                <p className="text-white/80">Tier: <span className="text-orange-400">"{campaignData.syndicationTier || 'none'}"</span></p>
+              </div>
+            </div>
+            <div className="mt-2 flex gap-2">
+              <Button 
+                size="sm" 
+                onClick={() => navigate('/campaign-builder/step/1')}
+                className="glass-button-secondary"
+              >
+                Go to Step 1
+              </Button>
+              <Button 
+                size="sm" 
+                onClick={() => navigate('/campaign-builder/step/2')}
+                className="glass-button-secondary"
+              >
+                Go to Step 2
+              </Button>
+              <Button 
+                size="sm" 
+                onClick={() => navigate('/campaign-builder/step/3')}
+                className="glass-button-secondary"
+              >
+                Go to Step 3
+              </Button>
+            </div>
+          </div>
+        )}
+        
         {/* Progress Bar */}
         <ProgressBar currentStep={currentStep} totalSteps={5} />
         

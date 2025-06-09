@@ -24,6 +24,71 @@ const Auth = () => {
   });
   const [loading, setLoading] = useState(false);
 
+  const demoAccounts = [
+    {
+      email: 'admin@demo.com',
+      password: 'demo123',
+      role: 'admin',
+      label: 'Admin Demo',
+      description: 'Full access to all features',
+      color: 'hover:bg-red-500/10 hover:border-red-500/50 hover:text-red-400'
+    },
+    {
+      email: 'editor@demo.com',
+      password: 'demo123',
+      role: 'editor',
+      label: 'Editor Demo',
+      description: 'Content editing and review',
+      color: 'hover:bg-green-500/10 hover:border-green-500/50 hover:text-green-400'
+    },
+    {
+      email: 'smm@demo.com',
+      password: 'demo123',
+      role: 'social_media_manager',
+      label: 'Social Manager Demo',
+      description: 'Social media management',
+      color: 'hover:bg-purple-500/10 hover:border-purple-500/50 hover:text-purple-400'
+    },
+    {
+      email: 'client@demo.com',
+      password: 'demo123',
+      role: 'user',
+      label: 'Client Demo',
+      description: 'Campaign creation and monitoring',
+      color: 'hover:bg-blue-500/10 hover:border-blue-500/50 hover:text-blue-400'
+    }
+  ];
+
+  const handleDemoLogin = async (demoAccount: typeof demoAccounts[0]) => {
+    setLoading(true);
+    
+    try {
+      const { error } = await signIn(demoAccount.email, demoAccount.password);
+      
+      if (error) {
+        toast({
+          title: "Demo Login Failed",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Demo Login Successful",
+          description: `Logged in as ${demoAccount.role.replace('_', ' ')}`,
+        });
+        navigate('/dashboard');
+      }
+    } catch (err: any) {
+      toast({
+        title: "Demo Login Error",
+        description: err.message || "An unexpected error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -78,7 +143,6 @@ const Auth = () => {
           title: "Account Created!",
           description: "Please check your email to verify your account.",
         });
-        // Don't navigate immediately - user needs to verify email
       }
     } catch (err: any) {
       toast({
@@ -92,51 +156,92 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-gray-950 to-gray-900 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-blue-900/10 to-pink-900/20"></div>
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      {/* Background decoration */}
+      <div className="absolute inset-0 bg-gradient-to-br from-card/20 via-transparent to-secondary/20"></div>
+      <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-accent/5 rounded-full blur-3xl"></div>
+      <div className="absolute bottom-1/4 right-1/4 w-72 h-72 bg-secondary/10 rounded-full blur-3xl"></div>
       
-      <Card className="w-full max-w-md relative z-10 glass-card">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold text-white">
+      <Card className="w-full max-w-md relative z-10 card-primary shadow-xl">
+        <CardHeader className="text-center pb-8">
+          <CardTitle className="text-3xl font-bold bg-gradient-to-r from-foreground via-muted-foreground to-foreground bg-clip-text text-transparent">
             Content Engine
           </CardTitle>
-          <p className="text-white/70">Sign in to your account</p>
+          <p className="text-muted-foreground mt-2">
+            Sign in to your account
+          </p>
         </CardHeader>
         
         <CardContent>
-          <Tabs defaultValue="login" className="space-y-4">
-            <TabsList className="grid w-full grid-cols-2">
+          <Tabs defaultValue="demo" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="demo">Demo</TabsTrigger>
               <TabsTrigger value="login">Login</TabsTrigger>
               <TabsTrigger value="signup">Sign Up</TabsTrigger>
             </TabsList>
             
+            <TabsContent value="demo" className="space-y-4">
+              <div className="text-center mb-4">
+                <p className="text-sm text-muted-foreground">
+                  Try different user roles with our demo accounts
+                </p>
+              </div>
+              
+              <div className="grid grid-cols-1 gap-3">
+                {demoAccounts.map((account) => (
+                  <Card key={account.role} className="card-surface">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="font-semibold text-foreground">{account.label}</h3>
+                        <span className="text-xs text-muted-foreground capitalize">
+                          {account.role.replace('_', ' ')}
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground mb-3">
+                        {account.description}
+                      </p>
+                      <Button
+                        onClick={() => handleDemoLogin(account)}
+                        disabled={loading}
+                        size="sm"
+                        className={`w-full transition-all duration-200 ${account.color}`}
+                        variant="outline"
+                      >
+                        {loading ? 'Signing in...' : `Login as ${account.role.replace('_', ' ')}`}
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </TabsContent>
+            
             <TabsContent value="login">
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="text-white">Email</Label>
+                  <Label htmlFor="email" className="text-foreground">Email</Label>
                   <Input
                     id="email"
                     type="email"
                     value={loginForm.email}
                     onChange={(e) => setLoginForm(prev => ({ ...prev, email: e.target.value }))}
-                    className="bg-white/10 border-white/20 text-white"
+                    className="input-primary"
                     required
                     disabled={loading}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="password" className="text-white">Password</Label>
+                  <Label htmlFor="password" className="text-foreground">Password</Label>
                   <Input
                     id="password"
                     type="password"
                     value={loginForm.password}
                     onChange={(e) => setLoginForm(prev => ({ ...prev, password: e.target.value }))}
-                    className="bg-white/10 border-white/20 text-white"
+                    className="input-primary"
                     required
                     disabled={loading}
                   />
                 </div>
-                <Button type="submit" className="w-full glass-button-primary" disabled={loading}>
+                <Button type="submit" className="w-full btn-primary" disabled={loading}>
                   {loading ? 'Signing in...' : 'Sign In'}
                 </Button>
               </form>
@@ -145,43 +250,43 @@ const Auth = () => {
             <TabsContent value="signup">
               <form onSubmit={handleSignup} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="fullName" className="text-white">Full Name</Label>
+                  <Label htmlFor="fullName" className="text-foreground">Full Name</Label>
                   <Input
                     id="fullName"
                     type="text"
                     value={signupForm.fullName}
                     onChange={(e) => setSignupForm(prev => ({ ...prev, fullName: e.target.value }))}
-                    className="bg-white/10 border-white/20 text-white"
+                    className="input-primary"
                     required
                     disabled={loading}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signupEmail" className="text-white">Email</Label>
+                  <Label htmlFor="signupEmail" className="text-foreground">Email</Label>
                   <Input
                     id="signupEmail"
                     type="email"
                     value={signupForm.email}
                     onChange={(e) => setSignupForm(prev => ({ ...prev, email: e.target.value }))}
-                    className="bg-white/10 border-white/20 text-white"
+                    className="input-primary"
                     required
                     disabled={loading}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signupPassword" className="text-white">Password</Label>
+                  <Label htmlFor="signupPassword" className="text-foreground">Password</Label>
                   <Input
                     id="signupPassword"
                     type="password"
                     value={signupForm.password}
                     onChange={(e) => setSignupForm(prev => ({ ...prev, password: e.target.value }))}
-                    className="bg-white/10 border-white/20 text-white"
+                    className="input-primary"
                     required
                     disabled={loading}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="role" className="text-white">Role</Label>
+                  <Label htmlFor="role" className="text-foreground">Role</Label>
                   <Select 
                     value={signupForm.role} 
                     onValueChange={(value: 'admin' | 'social_media_manager' | 'editor' | 'user') => 
@@ -189,7 +294,7 @@ const Auth = () => {
                     }
                     disabled={loading}
                   >
-                    <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                    <SelectTrigger className="input-primary">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -200,7 +305,7 @@ const Auth = () => {
                     </SelectContent>
                   </Select>
                 </div>
-                <Button type="submit" className="w-full glass-button-primary" disabled={loading}>
+                <Button type="submit" className="w-full btn-primary" disabled={loading}>
                   {loading ? 'Creating account...' : 'Create Account'}
                 </Button>
               </form>

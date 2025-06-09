@@ -1,3 +1,4 @@
+
 export interface FileMetadata {
   id: string;
   file: File;
@@ -16,18 +17,18 @@ export const calculateViralityScore = (file: File, fileName: string, bulkUpload:
   let score = 0;
   
   // +25 pts for video files over 30s (mock - assume longer videos are over 30s based on file size)
-  if (file.type.startsWith('video/') && file.size > 50 * 1024 * 1024) { // 50MB+ likely longer
+  if (file && file.type && file.type.startsWith('video/') && file.size > 50 * 1024 * 1024) { // 50MB+ likely longer
     score += 25;
   }
   
   // +20 pts for portrait aspect ratio (mock - assume files with 'portrait' or '9:16' in name)
-  if (fileName.toLowerCase().includes('portrait') || fileName.toLowerCase().includes('916') || fileName.toLowerCase().includes('vertical')) {
+  if (fileName && (fileName.toLowerCase().includes('portrait') || fileName.toLowerCase().includes('916') || fileName.toLowerCase().includes('vertical'))) {
     score += 20;
   }
   
   // +10 pts for viral keywords
   const viralKeywords = ['hook', 'story', 'viral', 'clip', 'trending', 'moment', 'reaction'];
-  const hasViralKeyword = viralKeywords.some(keyword => 
+  const hasViralKeyword = fileName && viralKeywords.some(keyword => 
     fileName.toLowerCase().includes(keyword)
   );
   if (hasViralKeyword) {
@@ -56,6 +57,10 @@ export const getViralityScoreColor = (score: number): { color: string; label: st
 };
 
 export const getFileTypeIcon = (file: File) => {
+  if (!file || !file.type) {
+    return 'File';
+  }
+  
   if (file.type.startsWith('video/')) {
     return 'FileVideo';
   } else if (file.type.startsWith('audio/')) {
@@ -77,6 +82,11 @@ export const formatFileSize = (bytes: number): string => {
 export const calculateTotalRuntime = (files: FileMetadata[]): string => {
   // Mock runtime calculation - in real app would extract from media metadata
   const totalSeconds = files.reduce((acc, fileData) => {
+    if (!fileData.file || !fileData.file.type) {
+      console.warn('File or file.type is undefined for file:', fileData.id);
+      return acc;
+    }
+    
     if (fileData.file.type.startsWith('video/') || fileData.file.type.startsWith('audio/')) {
       // Mock: estimate based on file size (rough approximation)
       return acc + Math.floor(fileData.file.size / (1024 * 1024) * 10); // ~10 seconds per MB

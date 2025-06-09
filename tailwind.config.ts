@@ -62,7 +62,18 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
-				}
+				},
+				// Custom design tokens
+				'bg-main': 'rgb(var(--bg-main))',
+				'bg-card': 'rgb(var(--bg-card))',
+				'bg-surface': 'rgb(var(--bg-surface))',
+				'text-main': 'rgb(var(--text-main))',
+				'text-muted': 'rgb(var(--text-muted))',
+				'text-subtle': 'rgb(var(--text-subtle))',
+				'border-color': 'rgb(var(--border-color))',
+				'border-subtle': 'rgb(var(--border-subtle))',
+				'hover-accent': 'rgb(var(--hover-accent))',
+				'surface-hover': 'rgb(var(--surface-hover))'
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
@@ -108,10 +119,10 @@ export default {
 				},
 				'glow': {
 					'0%': {
-						boxShadow: '0 0 20px rgba(139, 92, 246, 0.4)'
+						boxShadow: '0 0 20px rgba(255, 45, 85, 0.4)'
 					},
 					'100%': {
-						boxShadow: '0 0 30px rgba(139, 92, 246, 0.8)'
+						boxShadow: '0 0 30px rgba(255, 45, 85, 0.8)'
 					}
 				}
 			},
@@ -132,6 +143,7 @@ export default {
 				'3xl': '32px'
 			},
 			fontFamily: {
+				'sf-pro': ['SF Pro Display', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
 				'inter': ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
 			}
 		}

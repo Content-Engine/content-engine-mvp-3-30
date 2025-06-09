@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -25,6 +26,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const fetchUserRole = async (userId: string): Promise<UserRole> => {
+    try {
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userId)
+        .single();
+
+      if (error) {
+        console.log('No role found for user, defaulting to user role');
+        return 'user';
+      }
+      
+      return data.role as UserRole;
+    } catch (error) {
+      console.error('Error fetching user role:', error);
+      return 'user';
+    }
+  };
+
   // Development mode bypass
   useEffect(() => {
     if (DEV_MODE.DISABLE_AUTH) {
@@ -33,33 +54,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setLoading(false);
       return;
     }
-
-    const fetchUserRole = async (userId: string) => {
-      try {
-        const { data, error } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', userId)
-          .single();
-
-        if (error) {
-          console.log('No role found for user, defaulting to user role');
-          return 'user';
-        }
-        
-        return data.role as UserRole;
-      } catch (error) {
-        console.error('Error fetching user role:', error);
-        return 'user';
-      }
-    };
-
-    const refreshUserRole = async () => {
-      if (user) {
-        const role = await fetchUserRole(user.id);
-        setUserRole(role);
-      }
-    };
 
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -94,26 +88,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (DEV_MODE.DISABLE_AUTH) return;
     
     if (user) {
-      const fetchUserRole = async (userId: string) => {
-        try {
-          const { data, error } = await supabase
-            .from('user_roles')
-            .select('role')
-            .eq('user_id', userId)
-            .single();
-
-          if (error) {
-            console.log('No role found for user, defaulting to user role');
-            return 'user';
-          }
-          
-          return data.role as UserRole;
-        } catch (error) {
-          console.error('Error fetching user role:', error);
-          return 'user';
-        }
-      };
-      
       const role = await fetchUserRole(user.id);
       setUserRole(role);
     }

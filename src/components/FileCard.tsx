@@ -19,8 +19,14 @@ const FileCard = ({ fileData, onUpdate, onRemove }: FileCardProps) => {
 
   console.log('FileCard rendered for file:', fileData.id, 'userRole:', userRole);
   console.log('Current contentType:', localContentType, 'assignedEditor:', localEditor);
+  console.log('File object:', fileData.file);
 
   const getFileIcon = () => {
+    if (!fileData.file || !fileData.file.type) {
+      console.warn('File or file.type is undefined for file:', fileData.id);
+      return <FileText className="h-4 w-4" />;
+    }
+    
     if (fileData.file.type.startsWith('image/')) return <Image className="h-4 w-4" />;
     if (fileData.file.type.startsWith('video/')) return <Video className="h-4 w-4" />;
     if (fileData.file.type.startsWith('audio/')) return <Music className="h-4 w-4" />;
@@ -28,19 +34,39 @@ const FileCard = ({ fileData, onUpdate, onRemove }: FileCardProps) => {
   };
 
   const getFilePreview = () => {
-    if (fileData.file.type.startsWith('image/')) {
+    if (!fileData.file || !fileData.file.type) {
       return (
-        <img 
-          src={URL.createObjectURL(fileData.file)} 
-          alt={fileData.file.name}
-          className="w-full h-32 object-cover rounded-lg"
-        />
+        <div className="w-full h-32 bg-gray-800 rounded-lg flex items-center justify-center">
+          <FileText className="h-8 w-8 text-white/50" />
+          <span className="ml-2 text-white/70 text-sm">Unknown file type</span>
+        </div>
       );
     }
+
+    if (fileData.file.type.startsWith('image/')) {
+      try {
+        return (
+          <img 
+            src={URL.createObjectURL(fileData.file)} 
+            alt={fileData.file.name || 'Uploaded file'}
+            className="w-full h-32 object-cover rounded-lg"
+          />
+        );
+      } catch (error) {
+        console.error('Error creating object URL:', error);
+        return (
+          <div className="w-full h-32 bg-gray-800 rounded-lg flex items-center justify-center">
+            <Image className="h-8 w-8 text-white/50" />
+            <span className="ml-2 text-white/70 text-sm">Image preview unavailable</span>
+          </div>
+        );
+      }
+    }
+    
     return (
       <div className="w-full h-32 bg-gray-800 rounded-lg flex items-center justify-center">
         {getFileIcon()}
-        <span className="ml-2 text-white/70 text-sm">{fileData.file.type}</span>
+        <span className="ml-2 text-white/70 text-sm">{fileData.file.type || 'Unknown'}</span>
       </div>
     );
   };
@@ -102,6 +128,9 @@ const FileCard = ({ fileData, onUpdate, onRemove }: FileCardProps) => {
     return 'Needs Editor';
   };
 
+  const fileName = fileData.file?.name || 'Unknown file';
+  const fileSize = fileData.file?.size || 0;
+
   return (
     <div className="glass-card p-6 space-y-4">
       <div className="flex items-start justify-between">
@@ -109,10 +138,10 @@ const FileCard = ({ fileData, onUpdate, onRemove }: FileCardProps) => {
           {getFileIcon()}
           <div>
             <h3 className="text-white font-medium truncate max-w-xs">
-              {fileData.file.name}
+              {fileName}
             </h3>
             <p className="text-white/60 text-sm">
-              {(fileData.file.size / 1024 / 1024).toFixed(2)} MB
+              {(fileSize / 1024 / 1024).toFixed(2)} MB
             </p>
           </div>
         </div>

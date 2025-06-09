@@ -1,8 +1,9 @@
 
 export interface PaymentTier {
-  id: 'basic' | 'plus' | 'enterprise';
+  id: 'basic' | 'pro' | 'executive';
   name: string;
   price: number;
+  description: string;
   features: {
     syndicationAccounts: number;
     advancedDashboards: boolean;
@@ -10,59 +11,77 @@ export interface PaymentTier {
     teamSeats: number;
     customAddOns: boolean;
   };
-  description: string;
+}
+
+export interface Campaign {
+  id: string;
+  name: string;
+  description?: string;
+  status: 'active' | 'inactive' | 'completed';
+  start_date?: string;
+  end_date?: string;
+  created_at: string;
+  updated_at: string;
+  user_id?: string;
+  platforms?: string[];
+  goal?: string;
+  budget_allocated?: number;
+  budget_spent?: number;
+}
+
+export interface ContentItem {
+  id: string;
+  campaign_id?: string;
+  file_name: string;
+  file_url: string;
+  file_type: string;
+  thumbnail_url?: string;
+  status: 'pending' | 'approved' | 'rejected';
+  created_at: string;
+}
+
+export interface ScheduledPost {
+  id: string;
+  user_id: string;
+  campaign_id?: string;
+  content_item_id?: string;
+  platforms: string[];
+  caption: string;
+  media_urls?: string[];
+  schedule_time: string;
+  status: 'scheduled' | 'posted' | 'failed' | 'cancelled';
+  boost_enabled?: boolean;
+  ayrshare_post_id?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ClientToken {
+  id: string;
+  user_id: string;
+  ayrshare_api_key: string;
+  ayrshare_user_id: string;
+  client_name?: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Platform {
+  id: string;
+  name: string;
+  enabled: boolean;
+  accountsAllocated: number;
 }
 
 export interface CycleProfile {
-  id: string;
+  id?: string;
   campaignId: string;
   duration: 7 | 14 | 30;
   frequency: 'daily' | '3x-week' | 'weekly';
   platforms: Platform[];
   accountCount: number;
-  status: 'active' | 'paused' | 'completed';
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface Platform {
-  id: string;
-  name: 'TikTok' | 'Instagram' | 'YouTube Shorts' | 'Facebook Reels';
-  enabled: boolean;
-  accountsAllocated: number;
-}
-
-export interface SyndicationCycle {
-  id: string;
-  cycleProfileId: string;
-  startDate: string;
-  endDate: string;
-  posts: SyndicationPost[];
-  metrics: CycleMetrics;
-}
-
-export interface SyndicationPost {
-  id: string;
-  platform: string;
-  accountId: string;
-  contentUrl: string;
-  scheduledTime: string;
-  status: 'scheduled' | 'posted' | 'failed';
-  metrics: PostMetrics;
-}
-
-export interface PostMetrics {
-  views: number;
-  shares: number;
-  ctr: number;
-  watchTime: number;
-  engagement: number;
-}
-
-export interface CycleMetrics {
-  totalViews: number;
-  totalEngagement: number;
-  avgCTR: number;
-  bestPerformingPlatform: string;
-  roi: number;
+  status: 'active' | 'inactive' | 'completed';
+  created_at?: string;
+  updated_at?: string;
 }

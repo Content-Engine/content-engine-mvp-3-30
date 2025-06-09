@@ -2,8 +2,12 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check, Zap, Users, TrendingUp } from "lucide-react";
-import BoostSettings from "@/components/upload/BoostSettings";
+import { Badge } from "@/components/ui/badge";
+import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Zap, Users, TrendingUp, AlertTriangle, DollarSign } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 const tiers = [
   {
@@ -11,31 +15,22 @@ const tiers = [
     name: "Basic",
     price: 99,
     accounts: 5,
-    features: [
-      "5 syndication accounts",
-      "Basic analytics",
-      "Standard support",
-      "Manual content approval"
-    ],
+    features: ["5 syndication accounts", "Basic analytics", "Standard support"],
     avgViews: "10K-25K",
     engagement: "2-4%",
-    gradient: "from-gray-500/80 to-gray-600/80"
+    gradient: "from-gray-500/20 to-gray-600/20",
+    border: "border-gray-500/30"
   },
   {
     id: "pro", 
     name: "Pro",
     price: 299,
     accounts: 15,
-    features: [
-      "15 syndication accounts",
-      "Advanced analytics",
-      "Priority support", 
-      "Auto-approval rules",
-      "Comment seeding boost"
-    ],
+    features: ["15 syndication accounts", "Advanced analytics", "Priority support", "Comment seeding boost"],
     avgViews: "25K-75K",
     engagement: "4-8%",
-    gradient: "from-blue-500/80 to-purple-600/80",
+    gradient: "from-blue-500/20 to-purple-600/20",
+    border: "border-blue-500/30",
     popular: true
   },
   {
@@ -43,17 +38,11 @@ const tiers = [
     name: "Max",
     price: 599,
     accounts: 30,
-    features: [
-      "30+ syndication accounts",
-      "Real-time analytics",
-      "Dedicated support",
-      "AI-powered optimization",
-      "All boost features",
-      "Custom integrations"
-    ],
+    features: ["30+ syndication accounts", "Real-time analytics", "AI optimization", "All boost features"],
     avgViews: "75K-200K+",
     engagement: "8-15%",
-    gradient: "from-purple-500/80 to-pink-600/80"
+    gradient: "from-purple-500/20 to-pink-600/20",
+    border: "border-purple-500/30"
   }
 ];
 
@@ -81,133 +70,230 @@ const Step3Boost = ({
   onNext 
 }: Step3BoostProps) => {
   const [showBoostSettings, setShowBoostSettings] = useState(!!syndicationTier);
+  const { toast } = useToast();
 
   const handleTierSelect = (tierId: string) => {
     onTierSelect(tierId);
     setShowBoostSettings(true);
+    toast({
+      title: "Tier Selected",
+      description: `${tiers.find(t => t.id === tierId)?.name} tier selected`,
+    });
   };
 
+  const selectedTier = tiers.find(t => t.id === syndicationTier);
+  const basePlatforms = 2;
+  const extraPlatforms = Math.max(0, echoPlatforms - basePlatforms);
+  const extraCost = extraPlatforms * 20;
+  const estimatedReach = echoPlatforms * 15000; // Rough estimate
+
   const handleContinue = () => {
-    if (showBoostSettings) {
-      onNext();
+    if (!syndicationTier) {
+      toast({
+        title: "Selection Required",
+        description: "Please select a syndication tier to continue",
+        variant: "destructive",
+      });
+      return;
     }
+    onNext();
   };
 
   return (
-    <div className="space-y-8">
-      {/* Step Title */}
-      <div className="text-center">
-        <div className="glass-card-strong p-8 mb-6 inline-block">
-          <h2 className="text-4xl font-bold bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 bg-clip-text text-transparent mb-4">
-            Choose Your Syndication Tier 🚀
-          </h2>
-          <div className="h-1 w-full bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 rounded-full"></div>
-        </div>
-        <p className="text-lg text-white/90 glass-card-strong p-4 inline-block">
-          Scale your content distribution across platforms
+    <div className="max-w-6xl mx-auto space-y-8 p-4">
+      {/* Header */}
+      <div className="text-center space-y-4">
+        <h1 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent">
+          Choose Your Syndication Tier
+        </h1>
+        <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          Scale your content distribution across platforms with AI-powered boosts
         </p>
       </div>
 
       {!showBoostSettings ? (
         <>
           {/* Tier Cards */}
-          <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-6">
             {tiers.map((tier) => (
               <Card
                 key={tier.id}
-                className={`frosted-glass bg-gradient-to-br ${tier.gradient} border-0 cursor-pointer hover:scale-105 transition-all duration-500 relative overflow-hidden group ${
-                  syndicationTier === tier.id ? 'ring-4 ring-white/50 scale-105 glow-strong' : ''
-                } ${tier.popular ? 'ring-2 ring-yellow-400/50' : ''}`}
+                className={`cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-xl relative ${
+                  syndicationTier === tier.id 
+                    ? `ring-2 ring-blue-500 shadow-lg bg-gradient-to-br ${tier.gradient} ${tier.border}` 
+                    : 'hover:shadow-md border-gray-200'
+                } ${tier.popular ? 'ring-2 ring-yellow-400' : ''}`}
                 onClick={() => handleTierSelect(tier.id)}
               >
                 {tier.popular && (
-                  <div className="absolute top-4 right-4 bg-yellow-400 text-black px-3 py-1 rounded-full text-sm font-bold">
+                  <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-yellow-500 text-white">
                     Most Popular
-                  </div>
+                  </Badge>
                 )}
                 
-                <CardHeader className="text-center">
-                  <CardTitle className="text-2xl font-bold text-white group-hover:scale-110 transition-transform duration-300">
-                    {tier.name}
-                  </CardTitle>
-                  <div className="text-4xl font-bold text-white">
+                <CardHeader className="text-center pb-4">
+                  <CardTitle className="text-2xl font-bold">{tier.name}</CardTitle>
+                  <div className="text-3xl font-bold">
                     ${tier.price}
-                    <span className="text-lg font-normal text-white/80">/month</span>
+                    <span className="text-base font-normal text-gray-600">/month</span>
                   </div>
                 </CardHeader>
 
                 <CardContent className="space-y-6">
                   {/* Key Metrics */}
                   <div className="grid grid-cols-2 gap-4 text-center">
-                    <div className="glass-card-subtle p-3 rounded-lg">
-                      <Users className="h-5 w-5 text-blue-400 mx-auto mb-1" />
-                      <div className="text-sm text-white/80">Accounts</div>
-                      <div className="font-bold text-white">{tier.accounts}</div>
+                    <div className="bg-white/50 p-3 rounded-xl">
+                      <Users className="h-5 w-5 text-blue-500 mx-auto mb-1" />
+                      <div className="text-sm text-gray-600">Accounts</div>
+                      <div className="font-bold">{tier.accounts}</div>
                     </div>
-                    <div className="glass-card-subtle p-3 rounded-lg">
-                      <TrendingUp className="h-5 w-5 text-green-400 mx-auto mb-1" />
-                      <div className="text-sm text-white/80">Avg Views</div>
-                      <div className="font-bold text-white text-xs">{tier.avgViews}</div>
+                    <div className="bg-white/50 p-3 rounded-xl">
+                      <TrendingUp className="h-5 w-5 text-green-500 mx-auto mb-1" />
+                      <div className="text-sm text-gray-600">Avg Views</div>
+                      <div className="font-bold text-xs">{tier.avgViews}</div>
                     </div>
                   </div>
 
-                  <div className="text-center glass-card-subtle p-3 rounded-lg">
-                    <Zap className="h-5 w-5 text-yellow-400 mx-auto mb-1" />
-                    <div className="text-sm text-white/80">Engagement Rate</div>
-                    <div className="font-bold text-white">{tier.engagement}</div>
+                  <div className="text-center bg-white/50 p-3 rounded-xl">
+                    <Zap className="h-5 w-5 text-yellow-500 mx-auto mb-1" />
+                    <div className="text-sm text-gray-600">Engagement Rate</div>
+                    <div className="font-bold">{tier.engagement}</div>
                   </div>
 
                   {/* Features List */}
                   <div className="space-y-2">
                     {tier.features.map((feature, index) => (
-                      <div key={index} className="flex items-center text-white/90">
-                        <Check className="h-4 w-4 text-green-400 mr-2 flex-shrink-0" />
+                      <div key={index} className="flex items-center text-gray-700">
+                        <div className="w-2 h-2 bg-green-500 rounded-full mr-3 flex-shrink-0" />
                         <span className="text-sm">{feature}</span>
                       </div>
                     ))}
                   </div>
 
                   {syndicationTier === tier.id && (
-                    <div className="text-center">
-                      <div className="text-green-400 font-semibold text-sm">
-                        ✨ Selected! Configure boost settings below...
-                      </div>
-                    </div>
+                    <Badge className="w-full justify-center bg-blue-500 text-white">
+                      ✓ Selected
+                    </Badge>
                   )}
                 </CardContent>
               </Card>
             ))}
           </div>
-
-          {/* Help Text */}
-          <div className="text-center">
-            <div className="glass-card-strong p-4 inline-block">
-              <p className="text-white/80 font-medium">
-                💡 Click any tier to select and configure boost options
-              </p>
-            </div>
-          </div>
         </>
       ) : (
         <>
           {/* Boost Settings */}
-          <BoostSettings
-            echoPlatforms={echoPlatforms}
-            autoFillLookalike={autoFillLookalike}
-            commentTemplates={commentTemplates}
-            onEchoPlatformsChange={onEchoPlatformsChange}
-            onAutoFillToggle={onAutoFillToggle}
-            onCommentTemplatesChange={onCommentTemplatesChange}
-          />
+          <div className="space-y-6">
+            {/* Echo Boost Platforms */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Zap className="h-5 w-5" />
+                  Echo Boost Platforms
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium">Platforms: {echoPlatforms}</span>
+                    <div className="flex items-center gap-2">
+                      <Badge variant={extraCost > 0 ? "destructive" : "secondary"}>
+                        {extraCost > 0 ? `+$${extraCost}` : 'Included'}
+                      </Badge>
+                      <Badge variant="outline">
+                        Est. Reach: {estimatedReach.toLocaleString()}
+                      </Badge>
+                    </div>
+                  </div>
+                  
+                  <Slider
+                    value={[echoPlatforms]}
+                    onValueChange={(value) => onEchoPlatformsChange(value[0])}
+                    max={5}
+                    min={1}
+                    step={1}
+                    className="w-full"
+                  />
+                  
+                  <div className="flex justify-between text-sm text-gray-500">
+                    <span>1 platform</span>
+                    <span>5 platforms</span>
+                  </div>
+                </div>
+                
+                {extraCost > 0 && (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                    <div className="flex items-center text-yellow-800 mb-2">
+                      <DollarSign className="h-4 w-4 mr-2" />
+                      <span className="font-medium">Additional Cost</span>
+                    </div>
+                    <p className="text-sm text-yellow-700">
+                      ${extraCost} for {extraPlatforms} extra platform{extraPlatforms !== 1 ? 's' : ''} beyond your plan limit
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
 
-          {/* Continue Button */}
-          <div className="text-center">
-            <Button onClick={handleContinue} size="lg" className="glass-button-primary">
-              Continue to Platform Targets
-            </Button>
+            {/* Auto-Fill Lookalike */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5" />
+                  Auto-Fill Lookalike Content
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <p className="font-medium">Enable Auto-Fill</p>
+                    <p className="text-sm text-gray-600">
+                      Automatically post trending-style content when you're inactive
+                    </p>
+                  </div>
+                  <Switch
+                    checked={autoFillLookalike}
+                    onCheckedChange={onAutoFillToggle}
+                  />
+                </div>
+                
+                {autoFillLookalike && (
+                  <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <p className="text-sm text-blue-800">
+                      ✨ Our AI will analyze trending content and create similar posts to maintain your posting schedule
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </div>
         </>
       )}
+
+      {/* Navigation */}
+      <div className="flex justify-between items-center pt-6">
+        <Button
+          variant="outline"
+          onClick={() => setShowBoostSettings(false)}
+          className="px-6 py-2"
+          disabled={!showBoostSettings}
+        >
+          ← Back to Tiers
+        </Button>
+        
+        <Button 
+          onClick={handleContinue}
+          size="lg" 
+          className={`px-8 py-3 text-lg font-semibold rounded-2xl transition-all duration-300 ${
+            syndicationTier
+              ? "bg-black text-white hover:bg-gray-800 shadow-lg hover:shadow-xl" 
+              : "bg-gray-300 text-gray-500 cursor-not-allowed"
+          }`}
+          disabled={!syndicationTier}
+        >
+          Continue to Schedule →
+        </Button>
+      </div>
     </div>
   );
 };

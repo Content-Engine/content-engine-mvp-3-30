@@ -17,46 +17,46 @@ const SocialMediaManagerView = () => {
 
   return (
     <Layout>
-      <div className="space-y-6">
+      <div className="space-y-6 py-8">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            <h1 className="text-3xl font-bold text-text-main">
               Social Media Manager Console
             </h1>
-            <p className="text-muted-foreground">
+            <p className="text-text-muted">
               Comprehensive campaign management and team coordination
             </p>
           </div>
-          <Badge variant="secondary" className="bg-green-100 text-green-800">
+          <Badge variant="secondary" className="bg-green-500/20 text-green-400">
             Manager Access
           </Badge>
         </div>
 
         {/* Main Navigation Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6 lg:w-fit lg:grid-cols-6">
-            <TabsTrigger value="calendar" className="flex items-center gap-2">
+          <TabsList className="grid w-full grid-cols-6 lg:w-fit lg:grid-cols-6 bg-card-bg border-border-color">
+            <TabsTrigger value="calendar" className="flex items-center gap-2 text-text-muted data-[state=active]:text-text-main">
               <Calendar className="h-4 w-4" />
               <span className="hidden sm:inline">Calendar</span>
             </TabsTrigger>
-            <TabsTrigger value="kpi" className="flex items-center gap-2">
+            <TabsTrigger value="kpi" className="flex items-center gap-2 text-text-muted data-[state=active]:text-text-main">
               <BarChart3 className="h-4 w-4" />
               <span className="hidden sm:inline">KPIs</span>
             </TabsTrigger>
-            <TabsTrigger value="editors" className="flex items-center gap-2">
+            <TabsTrigger value="editors" className="flex items-center gap-2 text-text-muted data-[state=active]:text-text-main">
               <Users className="h-4 w-4" />
               <span className="hidden sm:inline">Editors</span>
             </TabsTrigger>
-            <TabsTrigger value="qc" className="flex items-center gap-2">
+            <TabsTrigger value="qc" className="flex items-center gap-2 text-text-muted data-[state=active]:text-text-main">
               <CheckSquare className="h-4 w-4" />
               <span className="hidden sm:inline">QC Panel</span>
             </TabsTrigger>
-            <TabsTrigger value="chat" className="flex items-center gap-2">
+            <TabsTrigger value="chat" className="flex items-center gap-2 text-text-muted data-[state=active]:text-text-main">
               <MessageSquare className="h-4 w-4" />
               <span className="hidden sm:inline">Discord</span>
             </TabsTrigger>
-            <TabsTrigger value="boost" className="flex items-center gap-2">
+            <TabsTrigger value="boost" className="flex items-center gap-2 text-text-muted data-[state=active]:text-text-main">
               <Zap className="h-4 w-4" />
               <span className="hidden sm:inline">Boost</span>
             </TabsTrigger>
@@ -64,9 +64,9 @@ const SocialMediaManagerView = () => {
 
           {/* Tab Content */}
           <TabsContent value="calendar">
-            <Card>
+            <Card className="card-primary">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-text-main">
                   <Calendar className="h-5 w-5" />
                   Calendar Syndication Panel
                 </CardTitle>
@@ -78,9 +78,9 @@ const SocialMediaManagerView = () => {
           </TabsContent>
 
           <TabsContent value="kpi">
-            <Card>
+            <Card className="card-primary">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-text-main">
                   <BarChart3 className="h-5 w-5" />
                   KPI Performance Tracker
                 </CardTitle>
@@ -92,9 +92,9 @@ const SocialMediaManagerView = () => {
           </TabsContent>
 
           <TabsContent value="editors">
-            <Card>
+            <Card className="card-primary">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-text-main">
                   <Users className="h-5 w-5" />
                   Editor Assignment Panel
                 </CardTitle>
@@ -106,9 +106,9 @@ const SocialMediaManagerView = () => {
           </TabsContent>
 
           <TabsContent value="qc">
-            <Card>
+            <Card className="card-primary">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-text-main">
                   <CheckSquare className="h-5 w-5" />
                   Quality Control Panel
                 </CardTitle>
@@ -120,9 +120,9 @@ const SocialMediaManagerView = () => {
           </TabsContent>
 
           <TabsContent value="chat">
-            <Card>
+            <Card className="card-primary">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-text-main">
                   <MessageSquare className="h-5 w-5" />
                   Discord Campaign Chat
                 </CardTitle>
@@ -134,9 +134,9 @@ const SocialMediaManagerView = () => {
           </TabsContent>
 
           <TabsContent value="boost">
-            <Card>
+            <Card className="card-primary">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-text-main">
                   <Zap className="h-5 w-5" />
                   Boost Trigger Console
                 </CardTitle>

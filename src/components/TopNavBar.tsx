@@ -1,12 +1,14 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, User, Menu, X, CreditCard } from 'lucide-react';
+import { LogOut, User, Menu, X } from 'lucide-react';
 import { usePayments } from '@/hooks/usePayments';
+import RoleBasedNavigation from '@/components/RoleBasedNavigation';
 
 const TopNavBar = () => {
-  const { user, signOut } = useAuth();
+  const { user, signOut, userRole } = useAuth();
   const { paymentTier } = usePayments();
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -16,95 +18,82 @@ const TopNavBar = () => {
     navigate('/');
   };
 
-  const getTierBadgeColor = (tier: string | null) => {
+  const getTierBadgeStyle = (tier: string | null) => {
     switch (tier) {
-      case 'basic': return 'bg-blue-100 text-blue-800';
-      case 'pro': return 'bg-purple-100 text-purple-800';
-      case 'executive': return 'bg-gold-100 text-gold-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'basic': return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
+      case 'pro': return 'bg-purple-500/20 text-purple-400 border-purple-500/30';
+      case 'executive': return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
+      default: return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
+    }
+  };
+
+  const getRoleDisplay = (role: string | null) => {
+    switch (role) {
+      case 'admin': return 'Admin';
+      case 'editor': return 'Editor';
+      case 'social_media_manager': return 'Social Manager';
+      case 'client': return 'Client';
+      default: return 'User';
     }
   };
 
   return (
-    <nav className="bg-white/10 backdrop-blur-md border-b border-white/20 sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <nav className="bg-card-bg/95 backdrop-blur-md border-b border-border-color sticky top-0 z-50">
+      <div className="container-main">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center">
             <button
               onClick={() => navigate('/')}
-              className="text-white font-bold text-xl hover:text-white/80 transition-colors"
+              className="text-text-main font-bold text-xl hover:text-accent transition-colors"
             >
               Content Engine
             </button>
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:block">
-            <div className="ml-10 flex items-baseline space-x-4">
-              {user && (
-                <>
-                  <Button
-                    variant="ghost"
-                    onClick={() => navigate('/dashboard')}
-                    className="text-white/90 hover:text-white hover:bg-white/10"
-                  >
-                    Dashboard
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    onClick={() => navigate('/campaign-builder')}
-                    className="text-white/90 hover:text-white hover:bg-white/10"
-                  >
-                    Campaign Builder
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    onClick={() => navigate('/payment-tiers')}
-                    className="text-white/90 hover:text-white hover:bg-white/10"
-                  >
-                    <CreditCard className="h-4 w-4 mr-2" />
-                    Plans
-                  </Button>
-                </>
-              )}
+          {user && (
+            <div className="hidden md:flex items-center space-x-6">
+              <div className="flex items-center space-x-3">
+                {/* Role Badge */}
+                <span className="status-active">
+                  {getRoleDisplay(userRole)}
+                </span>
+                
+                {/* Payment Tier Badge */}
+                <span className={`px-2 py-1 rounded-md text-xs font-medium border ${getTierBadgeStyle(paymentTier)}`}>
+                  {paymentTier || 'free'}
+                </span>
+              </div>
+              
+              <div className="flex items-center space-x-2 text-text-muted">
+                <User className="h-4 w-4" />
+                <span className="text-sm">{user.email}</span>
+              </div>
+              
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleSignOut}
+                className="text-text-muted hover:text-text-main"
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Sign Out
+              </Button>
             </div>
-          </div>
+          )}
 
-          {/* User Menu */}
-          <div className="hidden md:block">
-            <div className="ml-4 flex items-center md:ml-6 space-x-3">
-              {user ? (
-                <>
-                  {/* Payment Tier Badge */}
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTierBadgeColor(paymentTier)}`}>
-                    {paymentTier || 'free'}
-                  </span>
-                  
-                  <div className="flex items-center space-x-2">
-                    <User className="h-4 w-4 text-white/70" />
-                    <span className="text-white/90 text-sm">{user.email}</span>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleSignOut}
-                    className="text-white/90 hover:text-white hover:bg-white/10"
-                  >
-                    <LogOut className="h-4 w-4 mr-2" />
-                    Sign Out
-                  </Button>
-                </>
-              ) : (
-                <Button
-                  onClick={() => navigate('/auth')}
-                  className="bg-white/20 hover:bg-white/30 text-white border-white/30"
-                >
-                  Sign In
-                </Button>
-              )}
+          {/* Auth Button for non-authenticated users */}
+          {!user && (
+            <div className="hidden md:block">
+              <Button
+                onClick={() => navigate('/auth')}
+                className="btn-primary"
+              >
+                Sign In
+              </Button>
             </div>
-          </div>
+          )}
 
           {/* Mobile menu button */}
           <div className="md:hidden">
@@ -112,7 +101,7 @@ const TopNavBar = () => {
               variant="ghost"
               size="sm"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="text-white hover:bg-white/10"
+              className="text-text-main"
             >
               {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </Button>
@@ -122,60 +111,56 @@ const TopNavBar = () => {
 
       {/* Mobile Navigation */}
       {isMenuOpen && (
-        <div className="md:hidden">
-          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white/5 backdrop-blur-md">
-            {user && (
+        <div className="md:hidden border-t border-border-color">
+          <div className="container-main py-4 space-y-4">
+            {user ? (
               <>
-                <Button
-                  variant="ghost"
-                  onClick={() => {
-                    navigate('/dashboard');
-                    setIsMenuOpen(false);
-                  }}
-                  className="w-full justify-start text-white/90 hover:text-white hover:bg-white/10"
-                >
-                  Dashboard
-                </Button>
-                <Button
-                  variant="ghost"
-                  onClick={() => {
-                    navigate('/campaign-builder');
-                    setIsMenuOpen(false);
-                  }}
-                  className="w-full justify-start text-white/90 hover:text-white hover:bg-white/10"
-                >
-                  Campaign Builder
-                </Button>
-                <Button
-                  variant="ghost"
-                  onClick={() => {
-                    navigate('/payment-tiers');
-                    setIsMenuOpen(false);
-                  }}
-                  className="w-full justify-start text-white/90 hover:text-white hover:bg-white/10"
-                >
-                  <CreditCard className="h-4 w-4 mr-2" />
-                  Plans
-                </Button>
-                <div className="border-t border-white/20 pt-3 mt-3">
-                  <div className="flex items-center px-3 mb-2">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTierBadgeColor(paymentTier)}`}>
-                      {paymentTier || 'free'}
-                    </span>
+                {/* User Info */}
+                <div className="flex items-center justify-between pb-4 border-b border-border-subtle">
+                  <div className="flex items-center space-x-3">
+                    <User className="h-5 w-5 text-text-muted" />
+                    <div>
+                      <div className="text-text-main text-sm font-medium">{user.email}</div>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="status-active text-xs">
+                          {getRoleDisplay(userRole)}
+                        </span>
+                        <span className={`px-2 py-1 rounded-md text-xs font-medium border ${getTierBadgeStyle(paymentTier)}`}>
+                          {paymentTier || 'free'}
+                        </span>
+                      </div>
+                    </div>
                   </div>
+                </div>
+
+                {/* Navigation Items */}
+                <RoleBasedNavigation />
+
+                {/* Sign Out */}
+                <div className="pt-4 border-t border-border-subtle">
                   <Button
                     variant="ghost"
                     onClick={() => {
                       handleSignOut();
                       setIsMenuOpen(false);
                     }}
-                    className="w-full justify-start text-white/90 hover:text-white hover:bg-white/10"
+                    className="w-full justify-start text-text-muted hover:text-text-main"
                   >
                     <LogOut className="h-4 w-4 mr-2" />
                     Sign Out
                   </Button>
                 </div>
               </>
+            ) : (
+              <Button
+                onClick={() => {
+                  navigate('/auth');
+                  setIsMenuOpen(false);
+                }}
+                className="btn-primary w-full"
+              >
+                Sign In
+              </Button>
             )}
           </div>
         </div>

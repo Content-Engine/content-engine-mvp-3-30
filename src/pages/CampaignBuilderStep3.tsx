@@ -1,193 +1,208 @@
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Check, Star, Target, Zap } from "lucide-react";
+import { Check, Zap, Users, TrendingUp } from "lucide-react";
+import BoostSettings from "@/components/upload/BoostSettings";
+
+const tiers = [
+  {
+    id: "basic",
+    name: "Basic",
+    price: 99,
+    accounts: 5,
+    features: [
+      "5 syndication accounts",
+      "Basic analytics",
+      "Standard support",
+      "Manual content approval"
+    ],
+    avgViews: "10K-25K",
+    engagement: "2-4%",
+    gradient: "from-secondary/20 to-muted/20"
+  },
+  {
+    id: "pro", 
+    name: "Pro",
+    price: 299,
+    accounts: 15,
+    features: [
+      "15 syndication accounts",
+      "Advanced analytics",
+      "Priority support", 
+      "Auto-approval rules",
+      "Comment seeding boost"
+    ],
+    avgViews: "25K-75K",
+    engagement: "4-8%",
+    gradient: "from-blue-500/20 to-purple-600/20",
+    popular: true
+  },
+  {
+    id: "max",
+    name: "Max",
+    price: 599,
+    accounts: 30,
+    features: [
+      "30+ syndication accounts",
+      "Real-time analytics",
+      "Dedicated support",
+      "AI-powered optimization",
+      "All boost features",
+      "Custom integrations"
+    ],
+    avgViews: "75K-200K+",
+    engagement: "8-15%",
+    gradient: "from-accent/20 to-accent/10"
+  }
+];
 
 interface CampaignBuilderStep3Props {
   campaignData: any;
   updateCampaignData: (updates: any) => void;
   onNext: () => void;
-  onPrevious: () => void;
 }
 
-const syndicationTiers = [
-  {
-    id: "basic",
-    name: "Basic Syndication",
-    price: "$49",
-    description: "Essential distribution across 3-5 platforms",
-    features: [
-      "Instagram, TikTok, YouTube",
-      "Basic hashtag optimization",
-      "Standard posting schedule",
-      "Basic analytics"
-    ],
-    platforms: 3,
-    reach: "10K-50K",
-    gradient: "from-blue-500/10 to-cyan-500/10"
-  },
-  {
-    id: "pro",
-    name: "Pro Syndication",
-    price: "$99",
-    description: "Advanced distribution with boost options",
-    features: [
-      "All Basic platforms + Twitter, LinkedIn",
-      "AI-powered hashtag optimization",
-      "Prime-time posting optimization",
-      "Advanced analytics & insights",
-      "Echo clone generation"
-    ],
-    platforms: 5,
-    reach: "50K-200K",
-    gradient: "from-purple-500/10 to-violet-500/10",
-    popular: true
-  },
-  {
-    id: "enterprise",
-    name: "Enterprise Syndication",
-    price: "$199",
-    description: "Maximum reach with premium features",
-    features: [
-      "All platforms + custom channels",
-      "AI content optimization",
-      "24/7 performance monitoring",
-      "Dedicated account manager",
-      "Custom boost strategies",
-      "Real-time optimization"
-    ],
-    platforms: 8,
-    reach: "200K+",
-    gradient: "from-yellow-500/10 to-orange-500/10"
-  }
-];
+const CampaignBuilderStep3 = ({ campaignData, updateCampaignData, onNext }: CampaignBuilderStep3Props) => {
+  const [showBoostSettings, setShowBoostSettings] = useState(false);
 
-const CampaignBuilderStep3 = ({ campaignData, updateCampaignData, onNext, onPrevious }: CampaignBuilderStep3Props) => {
   const handleTierSelect = (tierId: string) => {
     updateCampaignData({ syndicationTier: tierId });
+    setShowBoostSettings(true);
   };
 
-  const canContinue = !!campaignData.syndicationTier;
+  const handleEchoPlatformsChange = (platforms: number) => {
+    updateCampaignData({ echo_boost_platforms: platforms });
+  };
+
+  const handleAutoFillToggle = (enabled: boolean) => {
+    updateCampaignData({ auto_fill_lookalike: enabled });
+  };
+
+  const handleCommentTemplatesChange = (templates: string[]) => {
+    updateCampaignData({ comment_templates: templates });
+  };
+
+  const handleContinue = () => {
+    if (showBoostSettings) {
+      onNext();
+    }
+  };
 
   return (
-    <div className="animate-fade-in spacing-content">
-      {/* Step Header */}
-      <div className="text-center space-y-4">
-        <div className="card-glass p-8 inline-block">
-          <h2 className="text-display bg-gradient-to-r from-accent to-accent/80 bg-clip-text text-transparent mb-4">
-            Choose Syndication 🚀
+    <div className="space-y-8">
+      {/* Step Title */}
+      <div className="text-center">
+        <div className="glass-card-strong p-8 mb-6 inline-block">
+          <h2 className="text-4xl font-bold bg-gradient-to-r from-accent via-accent/80 to-accent bg-clip-text text-transparent mb-4">
+            Choose Your Syndication Tier 🚀
           </h2>
-          <div className="h-1 w-full bg-gradient-to-r from-accent to-accent/80 rounded-full"></div>
+          <div className="h-1 w-full bg-gradient-to-r from-accent via-accent/80 to-accent rounded-full"></div>
         </div>
-        <p className="text-body text-text-muted card-glass p-4 inline-block max-w-2xl">
-          Select your distribution strategy to maximize reach and engagement
+        <p className="text-lg text-foreground/90 glass-card-strong p-4 inline-block">
+          Scale your content distribution across platforms
         </p>
       </div>
 
-      {/* Syndication Tiers Grid */}
-      <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
-        {syndicationTiers.map((tier) => (
-          <Card
-            key={tier.id}
-            className={`card-glass cursor-pointer hover:scale-105 transition-all duration-300 relative overflow-hidden border-2 ${
-              campaignData.syndicationTier === tier.id 
-                ? 'border-accent shadow-lg shadow-accent/20 scale-105' 
-                : 'border-border-color hover:border-accent/50'
-            }`}
-            onClick={() => handleTierSelect(tier.id)}
-          >
-            <div className={`absolute inset-0 bg-gradient-to-br ${tier.gradient}`} />
-            
-            {tier.popular && (
-              <div className="absolute top-4 right-4 z-20">
-                <Badge className="bg-accent text-white">
-                  <Star className="w-3 h-3 mr-1" />
-                  Popular
-                </Badge>
-              </div>
-            )}
-            
-            <CardHeader className="relative z-10">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-heading-3 text-text-main">
-                  {tier.name}
-                </CardTitle>
-                {campaignData.syndicationTier === tier.id && (
-                  <div className="w-6 h-6 bg-accent rounded-full flex items-center justify-center">
-                    <Check className="w-4 h-4 text-white" />
+      {!showBoostSettings ? (
+        <>
+          {/* Tier Cards */}
+          <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+            {tiers.map((tier) => (
+              <Card
+                key={tier.id}
+                className={`frosted-glass bg-gradient-to-br ${tier.gradient} border-0 cursor-pointer hover:scale-105 transition-all duration-500 relative overflow-hidden group ${
+                  campaignData.syndicationTier === tier.id ? 'ring-4 ring-accent/50 scale-105 glow-strong' : ''
+                } ${tier.popular ? 'ring-2 ring-yellow-400/50' : ''}`}
+                onClick={() => handleTierSelect(tier.id)}
+              >
+                {tier.popular && (
+                  <div className="absolute top-4 right-4 bg-yellow-400 text-black px-3 py-1 rounded-full text-sm font-bold">
+                    Most Popular
                   </div>
                 )}
-              </div>
-              <p className="text-body-sm text-text-muted">{tier.description}</p>
-              <div className="text-heading-1 text-text-main font-bold">{tier.price}</div>
-            </CardHeader>
-            
-            <CardContent className="space-y-4 relative z-10">
-              {/* Key Metrics */}
-              <div className="grid grid-cols-2 gap-4 mb-4">
-                <div className="text-center p-3 card-surface rounded-lg">
-                  <Target className="w-5 h-5 text-accent mx-auto mb-1" />
-                  <p className="text-caption text-text-muted">Platforms</p>
-                  <p className="text-body font-bold text-text-main">{tier.platforms}+</p>
-                </div>
-                <div className="text-center p-3 card-surface rounded-lg">
-                  <Zap className="w-5 h-5 text-accent mx-auto mb-1" />
-                  <p className="text-caption text-text-muted">Reach</p>
-                  <p className="text-body font-bold text-text-main">{tier.reach}</p>
-                </div>
-              </div>
-
-              {/* Features List */}
-              <div className="space-y-2">
-                {tier.features.map((feature, index) => (
-                  <div key={index} className="flex items-start gap-2">
-                    <Check className="w-4 h-4 text-accent mt-0.5 flex-shrink-0" />
-                    <span className="text-body-sm text-text-main">{feature}</span>
+                
+                <CardHeader className="text-center">
+                  <CardTitle className="text-2xl font-bold text-foreground group-hover:scale-110 transition-transform duration-300">
+                    {tier.name}
+                  </CardTitle>
+                  <div className="text-4xl font-bold text-foreground">
+                    ${tier.price}
+                    <span className="text-lg font-normal text-muted-foreground">/month</span>
                   </div>
-                ))}
-              </div>
+                </CardHeader>
 
-              {campaignData.syndicationTier === tier.id && (
-                <div className="status-active w-fit mt-4">
-                  ✨ Selected
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+                <CardContent className="space-y-6">
+                  {/* Key Metrics */}
+                  <div className="grid grid-cols-2 gap-4 text-center">
+                    <div className="glass-card-subtle p-3 rounded-lg">
+                      <Users className="h-5 w-5 text-blue-400 mx-auto mb-1" />
+                      <div className="text-sm text-muted-foreground">Accounts</div>
+                      <div className="font-bold text-foreground">{tier.accounts}</div>
+                    </div>
+                    <div className="glass-card-subtle p-3 rounded-lg">
+                      <TrendingUp className="h-5 w-5 text-green-400 mx-auto mb-1" />
+                      <div className="text-sm text-muted-foreground">Avg Views</div>
+                      <div className="font-bold text-foreground text-xs">{tier.avgViews}</div>
+                    </div>
+                  </div>
 
-      {/* Navigation */}
-      <div className="flex items-center justify-between max-w-6xl mx-auto">
-        <Button
-          variant="ghost"
-          onClick={onPrevious}
-          className="text-text-muted hover:text-text-main"
-        >
-          Previous
-        </Button>
-        
-        <Button 
-          onClick={onNext}
-          disabled={!canContinue}
-          className={canContinue ? "btn-primary" : "btn-secondary"}
-        >
-          {canContinue ? "Continue to Boosts" : "Select a tier to continue"}
-        </Button>
-      </div>
+                  <div className="text-center glass-card-subtle p-3 rounded-lg">
+                    <Zap className="h-5 w-5 text-yellow-400 mx-auto mb-1" />
+                    <div className="text-sm text-muted-foreground">Engagement Rate</div>
+                    <div className="font-bold text-foreground">{tier.engagement}</div>
+                  </div>
 
-      {/* Selected Summary */}
-      {campaignData.syndicationTier && (
-        <div className="text-center">
-          <div className="card-surface p-4 inline-block">
-            <p className="text-caption text-green-400">
-              ✅ Tier selected: <span className="font-medium text-text-main">
-                {syndicationTiers.find(t => t.id === campaignData.syndicationTier)?.name}
-              </span>
-            </p>
+                  {/* Features List */}
+                  <div className="space-y-2">
+                    {tier.features.map((feature, index) => (
+                      <div key={index} className="flex items-center text-foreground/90">
+                        <Check className="h-4 w-4 text-green-400 mr-2 flex-shrink-0" />
+                        <span className="text-sm">{feature}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {campaignData.syndicationTier === tier.id && (
+                    <div className="text-center">
+                      <div className="text-green-400 font-semibold text-sm">
+                        ✨ Selected! Configure boost settings below...
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
           </div>
-        </div>
+
+          {/* Help Text */}
+          <div className="text-center">
+            <div className="glass-card-strong p-4 inline-block">
+              <p className="text-muted-foreground font-medium">
+                💡 Click any tier to select and configure boost options
+              </p>
+            </div>
+          </div>
+        </>
+      ) : (
+        <>
+          {/* Boost Settings */}
+          <BoostSettings
+            echoPlatforms={campaignData.echo_boost_platforms || 1}
+            autoFillLookalike={campaignData.auto_fill_lookalike || false}
+            commentTemplates={campaignData.comment_templates || []}
+            onEchoPlatformsChange={handleEchoPlatformsChange}
+            onAutoFillToggle={handleAutoFillToggle}
+            onCommentTemplatesChange={handleCommentTemplatesChange}
+          />
+
+          {/* Continue Button */}
+          <div className="text-center">
+            <Button onClick={handleContinue} size="lg" className="glass-button-primary">
+              Continue to Platform Targets
+            </Button>
+          </div>
+        </>
       )}
     </div>
   );

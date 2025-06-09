@@ -1,48 +1,31 @@
 
-import React from 'react';
+import { cn } from "@/lib/utils";
 
 interface ContentEngineLogoProps {
-  size?: 'small' | 'medium' | 'large';
+  size?: "small" | "medium" | "large";
   className?: string;
 }
 
-const ContentEngineLogo = ({ size = 'medium', className = '' }: ContentEngineLogoProps) => {
+const ContentEngineLogo = ({ size = "medium", className }: ContentEngineLogoProps) => {
   const sizeClasses = {
-    small: 'w-8 h-8',
-    medium: 'w-12 h-12',
-    large: 'w-16 h-16'
+    small: "w-8 h-8",
+    medium: "w-12 h-12",
+    large: "w-16 h-16"
   };
 
   return (
-    <div className={`${sizeClasses[size]} ${className} flex items-center justify-center bg-accent rounded-lg shadow-lg`}>
-      <svg 
-        viewBox="0 0 24 24" 
-        fill="none" 
-        className="w-2/3 h-2/3 text-white"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path 
-          d="M12 2L2 7L12 12L22 7L12 2Z" 
-          stroke="currentColor" 
-          strokeWidth="2" 
-          strokeLinecap="round" 
-          strokeLinejoin="round"
-        />
-        <path 
-          d="M2 17L12 22L22 17" 
-          stroke="currentColor" 
-          strokeWidth="2" 
-          strokeLinecap="round" 
-          strokeLinejoin="round"
-        />
-        <path 
-          d="M2 12L12 17L22 12" 
-          stroke="currentColor" 
-          strokeWidth="2" 
-          strokeLinecap="round" 
-          strokeLinejoin="round"
-        />
-      </svg>
+    <div className={cn("flex items-center justify-center", className)}>
+      <img 
+        src="/lovable-uploads/ae36c0dd-50b0-42f4-9e47-7d0b4d2be2e9.png"
+        alt="Content Engine Logo"
+        className={cn("object-contain", sizeClasses[size])}
+        onError={(e) => {
+          console.log("Logo failed to load:", e);
+          // Fallback to a simple text logo if image fails
+          e.currentTarget.style.display = 'none';
+          e.currentTarget.parentElement!.innerHTML = '<div class="text-white font-bold text-xl">CE</div>';
+        }}
+      />
     </div>
   );
 };

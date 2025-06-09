@@ -1,6 +1,6 @@
 
 import { useState, lazy, Suspense } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { useCampaignData } from '@/hooks/useCampaignData';
@@ -10,35 +10,29 @@ import Layout from '@/components/Layout';
 import { DEV_MODE } from '@/config/dev';
 
 // Lazy load step components
-const Step1Goal = lazy(() => import('@/pages/CampaignBuilderStep1'));
-const Step2Upload = lazy(() => import('@/pages/CampaignBuilderStep2'));
-const Step3Syndication = lazy(() => import('@/pages/CampaignBuilderStep3'));
-const Step4Boost = lazy(() => import('@/pages/CampaignBuilderStep4'));
-const Step5Launch = lazy(() => import('@/pages/CampaignBuilderStep5'));
+const Step1Goal = lazy(() => import('@/components/CampaignBuilder/Step1Goal'));
+const Step2Upload = lazy(() => import('@/components/CampaignBuilder/Step2Upload'));
+const Step3Boost = lazy(() => import('@/components/CampaignBuilder/Step3Boost'));
+const Step4Schedule = lazy(() => import('@/components/CampaignBuilder/Step4Schedule'));
+const Step5Launch = lazy(() => import('@/components/CampaignBuilder/Step5Launch'));
 
 const CampaignBuilder = () => {
   const navigate = useNavigate();
-  const { stepNumber } = useParams();
   const { createCampaign } = useCampaignData();
   const { state, updateState, clearState } = useCampaignBuilder();
   
-  // Handle URL-based step or default to 1
-  const initialStep = stepNumber ? parseInt(stepNumber) : 1;
-  const [currentStep, setCurrentStep] = useState(Math.max(1, Math.min(5, initialStep)));
+  // State-based step management (no URL routing)
+  const [currentStep, setCurrentStep] = useState(1);
 
   const handleNext = () => {
     if (currentStep < 5) {
-      const nextStep = currentStep + 1;
-      setCurrentStep(nextStep);
-      navigate(`/campaign-builder/step/${nextStep}`);
+      setCurrentStep(prev => prev + 1);
     }
   };
 
   const handlePrevious = () => {
     if (currentStep > 1) {
-      const prevStep = currentStep - 1;
-      setCurrentStep(prevStep);
-      navigate(`/campaign-builder/step/${prevStep}`);
+      setCurrentStep(prev => prev - 1);
     }
   };
 
@@ -75,43 +69,70 @@ const CampaignBuilder = () => {
       </div>
     );
 
-    const stepProps = {
-      campaignData: state,
-      updateCampaignData: updateState,
-      onNext: handleNext,
-      onPrevious: handlePrevious,
-      onLaunch: handleLaunch,
-    };
-
     switch (currentStep) {
       case 1:
         return (
           <Suspense fallback={<LoadingSpinner />}>
-            <Step1Goal {...stepProps} />
+            <Step1Goal
+              selectedGoal={state.goal}
+              onGoalSelect={(goal) => updateState({ goal })}
+              onNext={handleNext}
+            />
           </Suspense>
         );
       case 2:
         return (
           <Suspense fallback={<LoadingSpinner />}>
-            <Step2Upload {...stepProps} />
+            <Step2Upload
+              contentFiles={state.contentFiles}
+              onFilesUpdate={(files) => updateState({ contentFiles: files })}
+              onNext={handleNext}
+              onPrevious={handlePrevious}
+            />
           </Suspense>
         );
       case 3:
         return (
           <Suspense fallback={<LoadingSpinner />}>
-            <Step3Syndication {...stepProps} />
+            <Step3Boost
+              syndicationTier={state.syndicationTier}
+              echoPlatforms={state.echo_boost_platforms}
+              autoFillLookalike={state.auto_fill_lookalike}
+              commentTemplates={state.comment_templates}
+              onTierSelect={(tier) => updateState({ syndicationTier: tier })}
+              onEchoPlatformsChange={(platforms) => updateState({ echo_boost_platforms: platforms })}
+              onAutoFillToggle={(enabled) => updateState({ auto_fill_lookalike: enabled })}
+              onCommentTemplatesChange={(templates) => updateState({ comment_templates: templates })}
+              onNext={handleNext}
+            />
           </Suspense>
         );
       case 4:
         return (
           <Suspense fallback={<LoadingSpinner />}>
-            <Step4Boost {...stepProps} />
+            <Step4Schedule
+              boosts={state.boosts}
+              onBoostToggle={(boostId, enabled) => 
+                updateState({ 
+                  boosts: { ...state.boosts, [boostId]: enabled } 
+                })
+              }
+              onNext={handleNext}
+            />
           </Suspense>
         );
       case 5:
         return (
           <Suspense fallback={<LoadingSpinner />}>
-            <Step5Launch {...stepProps} />
+            <Step5Launch
+              campaignName={state.name}
+              startDate={state.schedule.startDate}
+              autoBoost={state.schedule.autoBoost}
+              onNameChange={(name) => updateState({ name })}
+              onDateChange={(date) => updateState({ schedule: { ...state.schedule, startDate: date } })}
+              onAutoBoostToggle={(enabled) => updateState({ schedule: { ...state.schedule, autoBoost: enabled } })}
+              onLaunch={handleLaunch}
+            />
           </Suspense>
         );
       default:
@@ -133,10 +154,7 @@ const CampaignBuilder = () => {
                   <Button 
                     key={step}
                     size="sm" 
-                    onClick={() => {
-                      setCurrentStep(step);
-                      navigate(`/campaign-builder/step/${step}`);
-                    }}
+                    onClick={() => setCurrentStep(step)}
                     className="glass-button-secondary"
                   >
                     Step {step}

@@ -18,7 +18,7 @@ const boostOptions = [
     description: "Creates viral content variants with optimized captions",
     impact: "+45% reach",
     cost: "$25",
-    gradient: "from-blue-500/20 to-cyan-600/20"
+    gradient: "from-blue-500/80 to-cyan-600/80"
   },
   {
     id: "commentSeeding",
@@ -26,7 +26,7 @@ const boostOptions = [
     description: "Authentic engagement boost with strategic comments",
     impact: "+30% engagement",
     cost: "$15",
-    gradient: "from-green-500/20 to-emerald-600/20"
+    gradient: "from-green-500/80 to-emerald-600/80"
   }
 ];
 
@@ -45,12 +45,12 @@ const CampaignBuilderStep4 = ({ campaignData, updateCampaignData, onNext }: Camp
       {/* Step Title */}
       <div className="text-center">
         <div className="glass-card-strong p-8 mb-6 inline-block">
-          <h2 className="text-4xl font-bold bg-gradient-to-r from-accent via-accent/80 to-accent bg-clip-text text-transparent mb-4">
+          <h2 className="text-4xl font-bold bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 bg-clip-text text-transparent mb-4">
             Boost Options ⚡
           </h2>
-          <div className="h-1 w-full bg-gradient-to-r from-accent via-accent/80 to-accent rounded-full"></div>
+          <div className="h-1 w-full bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 rounded-full"></div>
         </div>
-        <p className="text-lg text-foreground/90 glass-card-strong p-4 inline-block">
+        <p className="text-lg text-white/90 glass-card-strong p-4 inline-block">
           Enhance your campaign performance with AI-powered boosts
         </p>
       </div>
@@ -64,7 +64,7 @@ const CampaignBuilderStep4 = ({ campaignData, updateCampaignData, onNext }: Camp
           >
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle className="text-foreground text-xl">
+                <CardTitle className="text-white text-xl">
                   {boost.name}
                 </CardTitle>
                 <Switch
@@ -74,12 +74,12 @@ const CampaignBuilderStep4 = ({ campaignData, updateCampaignData, onNext }: Camp
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              <p className="text-foreground/90">{boost.description}</p>
+              <p className="text-white/90">{boost.description}</p>
               <div className="flex items-center justify-between">
                 <Badge className="bg-green-500/20 text-green-200">
                   {boost.impact}
                 </Badge>
-                <span className="text-foreground font-bold">{boost.cost}</span>
+                <span className="text-white font-bold">{boost.cost}</span>
               </div>
             </CardContent>
           </Card>

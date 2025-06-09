@@ -1,19 +1,30 @@
 
 // Stripe configuration - use publishable key for client-side
 export const STRIPE_CONFIG = {
-  // Test Stripe publishable key
-  publishableKey: 'pk_test_51RXbMOBA4IiKvZcuCKe556AVdY6yfqBYl0LzIhX5tyJt9Nx5tU5TYVnHqFwLIgytX39v8IvfMKAmMAlOFRLl1UuK00crPN2FHm',
+  // Live Stripe publishable key
+  publishableKey: 'pk_live_51RX77lEOop8EVApo',
   
-  // Price IDs for each tier (one-time payments)
+  // Price IDs for each tier (replace with your actual Stripe price IDs)
   priceIds: {
-    basic: 'price_basic_9900',     // $99.00 one-time
-    pro: 'price_pro_29900',        // $299.00 one-time  
-    executive: 'price_executive_59900', // $599.00 one-time
+    basic: 'price_1234567890_basic_monthly',     // $99/month
+    plus: 'price_1234567890_plus_monthly',       // $299/month
+    enterprise: 'price_1234567890_enterprise_monthly', // $599/month
+  },
+  
+  // Add-on price IDs for one-time purchases
+  addOnPriceIds: {
+    boostCreditPack: 'price_1234567890_boost_pack',        // $50
+    playlistFunnelAccess: 'price_1234567890_playlist',     // $99
+    aiVideoGenerator: 'price_1234567890_ai_video',         // $25/video
+    contentVaultUpgrade: 'price_1234567890_content_vault', // $79/month
+    editorialReview: 'price_1234567890_editorial',         // $15/review
+    teamSeat: 'price_1234567890_team_seat',                // $30/month/seat
+    extraPages: 'price_1234567890_extra_pages',            // $20/page/month
   },
 };
 
 export const STRIPE_ENDPOINTS = {
-  createPayment: '/functions/v1/create-payment',
-  paymentSuccess: '/payment-success',
-  paymentCancel: '/payment-cancel',
+  createCheckout: '/api/create-checkout-session',
+  customerPortal: '/api/customer-portal',
+  checkSubscription: '/api/check-subscription',
 };

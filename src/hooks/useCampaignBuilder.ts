@@ -45,24 +45,22 @@ const initialState: CampaignBuilderState = {
 export const useCampaignBuilder = () => {
   const [state, setState] = useState<CampaignBuilderState>(initialState);
 
-  // Load from localStorage on mount (excluding contentFiles since File objects can't be serialized)
+  // Load from localStorage on mount
   useEffect(() => {
     const saved = localStorage.getItem('campaignBuilderData');
     if (saved) {
       try {
         const parsedData = JSON.parse(saved);
-        // Don't restore contentFiles from localStorage since File objects can't be serialized
-        setState({ ...parsedData, contentFiles: [] });
+        setState(parsedData);
       } catch (error) {
         console.error('Failed to parse saved campaign data:', error);
       }
     }
   }, []);
 
-  // Save to localStorage whenever state changes (excluding contentFiles)
+  // Save to localStorage whenever state changes
   useEffect(() => {
-    const dataToSave = { ...state, contentFiles: [] };
-    localStorage.setItem('campaignBuilderData', JSON.stringify(dataToSave));
+    localStorage.setItem('campaignBuilderData', JSON.stringify(state));
   }, [state]);
 
   const updateState = (updates: Partial<CampaignBuilderState>) => {

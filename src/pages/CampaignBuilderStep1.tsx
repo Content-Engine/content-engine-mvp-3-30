@@ -8,19 +8,19 @@ const goals = [
     id: "awareness",
     title: "📢 Brand Awareness",
     description: "Increase visibility and reach new audiences",
-    gradient: "from-blue-500/20 via-cyan-500/20 to-indigo-600/20"
+    gradient: "from-blue-500/80 via-cyan-500/70 to-indigo-600/80"
   },
   {
     id: "retention", 
     title: "🔄 Audience Retention",
     description: "Keep existing fans engaged and active",
-    gradient: "from-green-500/20 via-emerald-500/20 to-teal-600/20"
+    gradient: "from-green-500/80 via-emerald-500/70 to-teal-600/80"
   },
   {
     id: "conversion",
     title: "💰 Drive Conversions",
     description: "Convert viewers into customers or subscribers",
-    gradient: "from-purple-500/20 via-violet-500/20 to-fuchsia-600/20"
+    gradient: "from-purple-500/80 via-violet-500/70 to-fuchsia-600/80"
   }
 ];
 
@@ -84,12 +84,12 @@ const CampaignBuilderStep1 = ({ campaignData, updateCampaignData, onNext }: Camp
       {/* Step Title */}
       <div className="text-center">
         <div className="glass-card-strong p-8 mb-6 inline-block">
-          <h2 className="text-4xl font-bold bg-gradient-to-r from-accent via-accent/80 to-accent bg-clip-text text-transparent mb-4">
+          <h2 className="text-4xl font-bold bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 bg-clip-text text-transparent mb-4">
             Choose Your Campaign Goal 🎯
           </h2>
-          <div className="h-1 w-full bg-gradient-to-r from-accent via-accent/80 to-accent rounded-full"></div>
+          <div className="h-1 w-full bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 rounded-full"></div>
         </div>
-        <p className="text-lg text-foreground/90 glass-card-strong p-4 inline-block">
+        <p className="text-lg text-white/90 glass-card-strong p-4 inline-block">
           Select your primary objective to optimize content distribution
         </p>
       </div>
@@ -100,19 +100,19 @@ const CampaignBuilderStep1 = ({ campaignData, updateCampaignData, onNext }: Camp
           <Card
             key={goal.id}
             className={`frosted-glass bg-gradient-to-br ${goal.gradient} border-0 cursor-pointer hover:scale-105 transition-all duration-500 relative overflow-hidden group ${
-              campaignData.goal === goal.id ? 'ring-4 ring-accent/50 scale-105 glow-strong' : ''
+              campaignData.goal === goal.id ? 'ring-4 ring-white/50 scale-105 glow-strong' : ''
             }`}
             onClick={() => handleGoalSelect(goal.id)}
           >
             <CardContent className="p-6 text-center relative z-10">
-              <h3 className="text-2xl font-bold text-foreground mb-3 group-hover:scale-110 transition-transform duration-300">
+              <h3 className="text-2xl font-bold text-white mb-3 group-hover:scale-110 transition-transform duration-300">
                 {goal.title}
               </h3>
-              <p className="text-foreground/95 font-medium">
+              <p className="text-white/95 font-medium">
                 {goal.description}
               </p>
               {campaignData.goal === goal.id && (
-                <div className="mt-4 text-accent text-sm font-semibold">
+                <div className="mt-4 text-white text-sm font-semibold">
                   ✨ Selected!
                 </div>
               )}
@@ -154,7 +154,7 @@ const CampaignBuilderStep1 = ({ campaignData, updateCampaignData, onNext }: Camp
       {/* Enhanced Debug Panel */}
       <div className="text-center">
         <div className="glass-card-strong p-4 inline-block">
-          <div className="text-muted-foreground text-sm space-y-1">
+          <div className="text-white/80 text-sm space-y-1">
             <p>🔍 Step 1 Debug Info:</p>
             <p>Selected Goal: "{campaignData.goal || 'none'}"</p>
             <p>Can Continue: {canContinue ? '✅' : '❌'}</p>
@@ -168,7 +168,7 @@ const CampaignBuilderStep1 = ({ campaignData, updateCampaignData, onNext }: Camp
       {/* Help Text */}
       <div className="text-center">
         <div className="glass-card-strong p-4 inline-block">
-          <p className="text-muted-foreground font-medium">
+          <p className="text-white/80 font-medium">
             💡 Each goal optimizes content distribution and boost strategies differently
           </p>
         </div>

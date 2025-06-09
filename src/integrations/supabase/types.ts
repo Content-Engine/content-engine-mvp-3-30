@@ -9,68 +9,6 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      archived_submissions: {
-        Row: {
-          archived_at: string
-          assigned_editor_id: string | null
-          boost_requested: boolean | null
-          campaign_tag: string | null
-          client_id: string
-          content_type: string
-          content_url: string
-          id: string
-          internal_notes: string | null
-          original_submission_id: string
-          preferred_platforms: Json | null
-          scheduled_post_id: string | null
-          status: string
-          submit_date: string
-          submitted_caption: string | null
-        }
-        Insert: {
-          archived_at?: string
-          assigned_editor_id?: string | null
-          boost_requested?: boolean | null
-          campaign_tag?: string | null
-          client_id: string
-          content_type: string
-          content_url: string
-          id?: string
-          internal_notes?: string | null
-          original_submission_id: string
-          preferred_platforms?: Json | null
-          scheduled_post_id?: string | null
-          status: string
-          submit_date: string
-          submitted_caption?: string | null
-        }
-        Update: {
-          archived_at?: string
-          assigned_editor_id?: string | null
-          boost_requested?: boolean | null
-          campaign_tag?: string | null
-          client_id?: string
-          content_type?: string
-          content_url?: string
-          id?: string
-          internal_notes?: string | null
-          original_submission_id?: string
-          preferred_platforms?: Json | null
-          scheduled_post_id?: string | null
-          status?: string
-          submit_date?: string
-          submitted_caption?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "archived_submissions_scheduled_post_id_fkey"
-            columns: ["scheduled_post_id"]
-            isOneToOne: false
-            referencedRelation: "scheduled_posts"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       boost_history: {
         Row: {
           amount: number
@@ -155,29 +93,20 @@ export type Database = {
       }
       campaigns: {
         Row: {
-          assigned_editor_id: string | null
           auto_fill_lookalike: boolean | null
           boost_settings: Json | null
           budget_allocated: number | null
           budget_spent: number | null
-          clips_count: number | null
           created_at: string
           created_by: string | null
-          cta_type: string | null
           description: string | null
-          echo_boost_enabled: boolean | null
           echo_boost_platforms: number | null
           end_date: string | null
           goal: string | null
           hashtags_caption: string | null
           id: string
           name: string
-          notes: string | null
           platform_targets: Json | null
-          platforms: Json | null
-          posting_end_date: string | null
-          posting_start_date: string | null
-          requires_approval: boolean | null
           start_date: string | null
           status: string | null
           syndication_tier: string | null
@@ -186,29 +115,20 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
-          assigned_editor_id?: string | null
           auto_fill_lookalike?: boolean | null
           boost_settings?: Json | null
           budget_allocated?: number | null
           budget_spent?: number | null
-          clips_count?: number | null
           created_at?: string
           created_by?: string | null
-          cta_type?: string | null
           description?: string | null
-          echo_boost_enabled?: boolean | null
           echo_boost_platforms?: number | null
           end_date?: string | null
           goal?: string | null
           hashtags_caption?: string | null
           id?: string
           name: string
-          notes?: string | null
           platform_targets?: Json | null
-          platforms?: Json | null
-          posting_end_date?: string | null
-          posting_start_date?: string | null
-          requires_approval?: boolean | null
           start_date?: string | null
           status?: string | null
           syndication_tier?: string | null
@@ -217,29 +137,20 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
-          assigned_editor_id?: string | null
           auto_fill_lookalike?: boolean | null
           boost_settings?: Json | null
           budget_allocated?: number | null
           budget_spent?: number | null
-          clips_count?: number | null
           created_at?: string
           created_by?: string | null
-          cta_type?: string | null
           description?: string | null
-          echo_boost_enabled?: boolean | null
           echo_boost_platforms?: number | null
           end_date?: string | null
           goal?: string | null
           hashtags_caption?: string | null
           id?: string
           name?: string
-          notes?: string | null
           platform_targets?: Json | null
-          platforms?: Json | null
-          posting_end_date?: string | null
-          posting_start_date?: string | null
-          requires_approval?: boolean | null
           start_date?: string | null
           status?: string | null
           syndication_tier?: string | null
@@ -249,13 +160,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "campaigns_assigned_editor_id_fkey"
-            columns: ["assigned_editor_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "campaigns_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
@@ -263,39 +167,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      client_tokens: {
-        Row: {
-          ayrshare_api_key: string
-          ayrshare_user_id: string
-          client_name: string | null
-          created_at: string
-          id: string
-          is_active: boolean | null
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          ayrshare_api_key: string
-          ayrshare_user_id: string
-          client_name?: string | null
-          created_at?: string
-          id?: string
-          is_active?: boolean | null
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          ayrshare_api_key?: string
-          ayrshare_user_id?: string
-          client_name?: string | null
-          created_at?: string
-          id?: string
-          is_active?: boolean | null
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
       }
       comment_seedings: {
         Row: {
@@ -576,57 +447,6 @@ export type Database = {
         }
         Relationships: []
       }
-      incoming_content_submissions: {
-        Row: {
-          assigned_editor_id: string | null
-          boost_requested: boolean | null
-          campaign_tag: string | null
-          client_id: string
-          content_type: string
-          content_url: string
-          created_at: string
-          id: string
-          internal_notes: string | null
-          preferred_platforms: Json | null
-          status: string | null
-          submit_date: string
-          submitted_caption: string | null
-          updated_at: string
-        }
-        Insert: {
-          assigned_editor_id?: string | null
-          boost_requested?: boolean | null
-          campaign_tag?: string | null
-          client_id: string
-          content_type: string
-          content_url: string
-          created_at?: string
-          id?: string
-          internal_notes?: string | null
-          preferred_platforms?: Json | null
-          status?: string | null
-          submit_date?: string
-          submitted_caption?: string | null
-          updated_at?: string
-        }
-        Update: {
-          assigned_editor_id?: string | null
-          boost_requested?: boolean | null
-          campaign_tag?: string | null
-          client_id?: string
-          content_type?: string
-          content_url?: string
-          created_at?: string
-          id?: string
-          internal_notes?: string | null
-          preferred_platforms?: Json | null
-          status?: string | null
-          submit_date?: string
-          submitted_caption?: string | null
-          updated_at?: string
-        }
-        Relationships: []
-      }
       metrics: {
         Row: {
           campaign_id: string | null
@@ -687,41 +507,6 @@ export type Database = {
           },
         ]
       }
-      post_status_logs: {
-        Row: {
-          created_at: string
-          id: string
-          message: string | null
-          response_data: Json | null
-          scheduled_post_id: string
-          status: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          message?: string | null
-          response_data?: Json | null
-          scheduled_post_id: string
-          status: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          message?: string | null
-          response_data?: Json | null
-          scheduled_post_id?: string
-          status?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "post_status_logs_scheduled_post_id_fkey"
-            columns: ["scheduled_post_id"]
-            isOneToOne: false
-            referencedRelation: "scheduled_posts"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -729,8 +514,6 @@ export type Database = {
           email: string
           full_name: string | null
           id: string
-          payment_tier: string | null
-          stripe_customer_id: string | null
           subscription_tier: string | null
           updated_at: string | null
         }
@@ -740,8 +523,6 @@ export type Database = {
           email: string
           full_name?: string | null
           id: string
-          payment_tier?: string | null
-          stripe_customer_id?: string | null
           subscription_tier?: string | null
           updated_at?: string | null
         }
@@ -751,8 +532,6 @@ export type Database = {
           email?: string
           full_name?: string | null
           id?: string
-          payment_tier?: string | null
-          stripe_customer_id?: string | null
           subscription_tier?: string | null
           updated_at?: string | null
         }
@@ -813,69 +592,6 @@ export type Database = {
           },
         ]
       }
-      scheduled_posts: {
-        Row: {
-          ayrshare_post_id: string | null
-          boost_enabled: boolean | null
-          campaign_id: string | null
-          caption: string
-          content_item_id: string | null
-          created_at: string
-          id: string
-          media_urls: Json | null
-          platforms: Json
-          schedule_time: string
-          status: string | null
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          ayrshare_post_id?: string | null
-          boost_enabled?: boolean | null
-          campaign_id?: string | null
-          caption: string
-          content_item_id?: string | null
-          created_at?: string
-          id?: string
-          media_urls?: Json | null
-          platforms?: Json
-          schedule_time: string
-          status?: string | null
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          ayrshare_post_id?: string | null
-          boost_enabled?: boolean | null
-          campaign_id?: string | null
-          caption?: string
-          content_item_id?: string | null
-          created_at?: string
-          id?: string
-          media_urls?: Json | null
-          platforms?: Json
-          schedule_time?: string
-          status?: string | null
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "scheduled_posts_campaign_id_fkey"
-            columns: ["campaign_id"]
-            isOneToOne: false
-            referencedRelation: "campaigns"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "scheduled_posts_content_item_id_fkey"
-            columns: ["content_item_id"]
-            isOneToOne: false
-            referencedRelation: "content_items"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       songs: {
         Row: {
           artist: string | null
@@ -924,38 +640,6 @@ export type Database = {
         }
         Relationships: []
       }
-      submission_errors: {
-        Row: {
-          created_at: string
-          error_message: string
-          error_type: string
-          id: string
-          submission_id: string | null
-        }
-        Insert: {
-          created_at?: string
-          error_message: string
-          error_type: string
-          id?: string
-          submission_id?: string | null
-        }
-        Update: {
-          created_at?: string
-          error_message?: string
-          error_type?: string
-          id?: string
-          submission_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "submission_errors_submission_id_fkey"
-            columns: ["submission_id"]
-            isOneToOne: false
-            referencedRelation: "incoming_content_submissions"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       training_progress: {
         Row: {
           completed: boolean | null
@@ -999,45 +683,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      user_payments: {
-        Row: {
-          amount: number
-          created_at: string
-          currency: string | null
-          id: string
-          payment_tier: string
-          status: string
-          stripe_customer_id: string | null
-          stripe_session_id: string | null
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          amount: number
-          created_at?: string
-          currency?: string | null
-          id?: string
-          payment_tier: string
-          status?: string
-          stripe_customer_id?: string | null
-          stripe_session_id?: string | null
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          amount?: number
-          created_at?: string
-          currency?: string | null
-          id?: string
-          payment_tier?: string
-          status?: string
-          stripe_customer_id?: string | null
-          stripe_session_id?: string | null
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
       }
       user_roles: {
         Row: {

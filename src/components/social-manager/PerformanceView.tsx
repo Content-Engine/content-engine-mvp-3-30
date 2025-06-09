@@ -55,7 +55,7 @@ const PerformanceView = ({ currentCampaign }: PerformanceViewProps) => {
             variant={viewType === 'campaign' ? 'secondary' : 'ghost'}
             size="sm"
             onClick={() => setViewType('campaign')}
-            className="text-text-muted hover:text-text-main"
+            className="text-white/70 hover:text-white"
           >
             Campaign View
           </Button>
@@ -63,7 +63,7 @@ const PerformanceView = ({ currentCampaign }: PerformanceViewProps) => {
             variant={viewType === 'global' ? 'secondary' : 'ghost'}
             size="sm"
             onClick={() => setViewType('global')}
-            className="text-text-muted hover:text-text-main"
+            className="text-white/70 hover:text-white"
           >
             Global View
           </Button>
@@ -76,7 +76,7 @@ const PerformanceView = ({ currentCampaign }: PerformanceViewProps) => {
               variant={timeRange === range ? 'secondary' : 'ghost'}
               size="sm"
               onClick={() => setTimeRange(range)}
-              className="text-text-muted hover:text-text-main"
+              className="text-white/70 hover:text-white"
             >
               {range}
             </Button>
@@ -86,13 +86,13 @@ const PerformanceView = ({ currentCampaign }: PerformanceViewProps) => {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card className="card-primary">
+        <Card className="bg-black/30 backdrop-blur-lg border-white/10">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-text-muted">Total Impressions</CardTitle>
-            <Eye className="h-4 w-4 text-text-muted" />
+            <CardTitle className="text-sm font-medium text-white/70">Total Impressions</CardTitle>
+            <Eye className="h-4 w-4 text-white/50" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-text-main">360K</div>
+            <div className="text-2xl font-bold text-white">360K</div>
             <p className="text-xs text-green-400 flex items-center">
               <TrendingUp className="h-3 w-3 mr-1" />
               +12.5% from last month
@@ -100,13 +100,13 @@ const PerformanceView = ({ currentCampaign }: PerformanceViewProps) => {
           </CardContent>
         </Card>
 
-        <Card className="card-primary">
+        <Card className="bg-black/30 backdrop-blur-lg border-white/10">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-text-muted">Engagement Rate</CardTitle>
-            <MessageSquare className="h-4 w-4 text-text-muted" />
+            <CardTitle className="text-sm font-medium text-white/70">Engagement Rate</CardTitle>
+            <MessageSquare className="h-4 w-4 text-white/50" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-text-main">4.2%</div>
+            <div className="text-2xl font-bold text-white">4.2%</div>
             <p className="text-xs text-green-400 flex items-center">
               <TrendingUp className="h-3 w-3 mr-1" />
               +0.8% from last month
@@ -114,13 +114,13 @@ const PerformanceView = ({ currentCampaign }: PerformanceViewProps) => {
           </CardContent>
         </Card>
 
-        <Card className="card-primary">
+        <Card className="bg-black/30 backdrop-blur-lg border-white/10">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-text-muted">Boost ROI</CardTitle>
-            <DollarSign className="h-4 w-4 text-text-muted" />
+            <CardTitle className="text-sm font-medium text-white/70">Boost ROI</CardTitle>
+            <DollarSign className="h-4 w-4 text-white/50" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-text-main">285%</div>
+            <div className="text-2xl font-bold text-white">285%</div>
             <p className="text-xs text-green-400 flex items-center">
               <TrendingUp className="h-3 w-3 mr-1" />
               +45% from last month
@@ -128,14 +128,14 @@ const PerformanceView = ({ currentCampaign }: PerformanceViewProps) => {
           </CardContent>
         </Card>
 
-        <Card className="card-primary">
+        <Card className="bg-black/30 backdrop-blur-lg border-white/10">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-text-muted">Active Platforms</CardTitle>
-            <Globe className="h-4 w-4 text-text-muted" />
+            <CardTitle className="text-sm font-medium text-white/70">Active Platforms</CardTitle>
+            <Globe className="h-4 w-4 text-white/50" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-text-main">4</div>
-            <p className="text-xs text-text-muted">TikTok, IG, YouTube, FB</p>
+            <div className="text-2xl font-bold text-white">4</div>
+            <p className="text-xs text-white/50">TikTok, IG, YouTube, FB</p>
           </CardContent>
         </Card>
       </div>
@@ -143,9 +143,9 @@ const PerformanceView = ({ currentCampaign }: PerformanceViewProps) => {
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Platform Performance */}
-        <Card className="card-primary">
+        <Card className="bg-black/30 backdrop-blur-lg border-white/10">
           <CardHeader>
-            <CardTitle className="text-text-main flex items-center gap-2">
+            <CardTitle className="text-white flex items-center gap-2">
               <BarChart3 className="h-5 w-5" />
               Platform Performance
             </CardTitle>
@@ -153,27 +153,27 @@ const PerformanceView = ({ currentCampaign }: PerformanceViewProps) => {
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={platformData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgb(var(--border-color))" />
-                <XAxis dataKey="name" stroke="rgb(var(--text-muted))" />
-                <YAxis stroke="rgb(var(--text-muted))" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#ffffff20" />
+                <XAxis dataKey="name" stroke="#ffffff70" />
+                <YAxis stroke="#ffffff70" />
                 <Tooltip 
                   contentStyle={{ 
-                    backgroundColor: 'rgb(var(--bg-card))', 
-                    border: '1px solid rgb(var(--border-color))',
+                    backgroundColor: '#000000aa', 
+                    border: '1px solid #ffffff20',
                     borderRadius: '8px',
-                    color: 'rgb(var(--text-main))'
+                    color: '#ffffff'
                   }} 
                 />
-                <Bar dataKey="impressions" fill="rgb(var(--accent))" />
+                <Bar dataKey="impressions" fill="#8b5cf6" />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
         {/* Performance Trends */}
-        <Card className="card-primary">
+        <Card className="bg-black/30 backdrop-blur-lg border-white/10">
           <CardHeader>
-            <CardTitle className="text-text-main flex items-center gap-2">
+            <CardTitle className="text-white flex items-center gap-2">
               <TrendingUp className="h-5 w-5" />
               Performance Trends
             </CardTitle>
@@ -181,18 +181,18 @@ const PerformanceView = ({ currentCampaign }: PerformanceViewProps) => {
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={performanceData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgb(var(--border-color))" />
-                <XAxis dataKey="date" stroke="rgb(var(--text-muted))" />
-                <YAxis stroke="rgb(var(--text-muted))" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#ffffff20" />
+                <XAxis dataKey="date" stroke="#ffffff70" />
+                <YAxis stroke="#ffffff70" />
                 <Tooltip 
                   contentStyle={{ 
-                    backgroundColor: 'rgb(var(--bg-card))', 
-                    border: '1px solid rgb(var(--border-color))',
+                    backgroundColor: '#000000aa', 
+                    border: '1px solid #ffffff20',
                     borderRadius: '8px',
-                    color: 'rgb(var(--text-main))'
+                    color: '#ffffff'
                   }} 
                 />
-                <Line type="monotone" dataKey="views" stroke="rgb(var(--accent))" strokeWidth={2} />
+                <Line type="monotone" dataKey="views" stroke="#8b5cf6" strokeWidth={2} />
                 <Line type="monotone" dataKey="engagement" stroke="#06b6d4" strokeWidth={2} />
               </LineChart>
             </ResponsiveContainer>
@@ -201,9 +201,9 @@ const PerformanceView = ({ currentCampaign }: PerformanceViewProps) => {
       </div>
 
       {/* Top Performing Content */}
-      <Card className="card-primary">
+      <Card className="bg-black/30 backdrop-blur-lg border-white/10">
         <CardHeader>
-          <CardTitle className="text-text-main flex items-center gap-2">
+          <CardTitle className="text-white flex items-center gap-2">
             <Target className="h-5 w-5" />
             Top Performing Content
           </CardTitle>
@@ -211,29 +211,29 @@ const PerformanceView = ({ currentCampaign }: PerformanceViewProps) => {
         <CardContent>
           <div className="space-y-4">
             {topContent.map((content, index) => (
-              <div key={content.id} className="flex items-center justify-between p-4 bg-secondary/20 rounded-lg">
+              <div key={content.id} className="flex items-center justify-between p-4 bg-white/5 rounded-lg">
                 <div className="flex items-center gap-4">
-                  <div className="text-text-muted font-mono text-sm">#{index + 1}</div>
+                  <div className="text-white/50 font-mono text-sm">#{index + 1}</div>
                   <div>
-                    <div className="font-medium text-text-main">{content.title}</div>
-                    <div className="text-sm text-text-muted">{content.platform}</div>
+                    <div className="font-medium text-white">{content.title}</div>
+                    <div className="text-sm text-white/50">{content.platform}</div>
                   </div>
                 </div>
                 
                 <div className="flex items-center gap-6">
                   <div className="text-center">
-                    <div className="text-text-main font-medium">{content.views.toLocaleString()}</div>
-                    <div className="text-xs text-text-muted">Views</div>
+                    <div className="text-white font-medium">{content.views.toLocaleString()}</div>
+                    <div className="text-xs text-white/50">Views</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-text-main font-medium">{content.engagement}%</div>
-                    <div className="text-xs text-text-muted">Engagement</div>
+                    <div className="text-white font-medium">{content.engagement}%</div>
+                    <div className="text-xs text-white/50">Engagement</div>
                   </div>
                   <div className="text-center">
                     <div className="text-green-400 font-medium">{content.roi}%</div>
-                    <div className="text-xs text-text-muted">ROI</div>
+                    <div className="text-xs text-white/50">ROI</div>
                   </div>
-                  <Button size="sm" variant="outline" className="text-text-main border-border-color">
+                  <Button size="sm" variant="outline" className="text-white border-white/20">
                     View Details
                   </Button>
                 </div>

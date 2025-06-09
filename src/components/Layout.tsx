@@ -1,21 +1,19 @@
 
 import { ReactNode } from 'react';
 import TopNavBar from '@/components/TopNavBar';
-import BreadcrumbNavigation from '@/components/BreadcrumbNavigation';
 
 interface LayoutProps {
   children: ReactNode;
-  showBreadcrumbs?: boolean;
 }
 
-const Layout = ({ children, showBreadcrumbs = true }: LayoutProps) => {
+const Layout = ({ children }: LayoutProps) => {
   return (
     <div className="min-h-screen bg-bg-main">
       <TopNavBar />
       
-      <main className="spacing-section">
-        <div className="container-main">
-          {showBreadcrumbs && <BreadcrumbNavigation />}
+      {/* Main Content with top padding to account for fixed navbar */}
+      <main className="pt-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {children}
         </div>
       </main>

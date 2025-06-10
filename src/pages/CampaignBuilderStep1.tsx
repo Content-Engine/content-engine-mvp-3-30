@@ -152,7 +152,7 @@ const CampaignBuilderStep1 = ({ campaignData, updateCampaignData, onNext }: Camp
       </div>
 
       {/* Enhanced Debug Panel */}
-      <div className="text-center">
+      {/*<div className="text-center">
         <div className="glass-card-strong p-4 inline-block">
           <div className="text-muted-foreground text-sm space-y-1">
             <p>🔍 Step 1 Debug Info:</p>
@@ -163,7 +163,7 @@ const CampaignBuilderStep1 = ({ campaignData, updateCampaignData, onNext }: Camp
             <p>Button Enabled: {canContinue ? '✅' : '❌'}</p>
           </div>
         </div>
-      </div>
+      </div>*/}
 
       {/* Help Text */}
       <div className="text-center">

@@ -3,8 +3,14 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, User, Menu, X, CreditCard, Users, Edit, Calendar } from 'lucide-react';
+import { LogOut, User, Menu, X, CreditCard, Users, Edit, Calendar, ChevronDown } from 'lucide-react';
 import { usePayments } from '@/hooks/usePayments';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 const TopNavBar = () => {
   const { user, userRole, signOut } = useAuth();
@@ -34,7 +40,8 @@ const TopNavBar = () => {
       items.push(
         { path: '/social-manager', label: 'Social Manager', icon: Calendar },
         { path: '/editor', label: 'Editor Portal', icon: Edit },
-        { path: '/user-management', label: 'User Management', icon: Users }
+        { path: '/user-management', label: 'User Management', icon: Users },
+        { path: '/campaign-builder', label: 'Campaign Builder', icon: Edit }
       );
     }
     
@@ -90,16 +97,39 @@ const TopNavBar = () => {
                   >
                     Dashboard
                   </Button>
-                  <Button
-                    variant="ghost"
-                    onClick={() => navigate('/campaign-builder')}
-                    className="text-white/90 hover:text-white hover:bg-white/10"
-                  >
-                    Campaign Builder
-                  </Button>
                   
-                  {/* Role-based navigation items */}
-                  {roleBasedItems.map((item) => {
+                  {/* Admin Dropdown */}
+                  {userRole === 'admin' && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          className="text-white/90 hover:text-white hover:bg-white/10"
+                        >
+                          Admin Tools
+                          <ChevronDown className="h-4 w-4 ml-2" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="bg-white/95 backdrop-blur-md border border-white/20">
+                        {roleBasedItems.map((item) => {
+                          const Icon = item.icon;
+                          return (
+                            <DropdownMenuItem
+                              key={item.path}
+                              onClick={() => navigate(item.path)}
+                              className="cursor-pointer"
+                            >
+                              <Icon className="h-4 w-4 mr-2" />
+                              {item.label}
+                            </DropdownMenuItem>
+                          );
+                        })}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
+                  
+                  {/* Non-admin role-based navigation items */}
+                  {userRole !== 'admin' && roleBasedItems.map((item) => {
                     const Icon = item.icon;
                     return (
                       <Button
@@ -191,16 +221,6 @@ const TopNavBar = () => {
                   className="w-full justify-start text-white/90 hover:text-white hover:bg-white/10"
                 >
                   Dashboard
-                </Button>
-                <Button
-                  variant="ghost"
-                  onClick={() => {
-                    navigate('/campaign-builder');
-                    setIsMenuOpen(false);
-                  }}
-                  className="w-full justify-start text-white/90 hover:text-white hover:bg-white/10"
-                >
-                  Campaign Builder
                 </Button>
                 
                 {/* Role-based navigation items for mobile */}

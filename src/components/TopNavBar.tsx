@@ -1,12 +1,13 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, User, Menu, X, CreditCard } from 'lucide-react';
+import { LogOut, User, Menu, X, CreditCard, Users, Edit, Calendar } from 'lucide-react';
 import { usePayments } from '@/hooks/usePayments';
 
 const TopNavBar = () => {
-  const { user, signOut } = useAuth();
+  const { user, userRole, signOut } = useAuth();
   const { paymentTier } = usePayments();
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -24,6 +25,44 @@ const TopNavBar = () => {
       default: return 'bg-gray-100 text-gray-800';
     }
   };
+
+  const getRoleBasedNavItems = () => {
+    const items = [];
+    
+    // Admin can see everything
+    if (userRole === 'admin') {
+      items.push(
+        { path: '/social-manager', label: 'Social Manager', icon: Calendar },
+        { path: '/editor', label: 'Editor Portal', icon: Edit },
+        { path: '/user-management', label: 'User Management', icon: Users }
+      );
+    }
+    
+    // Social Media Manager
+    if (userRole === 'social_media_manager') {
+      items.push(
+        { path: '/social-manager', label: 'Social Manager', icon: Calendar }
+      );
+    }
+    
+    // Editor
+    if (userRole === 'editor') {
+      items.push(
+        { path: '/editor', label: 'Editor Portal', icon: Edit }
+      );
+    }
+    
+    // User/Client
+    if (userRole === 'user') {
+      items.push(
+        { path: '/client-portal', label: 'Client Portal', icon: User }
+      );
+    }
+
+    return items;
+  };
+
+  const roleBasedItems = getRoleBasedNavItems();
 
   return (
     <nav className="bg-white/10 backdrop-blur-md border-b border-white/20 sticky top-0 z-50">
@@ -58,6 +97,23 @@ const TopNavBar = () => {
                   >
                     Campaign Builder
                   </Button>
+                  
+                  {/* Role-based navigation items */}
+                  {roleBasedItems.map((item) => {
+                    const Icon = item.icon;
+                    return (
+                      <Button
+                        key={item.path}
+                        variant="ghost"
+                        onClick={() => navigate(item.path)}
+                        className="text-white/90 hover:text-white hover:bg-white/10"
+                      >
+                        <Icon className="h-4 w-4 mr-2" />
+                        {item.label}
+                      </Button>
+                    );
+                  })}
+                  
                   <Button
                     variant="ghost"
                     onClick={() => navigate('/payment-tiers')}
@@ -146,6 +202,26 @@ const TopNavBar = () => {
                 >
                   Campaign Builder
                 </Button>
+                
+                {/* Role-based navigation items for mobile */}
+                {roleBasedItems.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <Button
+                      key={item.path}
+                      variant="ghost"
+                      onClick={() => {
+                        navigate(item.path);
+                        setIsMenuOpen(false);
+                      }}
+                      className="w-full justify-start text-white/90 hover:text-white hover:bg-white/10"
+                    >
+                      <Icon className="h-4 w-4 mr-2" />
+                      {item.label}
+                    </Button>
+                  );
+                })}
+                
                 <Button
                   variant="ghost"
                   onClick={() => {

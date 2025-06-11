@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -145,7 +144,7 @@ const CampaignBuilder = () => {
               startDate={state.schedule.startDate}
               autoBoost={state.schedule.autoBoost}
               onNameChange={(name) => updateState({ name })}
-              onStartDateChange={(date) => updateState({ 
+              onDateChange={(date) => updateState({ 
                 schedule: { ...state.schedule, startDate: date }
               })}
               onAutoBoostChange={(enabled) => updateState({ 

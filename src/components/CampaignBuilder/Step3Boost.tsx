@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -51,10 +50,11 @@ interface Step3BoostProps {
   echoPlatforms: number;
   autoFillLookalike: boolean;
   commentTemplates: string[];
-  onTierSelect: (tierId: string) => void;
+  platformTargets: string[];
+  hashtagsCaption: string;
+  onSyndicationChange: (tier: string) => void;
   onEchoPlatformsChange: (platforms: number) => void;
-  onAutoFillToggle: (enabled: boolean) => void;
-  onCommentTemplatesChange: (templates: string[]) => void;
+  onAutoFillChange: (enabled: boolean) => void;
   onNext: () => void;
 }
 
@@ -63,17 +63,18 @@ const Step3Boost = ({
   echoPlatforms,
   autoFillLookalike,
   commentTemplates,
-  onTierSelect,
+  platformTargets,
+  hashtagsCaption,
+  onSyndicationChange,
   onEchoPlatformsChange,
-  onAutoFillToggle,
-  onCommentTemplatesChange,
+  onAutoFillChange,
   onNext 
 }: Step3BoostProps) => {
   const [showBoostSettings, setShowBoostSettings] = useState(!!syndicationTier);
   const { toast } = useToast();
 
   const handleTierSelect = (tierId: string) => {
-    onTierSelect(tierId);
+    onSyndicationChange(tierId);
     setShowBoostSettings(true);
     toast({
       title: "Tier Selected",
@@ -253,7 +254,7 @@ const Step3Boost = ({
                   </div>
                   <Switch
                     checked={autoFillLookalike}
-                    onCheckedChange={onAutoFillToggle}
+                    onCheckedChange={onAutoFillChange}
                   />
                 </div>
                 

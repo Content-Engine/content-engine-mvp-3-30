@@ -1,6 +1,6 @@
 
 export const DEV_MODE = {
-  DISABLE_AUTH: true,
+  DISABLE_AUTH: false,
   MOCK_USER: {
     id: '00000000-0000-4000-8000-000000000001', // Valid UUID format
     email: 'dev@example.com',

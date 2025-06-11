@@ -4,6 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import Layout from "@/components/Layout";
+import { useCampaignData } from "@/hooks/useCampaignData";
 import { useCampaignBuilder } from "@/hooks/useCampaignBuilder";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -20,8 +21,10 @@ const CampaignBuilder = () => {
   const navigate = useNavigate();
   const { stepNumber } = useParams();
   const [currentStep, setCurrentStep] = useState(1);
-  const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
-  const { campaignData, updateCampaignData, createCampaign, saveDraft } = useCampaignBuilder();
+  const [currentCampaignId, setCurrentCampaignId] = useState<string>("");
+  
+  const { createCampaign } = useCampaignData();
+  const { state, updateState } = useCampaignBuilder();
   const { userRole } = useAuth();
 
   useEffect(() => {
@@ -44,8 +47,22 @@ const CampaignBuilder = () => {
 
   const handleLaunchCampaign = async () => {
     try {
-      const campaign = await createCampaign();
+      const campaign = await createCampaign({
+        name: state.name,
+        goal: state.goal,
+        status: 'active',
+        syndication_tier: state.syndicationTier,
+        boost_settings: state.boosts,
+        start_date: state.schedule.startDate,
+        echo_boost_enabled: state.boosts.echoClone,
+        echo_boost_platforms: state.echo_boost_platforms,
+        auto_fill_lookalike: state.auto_fill_lookalike,
+        platform_targets: state.platform_targets,
+        hashtags_caption: state.hashtags_caption
+      });
+      
       if (campaign) {
+        setCurrentCampaignId(campaign.id);
         navigate('/dashboard');
       }
     } catch (error) {
@@ -54,45 +71,104 @@ const CampaignBuilder = () => {
   };
 
   const handleClientLinked = (clientId: string) => {
-    updateCampaignData({ user_id: clientId });
+    console.log('Client linked:', clientId);
+  };
+
+  const handleGoalSelect = (goal: string) => {
+    updateState({ goal });
+  };
+
+  const handleBoostToggle = (boostId: string, enabled: boolean) => {
+    updateState({
+      boosts: {
+        ...state.boosts,
+        [boostId]: enabled
+      }
+    });
   };
 
   const renderStep = () => {
     switch (currentStep) {
       case 1:
-        return <Step1Goal onNext={nextStep} />;
+        return (
+          <Step1Goal 
+            selectedGoal={state.goal}
+            onGoalSelect={handleGoalSelect}
+            onNext={nextStep} 
+          />
+        );
       case 2:
         return (
           <div className="space-y-6">
-            <Step2Upload onNext={nextStep} onFilesUploaded={setUploadedFiles} />
-            {/* Show client linker for admins and social media managers */}
-            {['admin', 'social_media_manager'].includes(userRole || '') && campaignData.id && (
+            <Step2Upload 
+              contentFiles={state.contentFiles}
+              onFilesUpdate={(files) => updateState({ contentFiles: files })}
+              onNext={nextStep}
+              onPrevious={prevStep}
+            />
+            {['admin', 'social_media_manager'].includes(userRole || '') && currentCampaignId && (
               <CampaignClientLinker 
-                campaignId={campaignData.id} 
+                campaignId={currentCampaignId} 
                 onClientLinked={handleClientLinked}
               />
             )}
           </div>
         );
       case 3:
-        return <Step3Boost onNext={nextStep} />;
+        return (
+          <Step3Boost 
+            syndicationTier={state.syndicationTier}
+            echoPlatforms={state.echo_boost_platforms}
+            autoFillLookalike={state.auto_fill_lookalike}
+            commentTemplates={state.comment_templates}
+            platformTargets={state.platform_targets}
+            hashtagsCaption={state.hashtags_caption}
+            onSyndicationChange={(tier) => updateState({ syndicationTier: tier })}
+            onEchoPlatformsChange={(count) => updateState({ echo_boost_platforms: count })}
+            onAutoFillChange={(enabled) => updateState({ auto_fill_lookalike: enabled })}
+            onNext={nextStep} 
+          />
+        );
       case 4:
-        return <Step4Schedule onNext={nextStep} />;
+        return (
+          <Step4Schedule 
+            boosts={state.boosts}
+            onBoostToggle={handleBoostToggle}
+            onNext={nextStep} 
+          />
+        );
       case 5:
         return (
           <div className="space-y-6">
-            <Step5Launch onLaunch={handleLaunchCampaign} />
-            {/* Auto-assign editors when campaign is created */}
-            {campaignData.id && uploadedFiles.length > 0 && (
+            <Step5Launch 
+              campaignName={state.name}
+              startDate={state.schedule.startDate}
+              autoBoost={state.schedule.autoBoost}
+              onNameChange={(name) => updateState({ name })}
+              onStartDateChange={(date) => updateState({ 
+                schedule: { ...state.schedule, startDate: date }
+              })}
+              onAutoBoostChange={(enabled) => updateState({ 
+                schedule: { ...state.schedule, autoBoost: enabled }
+              })}
+              onLaunch={handleLaunchCampaign} 
+            />
+            {currentCampaignId && state.contentFiles.length > 0 && (
               <AutoEditorAssignment 
-                campaignId={campaignData.id}
-                contentItems={uploadedFiles}
+                campaignId={currentCampaignId}
+                contentItems={state.contentFiles.map(f => f.id)}
               />
             )}
           </div>
         );
       default:
-        return <Step1Goal onNext={nextStep} />;
+        return (
+          <Step1Goal 
+            selectedGoal={state.goal}
+            onGoalSelect={handleGoalSelect}
+            onNext={nextStep} 
+          />
+        );
     }
   };
 
@@ -163,7 +239,7 @@ const CampaignBuilder = () => {
               <div className="flex gap-2">
                 <Button
                   variant="ghost"
-                  onClick={() => saveDraft()}
+                  onClick={() => console.log('Save draft')}
                   className="text-white hover:bg-white/10"
                 >
                   Save Draft

@@ -14,7 +14,6 @@ import {
   Share2,
   ArrowLeft,
   Bell,
-  Search,
   Settings,
   AlertCircle
 } from "lucide-react";
@@ -31,28 +30,39 @@ const SocialManagerDashboard = () => {
   const { toast } = useToast();
   const { userRole, loading, user } = useAuth();
   const [currentCampaign, setCurrentCampaign] = useState("All Campaigns");
+  const [hasCheckedAccess, setHasCheckedAccess] = useState(false);
 
   const sidebarItems = [
-    { path: "/social/calendar", label: "Calendar", icon: Calendar },
-    { path: "/social/editors", label: "Editors & Schedulers", icon: Users },
-    { path: "/social/syndication", label: "Syndication", icon: Share2 },
-    { path: "/social/performance", label: "Performance", icon: BarChart3 },
-    { path: "/social/assets", label: "Content Library", icon: FolderOpen },
-    { path: "/social/training", label: "Training & SOPs", icon: GraduationCap },
+    { path: "/social-manager/calendar", label: "Calendar", icon: Calendar },
+    { path: "/social-manager/editors", label: "Editors & Schedulers", icon: Users },
+    { path: "/social-manager/syndication", label: "Syndication", icon: Share2 },
+    { path: "/social-manager/performance", label: "Performance", icon: BarChart3 },
+    { path: "/social-manager/assets", label: "Content Library", icon: FolderOpen },
+    { path: "/social-manager/training", label: "Training & SOPs", icon: GraduationCap },
   ];
 
   useEffect(() => {
-    if (!loading && userRole && !['admin', 'social_media_manager'].includes(userRole)) {
-      toast({
-        title: "Access Denied",
-        description: "You don't have permission to access the Social Media Manager dashboard.",
-        variant: "destructive",
-      });
-      navigate("/unauthorized");
+    if (!loading && !hasCheckedAccess) {
+      setHasCheckedAccess(true);
+      
+      if (!user) {
+        navigate("/auth");
+        return;
+      }
+      
+      if (userRole && !['admin', 'social_media_manager'].includes(userRole)) {
+        console.log('Access denied for role:', userRole);
+        toast({
+          title: "Access Denied",
+          description: "You don't have permission to access the Social Media Manager dashboard.",
+          variant: "destructive",
+        });
+        navigate("/unauthorized");
+      }
     }
-  }, [userRole, loading, navigate, toast]);
+  }, [userRole, loading, user, navigate, toast, hasCheckedAccess]);
 
-  if (loading) {
+  if (loading || !hasCheckedAccess) {
     return (
       <div className="min-h-screen bg-bg-main flex items-center justify-center">
         <div className="animate-pulse text-center">
@@ -70,7 +80,7 @@ const SocialManagerDashboard = () => {
           <AlertCircle className="h-12 w-12 text-accent mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-text-main mb-2">Authentication Required</h2>
           <p className="text-text-muted mb-4">Please log in to access the Social Manager Dashboard.</p>
-          <Button onClick={() => navigate('/login')} className="btn-primary">
+          <Button onClick={() => navigate('/auth')} className="btn-primary">
             Go to Login
           </Button>
         </div>
@@ -171,16 +181,6 @@ const SocialManagerDashboard = () => {
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-semibold text-text-main">{getCurrentPageTitle()}</h2>
               <div className="flex items-center gap-4">
-                <div className="relative">
-                  {/*
-                  <Search className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-text-muted" />
-                  <input
-                    type="text"
-                    placeholder="Search..."
-                    className="input-primary pl-10 pr-4 py-2 w-64"
-                  />
-                  */}
-                </div>
                 <Button variant="ghost" size="sm" className="text-text-muted hover:text-text-main">
                   <Bell className="h-4 w-4" />
                 </Button>

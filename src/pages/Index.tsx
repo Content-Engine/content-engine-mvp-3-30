@@ -4,30 +4,37 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowRight, Users, Calendar, BarChart3, Zap } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 const Index = () => {
   const navigate = useNavigate();
   const { user, userRole, loading } = useAuth();
+  const [hasRedirected, setHasRedirected] = useState(false);
 
   useEffect(() => {
-    // Redirect authenticated users to appropriate dashboard
-    if (!loading && user) {
-      switch (userRole) {
-        case 'admin':
-          navigate('/dashboard');
-          break;
-        case 'social_media_manager':
-          navigate('/social-manager');
-          break;
-        case 'editor':
-          navigate('/editor');
-          break;
-        default:
-          navigate('/dashboard');
-      }
+    // Prevent infinite redirect loops by only redirecting once
+    if (!loading && user && !hasRedirected) {
+      console.log('User authenticated, redirecting based on role:', userRole);
+      setHasRedirected(true);
+      
+      // Add a small delay to prevent race conditions
+      setTimeout(() => {
+        switch (userRole) {
+          case 'admin':
+            navigate('/dashboard');
+            break;
+          case 'social_media_manager':
+            navigate('/social-manager');
+            break;
+          case 'editor':
+            navigate('/editor');
+            break;
+          default:
+            navigate('/dashboard');
+        }
+      }, 100);
     }
-  }, [user, userRole, loading, navigate]);
+  }, [user, userRole, loading, navigate, hasRedirected]);
 
   if (loading) {
     return (
@@ -37,8 +44,17 @@ const Index = () => {
     );
   }
 
+  // Don't render the landing page if user is authenticated to prevent flash
+  if (user && !hasRedirected) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-black via-gray-950 to-gray-900 flex items-center justify-center">
+        <div className="text-white text-xl">Redirecting...</div>
+      </div>
+    );
+  }
+
+  // Only show landing page if user is not authenticated
   if (user) {
-    // This will be handled by the useEffect redirect above
     return null;
   }
 

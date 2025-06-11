@@ -33,12 +33,12 @@ const SocialManagerDashboard = () => {
   const [currentCampaign, setCurrentCampaign] = useState("All Campaigns");
 
   const sidebarItems = [
-    { path: "/social/calendar", label: "Calendar", icon: Calendar },
-    { path: "/social/editors", label: "Editors & Schedulers", icon: Users },
-    { path: "/social/syndication", label: "Syndication", icon: Share2 },
-    { path: "/social/performance", label: "Performance", icon: BarChart3 },
-    { path: "/social/assets", label: "Content Library", icon: FolderOpen },
-    { path: "/social/training", label: "Training & SOPs", icon: GraduationCap },
+    { path: "/social-manager/calendar", label: "Calendar", icon: Calendar },
+    { path: "/social-manager/editors", label: "Editors & Schedulers", icon: Users },
+    { path: "/social-manager/syndication", label: "Syndication", icon: Share2 },
+    { path: "/social-manager/performance", label: "Performance", icon: BarChart3 },
+    { path: "/social-manager/assets", label: "Content Library", icon: FolderOpen },
+    { path: "/social-manager/training", label: "Training & SOPs", icon: GraduationCap },
   ];
 
   useEffect(() => {
@@ -198,7 +198,7 @@ const SocialManagerDashboard = () => {
               <Route path="/performance" element={<PerformanceView currentCampaign={currentCampaign} />} />
               <Route path="/assets" element={<AssetsLibrary currentCampaign={currentCampaign} />} />
               <Route path="/training" element={<TrainingView />} />
-              <Route path="/" element={<SocialCalendarView currentCampaign={currentCampaign} />} />
+              <Route path="/*" element={<SocialCalendarView currentCampaign={currentCampaign} />} />
             </Routes>
           </div>
         </div>

@@ -15,6 +15,10 @@ import {
   Plus
 } from "lucide-react";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths } from "date-fns";
+import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
+import PostSchedulerModal from "./PostSchedulerModal";
+import BoostPurchaseModal from "@/components/BoostPurchaseModal";
 
 interface SocialCalendarViewProps {
   currentCampaign: string;
@@ -36,9 +40,14 @@ const SocialCalendarView = ({ currentCampaign }: SocialCalendarViewProps) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<'month' | 'week'>('month');
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [showBoostModal, setShowBoostModal] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
+  const { toast } = useToast();
+  const navigate = useNavigate();
 
   // Mock data - replace with real data fetching
-  const mockEvents: Record<string, CalendarEvent[]> = {
+  const [mockEvents, setMockEvents] = useState<Record<string, CalendarEvent[]>>({
     '2024-01-15': [
       {
         id: '1',
@@ -62,7 +71,7 @@ const SocialCalendarView = ({ currentCampaign }: SocialCalendarViewProps) => {
         time: '18:00'
       }
     ]
-  };
+  });
 
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
@@ -86,6 +95,76 @@ const SocialCalendarView = ({ currentCampaign }: SocialCalendarViewProps) => {
       case 'Facebook': return '👥';
       default: return '📱';
     }
+  };
+
+  const handleScheduleContent = () => {
+    setShowScheduleModal(true);
+  };
+
+  const handleEditEvent = (event: CalendarEvent) => {
+    console.log('Editing event:', event);
+    toast({
+      title: "Edit Content",
+      description: `Opening editor for "${event.title}"`,
+    });
+    // Navigate to editor with event details
+    navigate('/editor', { state: { eventId: event.id, event } });
+  };
+
+  const handleBoostEvent = (event: CalendarEvent) => {
+    setSelectedEvent(event);
+    setShowBoostModal(true);
+  };
+
+  const handleBoostPurchase = (boostData: any) => {
+    if (selectedEvent) {
+      // Update the event with boost status
+      const updatedEvents = { ...mockEvents };
+      const dateKey = format(selectedDate || new Date(), 'yyyy-MM-dd');
+      if (updatedEvents[dateKey]) {
+        const eventIndex = updatedEvents[dateKey].findIndex(e => e.id === selectedEvent.id);
+        if (eventIndex !== -1) {
+          updatedEvents[dateKey][eventIndex] = {
+            ...updatedEvents[dateKey][eventIndex],
+            boosted: true
+          };
+          setMockEvents(updatedEvents);
+        }
+      }
+      
+      toast({
+        title: "Boost Applied",
+        description: `"${selectedEvent.title}" has been boosted successfully!`,
+      });
+    }
+    setShowBoostModal(false);
+    setSelectedEvent(null);
+  };
+
+  const handleContentScheduled = (contentData: any) => {
+    const dateKey = format(selectedDate || new Date(), 'yyyy-MM-dd');
+    const newEvent: CalendarEvent = {
+      id: Date.now().toString(),
+      title: contentData.title || 'New Content',
+      platform: contentData.platforms?.[0] || 'Instagram',
+      status: 'scheduled',
+      editor: 'Current User',
+      time: contentData.scheduleTime || '12:00',
+      boosted: contentData.boostEnabled || false
+    };
+
+    const updatedEvents = { ...mockEvents };
+    if (!updatedEvents[dateKey]) {
+      updatedEvents[dateKey] = [];
+    }
+    updatedEvents[dateKey].push(newEvent);
+    setMockEvents(updatedEvents);
+
+    toast({
+      title: "Content Scheduled",
+      description: `"${newEvent.title}" has been scheduled for ${format(selectedDate || new Date(), 'MMM d')}.`,
+    });
+    setShowScheduleModal(false);
   };
 
   return (
@@ -131,7 +210,10 @@ const SocialCalendarView = ({ currentCampaign }: SocialCalendarViewProps) => {
           >
             Week
           </Button>
-          <Button className="bg-purple-600 hover:bg-purple-700 text-white">
+          <Button 
+            className="bg-purple-600 hover:bg-purple-700 text-white"
+            onClick={handleScheduleContent}
+          >
             <Plus className="h-4 w-4 mr-2" />
             Schedule Content
           </Button>
@@ -251,10 +333,19 @@ const SocialCalendarView = ({ currentCampaign }: SocialCalendarViewProps) => {
                     </div>
 
                     <div className="flex gap-2 mt-4">
-                      <Button size="sm" variant="outline" className="text-white border-white/20">
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="text-white border-white/20"
+                        onClick={() => handleEditEvent(event)}
+                      >
                         Edit
                       </Button>
-                      <Button size="sm" className="bg-purple-600 hover:bg-purple-700">
+                      <Button 
+                        size="sm" 
+                        className="bg-purple-600 hover:bg-purple-700"
+                        onClick={() => handleBoostEvent(event)}
+                      >
                         <Zap className="h-3 w-3 mr-1" />
                         Boost
                       </Button>
@@ -263,12 +354,52 @@ const SocialCalendarView = ({ currentCampaign }: SocialCalendarViewProps) => {
                 </Card>
               )) || (
                 <div className="col-span-full text-center text-white/50 py-8">
-                  No content scheduled for this day
+                  <p>No content scheduled for this day</p>
+                  <Button 
+                    variant="outline" 
+                    className="mt-4 text-white border-white/20"
+                    onClick={handleScheduleContent}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Schedule Content
+                  </Button>
                 </div>
               )}
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {/* Schedule Modal */}
+      <PostSchedulerModal
+        isOpen={showScheduleModal}
+        onClose={() => setShowScheduleModal(false)}
+        onSchedule={handleContentScheduled}
+        selectedDate={selectedDate}
+      />
+
+      {/* Boost Modal */}
+      {selectedEvent && (
+        <BoostPurchaseModal
+          isOpen={showBoostModal}
+          onClose={() => setShowBoostModal(false)}
+          content={{
+            id: selectedEvent.id,
+            campaignId: currentCampaign,
+            title: selectedEvent.title,
+            thumbnailUrl: "/placeholder.svg",
+            platform: selectedEvent.platform,
+            accountName: "@example",
+            editorName: selectedEvent.editor,
+            approvalStatus: "approved",
+            scheduledDate: format(selectedDate || new Date(), 'yyyy-MM-dd'),
+            autoApproved: false,
+            mediaUrl: "/placeholder.svg",
+            comments: [],
+            boostStatus: selectedEvent.boosted ? "boosted" : "none"
+          }}
+          onPurchase={handleBoostPurchase}
+        />
       )}
     </div>
   );

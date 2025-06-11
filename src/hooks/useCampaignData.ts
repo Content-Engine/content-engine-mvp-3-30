@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Json } from '@/integrations/supabase/types';
+import { DEV_MODE } from '@/config/dev';
 
 interface Campaign {
   id: string;
@@ -45,18 +46,37 @@ export const useCampaignData = () => {
       
       console.log('🔍 Fetching campaigns for user:', user?.id);
       
-      const { data, error } = await supabase
-        .from('campaigns')
-        .select('*')
-        .order('created_at', { ascending: false });
+      // In dev mode with mock auth, fetch all campaigns since we can't create proper user relationships
+      if (DEV_MODE.USE_MOCK_AUTH || DEV_MODE.DISABLE_AUTH) {
+        console.log('🔧 Dev mode: fetching all campaigns');
+        const { data, error } = await supabase
+          .from('campaigns')
+          .select('*')
+          .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error('Error fetching campaigns:', error);
-        throw error;
+        if (error) {
+          console.error('Error fetching campaigns:', error);
+          throw error;
+        }
+        
+        console.log('✅ Campaigns fetched (dev mode):', data?.length || 0);
+        setCampaigns(data || []);
+      } else {
+        // Production mode: fetch only user's campaigns
+        const { data, error } = await supabase
+          .from('campaigns')
+          .select('*')
+          .eq('user_id', user?.id)
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.error('Error fetching campaigns:', error);
+          throw error;
+        }
+        
+        console.log('✅ Campaigns fetched (prod mode):', data?.length || 0);
+        setCampaigns(data || []);
       }
-      
-      console.log('✅ Campaigns fetched:', data?.length || 0);
-      setCampaigns(data || []);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch campaigns';
       setError(errorMessage);
@@ -67,7 +87,7 @@ export const useCampaignData = () => {
   };
 
   const createCampaign = async (campaignData: Partial<Campaign>) => {
-    if (!user) {
+    if (!user && !DEV_MODE.USE_MOCK_AUTH && !DEV_MODE.DISABLE_AUTH) {
       throw new Error('User must be authenticated to create campaigns');
     }
 
@@ -85,7 +105,8 @@ export const useCampaignData = () => {
         budget_allocated: campaignData.budget_allocated || 0,
         budget_spent: campaignData.budget_spent || 0,
         boost_settings: campaignData.boost_settings || {},
-        user_id: user.id,
+        // In dev mode, don't set user_id to avoid foreign key constraints
+        user_id: (DEV_MODE.USE_MOCK_AUTH || DEV_MODE.DISABLE_AUTH) ? null : user?.id,
         assigned_editor_id: campaignData.assigned_editor_id || null,
         platforms: campaignData.platforms || [],
         clips_count: campaignData.clips_count || 1,
@@ -140,7 +161,8 @@ export const useCampaignData = () => {
   };
 
   useEffect(() => {
-    if (user) {
+    // In dev mode, always fetch campaigns regardless of user state
+    if (DEV_MODE.USE_MOCK_AUTH || DEV_MODE.DISABLE_AUTH || user) {
       fetchCampaigns();
     }
   }, [user]);

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -27,7 +26,7 @@ interface SocialCalendarViewProps {
 interface CalendarEvent {
   id: string;
   title: string;
-  platform: string;
+  platform: 'TikTok' | 'Instagram' | 'YouTube' | 'Facebook';
   status: 'scheduled' | 'missing_caption' | 'needs_comments' | 'published';
   editor: string;
   time: string;
@@ -141,30 +140,13 @@ const SocialCalendarView = ({ currentCampaign }: SocialCalendarViewProps) => {
     setSelectedEvent(null);
   };
 
-  const handleContentScheduled = (contentData: any) => {
-    const dateKey = format(selectedDate || new Date(), 'yyyy-MM-dd');
-    const newEvent: CalendarEvent = {
-      id: Date.now().toString(),
-      title: contentData.title || 'New Content',
-      platform: contentData.platforms?.[0] || 'Instagram',
-      status: 'scheduled',
-      editor: 'Current User',
-      time: contentData.scheduleTime || '12:00',
-      boosted: contentData.boostEnabled || false
-    };
-
-    const updatedEvents = { ...mockEvents };
-    if (!updatedEvents[dateKey]) {
-      updatedEvents[dateKey] = [];
-    }
-    updatedEvents[dateKey].push(newEvent);
-    setMockEvents(updatedEvents);
-
+  const handleModalClose = () => {
+    setShowScheduleModal(false);
+    // Refresh data or handle any necessary updates after modal closes
     toast({
       title: "Content Scheduled",
-      description: `"${newEvent.title}" has been scheduled for ${format(selectedDate || new Date(), 'MMM d')}.`,
+      description: "New content has been added to the calendar.",
     });
-    setShowScheduleModal(false);
   };
 
   return (
@@ -373,9 +355,7 @@ const SocialCalendarView = ({ currentCampaign }: SocialCalendarViewProps) => {
       {/* Schedule Modal */}
       <PostSchedulerModal
         isOpen={showScheduleModal}
-        onClose={() => setShowScheduleModal(false)}
-        onSchedule={handleContentScheduled}
-        selectedDate={selectedDate}
+        onClose={handleModalClose}
       />
 
       {/* Boost Modal */}

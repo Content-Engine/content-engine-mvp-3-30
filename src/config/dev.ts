@@ -3,7 +3,7 @@ export const DEV_MODE = {
   DISABLE_AUTH: false,
   USE_MOCK_AUTH: true, // New flag for mock auth
   MOCK_USER: {
-    id: 'demo-user-id',
+    id: '12345678-1234-5678-9012-123456789012', // Valid UUID format
     email: 'dev@bypass.com',
     user_metadata: {
       full_name: 'Dev User'

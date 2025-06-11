@@ -43,6 +43,8 @@ export const useCampaignData = () => {
       setLoading(true);
       setError(null);
       
+      console.log('🔍 Fetching campaigns for user:', user?.id);
+      
       const { data, error } = await supabase
         .from('campaigns')
         .select('*')
@@ -53,6 +55,7 @@ export const useCampaignData = () => {
         throw error;
       }
       
+      console.log('✅ Campaigns fetched:', data?.length || 0);
       setCampaigns(data || []);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch campaigns';
@@ -69,38 +72,49 @@ export const useCampaignData = () => {
     }
 
     try {
+      console.log('📝 Creating campaign with data:', campaignData);
+      
+      // Prepare campaign data with proper null handling
+      const campaignPayload = {
+        name: campaignData.name || `Campaign ${new Date().toLocaleDateString()}`,
+        goal: campaignData.goal || 'awareness',
+        status: campaignData.status || 'draft',
+        syndication_tier: campaignData.syndication_tier || null,
+        start_date: campaignData.start_date || null,
+        end_date: campaignData.end_date || null,
+        budget_allocated: campaignData.budget_allocated || 0,
+        budget_spent: campaignData.budget_spent || 0,
+        boost_settings: campaignData.boost_settings || {},
+        user_id: user.id,
+        assigned_editor_id: campaignData.assigned_editor_id || null,
+        platforms: campaignData.platforms || [],
+        clips_count: campaignData.clips_count || 1,
+        cta_type: campaignData.cta_type || 'awareness',
+        posting_start_date: campaignData.posting_start_date || null,
+        posting_end_date: campaignData.posting_end_date || null,
+        echo_boost_enabled: campaignData.echo_boost_enabled || false,
+        requires_approval: campaignData.requires_approval !== undefined ? campaignData.requires_approval : true,
+        notes: campaignData.notes || '',
+        echo_boost_platforms: campaignData.echo_boost_platforms || 1,
+        auto_fill_lookalike: campaignData.auto_fill_lookalike || false,
+        platform_targets: campaignData.platform_targets || [],
+        hashtags_caption: campaignData.hashtags_caption || '',
+      };
+
+      console.log('📋 Final campaign payload:', campaignPayload);
+
       const { data, error } = await supabase
         .from('campaigns')
-        .insert({
-          name: campaignData.name || `Campaign ${new Date().toLocaleDateString()}`,
-          goal: campaignData.goal || '',
-          status: campaignData.status || 'draft',
-          syndication_tier: campaignData.syndication_tier,
-          start_date: campaignData.start_date,
-          end_date: campaignData.end_date,
-          budget_allocated: campaignData.budget_allocated || 0,
-          budget_spent: campaignData.budget_spent || 0,
-          boost_settings: campaignData.boost_settings || {},
-          user_id: user.id,
-          assigned_editor_id: campaignData.assigned_editor_id,
-          platforms: campaignData.platforms || [],
-          clips_count: campaignData.clips_count || 1,
-          cta_type: campaignData.cta_type || 'awareness',
-          posting_start_date: campaignData.posting_start_date,
-          posting_end_date: campaignData.posting_end_date,
-          echo_boost_enabled: campaignData.echo_boost_enabled || false,
-          requires_approval: campaignData.requires_approval !== undefined ? campaignData.requires_approval : true,
-          notes: campaignData.notes || '',
-          echo_boost_platforms: campaignData.echo_boost_platforms || 1,
-          auto_fill_lookalike: campaignData.auto_fill_lookalike || false,
-          platform_targets: campaignData.platform_targets || [],
-          hashtags_caption: campaignData.hashtags_caption || '',
-        })
+        .insert(campaignPayload)
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Supabase error creating campaign:', error);
+        throw error;
+      }
       
+      console.log('✅ Campaign created successfully:', data);
       await fetchCampaigns();
       return data;
     } catch (err) {

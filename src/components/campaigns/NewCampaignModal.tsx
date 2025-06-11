@@ -82,7 +82,16 @@ const NewCampaignModal = ({ isOpen, onClose, onSubmit }: NewCampaignModalProps) 
     setIsSubmitting(true);
     
     try {
-      await onSubmit(formData);
+      // Clean up date fields - convert empty strings to null
+      const cleanedData = {
+        ...formData,
+        posting_start_date: formData.posting_start_date || null,
+        posting_end_date: formData.posting_end_date || null,
+        assigned_editor_id: formData.assigned_editor_id || null
+      };
+      
+      console.log('🚀 Submitting campaign data:', cleanedData);
+      await onSubmit(cleanedData);
       
       // Reset form
       setFormData({

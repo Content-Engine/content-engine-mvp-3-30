@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -26,7 +27,7 @@ interface SocialCalendarViewProps {
 interface CalendarEvent {
   id: string;
   title: string;
-  platform: 'TikTok' | 'Instagram' | 'YouTube' | 'Facebook';
+  platform: 'TikTok' | 'Instagram' | 'YouTube Shorts' | 'Facebook Reels';
   status: 'scheduled' | 'missing_caption' | 'needs_comments' | 'published';
   editor: string;
   time: string;
@@ -90,8 +91,8 @@ const SocialCalendarView = ({ currentCampaign }: SocialCalendarViewProps) => {
     switch (platform) {
       case 'TikTok': return '🎵';
       case 'Instagram': return '📷';
-      case 'YouTube': return '📺';
-      case 'Facebook': return '👥';
+      case 'YouTube Shorts': return '📺';
+      case 'Facebook Reels': return '👥';
       default: return '📱';
     }
   };

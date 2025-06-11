@@ -1,15 +1,33 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, TrendingUp, Users, Zap } from 'lucide-react';
+import { Plus, TrendingUp, Users, Zap, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCampaignData } from '@/hooks/useCampaignData';
 import Layout from '@/components/Layout';
+import { useAuth } from '@/hooks/useAuth';
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { campaigns, loading } = useCampaignData();
+  const { campaigns, loading: campaignsLoading } = useCampaignData();
+  const { loading: authLoading, authError, user, userRole } = useAuth();
+  const [diagnosticInfo, setDiagnosticInfo] = useState<string>('');
+
+  // Add diagnostic logging
+  useEffect(() => {
+    const info = [
+      `🔐 Auth Loading: ${authLoading}`,
+      `👤 User Present: ${!!user}`,
+      `🎭 Role: ${userRole || 'none'}`,
+      `⚠️ Auth Error: ${authError || 'none'}`,
+      `📊 Campaigns Loading: ${campaignsLoading}`,
+      `🕐 Timestamp: ${new Date().toISOString()}`
+    ].join('\n');
+    
+    setDiagnosticInfo(info);
+    console.log('📊 Dashboard Diagnostic Info:', info);
+  }, [authLoading, user, userRole, authError, campaignsLoading]);
 
   // Demo data for metrics
   const metrics = {
@@ -18,10 +36,55 @@ const Dashboard = () => {
     boostImpact: 87.5,
   };
 
-  if (loading) {
+  // Show auth error state
+  if (authError) {
     return (
       <Layout>
-        <div className="text-white text-center">Loading campaigns...</div>
+        <div className="space-y-8">
+          <Card className="glass-card">
+            <CardHeader>
+              <CardTitle className="text-red-400 flex items-center gap-2">
+                <AlertCircle className="h-5 w-5" />
+                Authentication Error
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-white/70 mb-4">{authError}</p>
+              <pre className="text-xs text-white/50 bg-black/20 p-4 rounded overflow-auto">
+                {diagnosticInfo}
+              </pre>
+            </CardContent>
+          </Card>
+        </div>
+      </Layout>
+    );
+  }
+
+  // Show loading state with diagnostic info
+  if (authLoading || campaignsLoading) {
+    return (
+      <Layout>
+        <div className="space-y-8">
+          <Card className="glass-card">
+            <CardHeader>
+              <CardTitle className="text-white">Loading Dashboard...</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="animate-pulse">
+                  <div className="h-4 bg-white/20 rounded w-3/4 mb-2"></div>
+                  <div className="h-4 bg-white/20 rounded w-1/2"></div>
+                </div>
+                <details className="text-xs">
+                  <summary className="text-white/70 cursor-pointer">Show Diagnostic Info</summary>
+                  <pre className="text-white/50 bg-black/20 p-4 rounded mt-2 overflow-auto">
+                    {diagnosticInfo}
+                  </pre>
+                </details>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </Layout>
     );
   }
@@ -34,6 +97,12 @@ const Dashboard = () => {
           <div>
             <h1 className="text-4xl font-bold text-white mb-2">Campaign Dashboard</h1>
             <p className="text-white/70">Manage your music content campaigns</p>
+            {process.env.NODE_ENV === 'development' && (
+              <details className="mt-2">
+                <summary className="text-xs text-white/50 cursor-pointer">Debug Info</summary>
+                <pre className="text-xs text-white/40 mt-1">{diagnosticInfo}</pre>
+              </details>
+            )}
           </div>
           <Button
             onClick={() => navigate('/campaign-builder/step/1')}

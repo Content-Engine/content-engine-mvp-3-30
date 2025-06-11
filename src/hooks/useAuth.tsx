@@ -11,6 +11,7 @@ interface AuthContextType {
   session: Session | null;
   userRole: UserRole | null;
   loading: boolean;
+  authError: string | null;
   signIn: (email: string, password: string) => Promise<{ error?: any }>;
   signUp: (email: string, password: string, fullName?: string, role?: UserRole) => Promise<{ error?: any }>;
   signOut: () => Promise<void>;
@@ -25,11 +26,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [loading, setLoading] = useState(true);
+  const [authError, setAuthError] = useState<string | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
 
   const fetchUserRole = async (userId: string): Promise<UserRole> => {
     try {
-      console.log('Fetching role for user:', userId);
+      console.log('🔍 Fetching role for user:', userId);
       const { data, error } = await supabase
         .from('user_roles')
         .select('role')
@@ -37,22 +39,36 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         .single();
 
       if (error) {
-        console.log('No role found for user, defaulting to user role:', error);
+        console.log('⚠️ No role found for user, defaulting to user role:', error);
         return 'user';
       }
       
-      console.log('User role fetched:', data.role);
+      console.log('✅ User role fetched:', data.role);
       return data.role as UserRole;
     } catch (error) {
-      console.error('Error fetching user role:', error);
+      console.error('❌ Error fetching user role:', error);
       return 'user';
     }
   };
 
+  // Auth timeout safeguard
+  useEffect(() => {
+    const authTimeout = setTimeout(() => {
+      if (loading && !isInitialized) {
+        console.warn('⚠️ Auth timeout after 3 seconds, setting default state');
+        setLoading(false);
+        setIsInitialized(true);
+        setAuthError('Authentication timeout');
+      }
+    }, 3000);
+
+    return () => clearTimeout(authTimeout);
+  }, [loading, isInitialized]);
+
   // Development mode bypass
   useEffect(() => {
     if (DEV_MODE.DISABLE_AUTH && !isInitialized) {
-      console.log('Dev mode enabled, using mock user');
+      console.log('🔧 Dev mode enabled, using mock user');
       setUser(DEV_MODE.MOCK_USER as User);
       setUserRole(DEV_MODE.DEFAULT_ROLE);
       setLoading(false);
@@ -63,39 +79,49 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (isInitialized) return;
 
     let isMounted = true;
+    let roleTimeout: NodeJS.Timeout;
 
     const initializeAuth = async () => {
       try {
-        console.log('Initializing auth...');
+        console.log('🚀 Initializing auth...');
         
         // Set up auth state listener first
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
           async (event, session) => {
-            console.log('Auth state changed:', event, session?.user?.id);
+            console.log('🔄 Auth state changed:', event, session?.user?.id);
             
             if (!isMounted) return;
             
             setSession(session);
             setUser(session?.user ?? null);
             
+            // Clear any existing role timeout
+            if (roleTimeout) {
+              clearTimeout(roleTimeout);
+            }
+            
             if (session?.user) {
-              // Fetch role in a separate async operation to avoid blocking
-              setTimeout(async () => {
+              // Set a timeout for role fetching
+              roleTimeout = setTimeout(async () => {
                 if (!isMounted) return;
                 try {
                   const role = await fetchUserRole(session.user.id);
                   if (isMounted) {
                     setUserRole(role);
+                    setLoading(false);
                   }
                 } catch (error) {
-                  console.error('Error fetching user role in auth state change:', error);
+                  console.error('❌ Error fetching user role in timeout:', error);
                   if (isMounted) {
                     setUserRole('user');
+                    setLoading(false);
+                    setAuthError('Role fetch failed');
                   }
                 }
-              }, 0);
+              }, 100);
             } else {
               setUserRole(null);
+              setLoading(false);
             }
           }
         );
@@ -104,8 +130,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
-          console.error('Error getting initial session:', error);
+          console.error('❌ Error getting initial session:', error);
+          setAuthError(error.message);
         }
+        
+        console.log('📊 Initial session check:', !!session?.user);
         
         if (isMounted) {
           setSession(session);
@@ -118,9 +147,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 setUserRole(role);
               }
             } catch (error) {
-              console.error('Error fetching initial user role:', error);
+              console.error('❌ Error fetching initial user role:', error);
               if (isMounted) {
                 setUserRole('user');
+                setAuthError('Initial role fetch failed');
               }
             }
           }
@@ -131,12 +161,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
         return () => {
           subscription.unsubscribe();
+          if (roleTimeout) {
+            clearTimeout(roleTimeout);
+          }
         };
       } catch (error) {
-        console.error('Error initializing auth:', error);
+        console.error('❌ Error initializing auth:', error);
         if (isMounted) {
           setLoading(false);
           setIsInitialized(true);
+          setAuthError('Auth initialization failed');
         }
       }
     };
@@ -145,6 +179,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     return () => {
       isMounted = false;
+      if (roleTimeout) {
+        clearTimeout(roleTimeout);
+      }
     };
   }, [isInitialized]);
 
@@ -155,8 +192,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       try {
         const role = await fetchUserRole(user.id);
         setUserRole(role);
+        setAuthError(null);
       } catch (error) {
-        console.error('Error refreshing user role:', error);
+        console.error('❌ Error refreshing user role:', error);
+        setAuthError('Role refresh failed');
       }
     }
   };
@@ -167,13 +206,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
     
     try {
+      setAuthError(null);
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
       return { error };
     } catch (error) {
-      console.error('Sign in error:', error);
+      console.error('❌ Sign in error:', error);
+      setAuthError('Sign in failed');
       return { error };
     }
   };
@@ -184,6 +225,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
     
     try {
+      setAuthError(null);
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -207,7 +249,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       return { error };
     } catch (error) {
-      console.error('Sign up error:', error);
+      console.error('❌ Sign up error:', error);
+      setAuthError('Sign up failed');
       return { error };
     }
   };
@@ -218,9 +261,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
     
     try {
+      setAuthError(null);
       await supabase.auth.signOut();
     } catch (error) {
-      console.error('Sign out error:', error);
+      console.error('❌ Sign out error:', error);
+      setAuthError('Sign out failed');
     }
   };
 
@@ -231,6 +276,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
     
     try {
+      setAuthError(null);
       const { error } = await supabase
         .from('user_roles')
         .upsert({
@@ -242,7 +288,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         await refreshUserRole();
       }
     } catch (error) {
-      console.error('Error updating user role:', error);
+      console.error('❌ Error updating user role:', error);
+      setAuthError('Role update failed');
     }
   };
 
@@ -252,6 +299,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       session,
       userRole,
       loading,
+      authError,
       signIn,
       signUp,
       signOut,

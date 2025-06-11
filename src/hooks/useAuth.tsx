@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -51,22 +50,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Auth timeout safeguard
+  // Mock auth bypass
   useEffect(() => {
-    const authTimeout = setTimeout(() => {
-      if (loading && !isInitialized) {
-        console.warn('⚠️ Auth timeout after 3 seconds, setting default state');
-        setLoading(false);
-        setIsInitialized(true);
-        setAuthError('Authentication timeout');
-      }
-    }, 3000);
+    if (DEV_MODE.USE_MOCK_AUTH && !isInitialized) {
+      console.log('🔧 Mock auth enabled, using bypass user');
+      
+      // Create mock session
+      const mockSession = {
+        ...DEV_MODE.MOCK_SESSION,
+        user: DEV_MODE.MOCK_USER as User
+      } as Session;
+      
+      setUser(DEV_MODE.MOCK_USER as User);
+      setSession(mockSession);
+      setUserRole(DEV_MODE.DEFAULT_ROLE);
+      setLoading(false);
+      setIsInitialized(true);
+      return;
+    }
 
-    return () => clearTimeout(authTimeout);
-  }, [loading, isInitialized]);
-
-  // Development mode bypass
-  useEffect(() => {
+    // Regular auth bypass (old method)
     if (DEV_MODE.DISABLE_AUTH && !isInitialized) {
       console.log('🔧 Dev mode enabled, using mock user');
       setUser(DEV_MODE.MOCK_USER as User);
@@ -76,7 +79,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
-    if (isInitialized) return;
+    // Auth timeout safeguard
+    const authTimeout = setTimeout(() => {
+      if (loading && !isInitialized) {
+        console.warn('⚠️ Auth timeout after 3 seconds, setting default state');
+        setLoading(false);
+        setIsInitialized(true);
+        setAuthError('Authentication timeout');
+      }
+    }, 3000);
+
+    if (isInitialized) {
+      clearTimeout(authTimeout);
+      return;
+    }
 
     let isMounted = true;
     let roleTimeout: NodeJS.Timeout;
@@ -182,11 +198,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (roleTimeout) {
         clearTimeout(roleTimeout);
       }
+      clearTimeout(authTimeout);
     };
-  }, [isInitialized]);
+  }, [isInitialized, loading]);
 
   const refreshUserRole = async () => {
-    if (DEV_MODE.DISABLE_AUTH) return;
+    if (DEV_MODE.DISABLE_AUTH || DEV_MODE.USE_MOCK_AUTH) return;
     
     if (user) {
       try {
@@ -201,7 +218,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signIn = async (email: string, password: string) => {
-    if (DEV_MODE.DISABLE_AUTH) {
+    if (DEV_MODE.DISABLE_AUTH || DEV_MODE.USE_MOCK_AUTH) {
       return { error: null };
     }
     
@@ -220,7 +237,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signUp = async (email: string, password: string, fullName?: string, role: UserRole = 'user') => {
-    if (DEV_MODE.DISABLE_AUTH) {
+    if (DEV_MODE.DISABLE_AUTH || DEV_MODE.USE_MOCK_AUTH) {
       return { error: null };
     }
     
@@ -256,7 +273,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signOut = async () => {
-    if (DEV_MODE.DISABLE_AUTH) {
+    if (DEV_MODE.DISABLE_AUTH || DEV_MODE.USE_MOCK_AUTH) {
       return;
     }
     
@@ -270,7 +287,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const updateUserRole = async (userId: string, role: UserRole) => {
-    if (DEV_MODE.DISABLE_AUTH) {
+    if (DEV_MODE.DISABLE_AUTH || DEV_MODE.USE_MOCK_AUTH) {
       setUserRole(role);
       return;
     }
@@ -318,3 +335,5 @@ export const useAuth = () => {
   }
   return context;
 };
+
+export default AuthProvider;

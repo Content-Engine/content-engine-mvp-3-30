@@ -1,4 +1,3 @@
-
 import { ReactNode, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -27,8 +26,8 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   }, [hasCheckedAuth, loading]);
 
   useEffect(() => {
-    // Bypass auth check in dev mode
-    if (DEV_MODE.DISABLE_AUTH) {
+    // Bypass auth check in dev mode or mock auth
+    if (DEV_MODE.DISABLE_AUTH || DEV_MODE.USE_MOCK_AUTH) {
       setHasCheckedAuth(true);
       return;
     }
@@ -44,7 +43,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     }
   }, [user, loading, navigate, hasCheckedAuth]);
 
-  if (DEV_MODE.DISABLE_AUTH) {
+  if (DEV_MODE.DISABLE_AUTH || DEV_MODE.USE_MOCK_AUTH) {
     return <>{children}</>;
   }
 

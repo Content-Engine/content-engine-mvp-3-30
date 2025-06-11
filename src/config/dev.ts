@@ -1,9 +1,10 @@
 
 export const DEV_MODE = {
   DISABLE_AUTH: false,
+  USE_MOCK_AUTH: true, // New flag for mock auth
   MOCK_USER: {
-    id: '00000000-0000-4000-8000-000000000001', // Valid UUID format
-    email: 'dev@example.com',
+    id: 'demo-user-id',
+    email: 'dev@bypass.com',
     user_metadata: {
       full_name: 'Dev User'
     },
@@ -24,5 +25,14 @@ export const DEV_MODE = {
     created_at: new Date().toISOString(),
     phone: null
   },
-  DEFAULT_ROLE: 'admin' as const
+  DEFAULT_ROLE: 'admin' as const,
+  // Mock session for bypass
+  MOCK_SESSION: {
+    access_token: 'bypass-token',
+    token_type: 'bearer',
+    expires_in: 3600,
+    expires_at: Date.now() / 1000 + 3600,
+    refresh_token: 'mock-refresh-token',
+    user: null // Will be set dynamically
+  }
 };

@@ -36,7 +36,7 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
-            {/* Public routes */}
+            {/* Public routes - now inside AuthProvider */}
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/payment-tiers" element={<PaymentTiers />} />

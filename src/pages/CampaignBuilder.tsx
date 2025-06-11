@@ -147,7 +147,7 @@ const CampaignBuilder = () => {
               onDateChange={(date) => updateState({ 
                 schedule: { ...state.schedule, startDate: date }
               })}
-              onAutoBoostChange={(enabled) => updateState({ 
+              onAutoBoostToggle={(enabled) => updateState({ 
                 schedule: { ...state.schedule, autoBoost: enabled }
               })}
               onLaunch={handleLaunchCampaign} 

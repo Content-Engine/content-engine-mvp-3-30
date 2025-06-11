@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -11,9 +12,10 @@ interface BoostPurchaseModalProps {
   isOpen: boolean;
   onClose: () => void;
   content: QCContent;
+  onPurchase?: (boostData: any) => void;
 }
 
-const BoostPurchaseModal = ({ isOpen, onClose, content }: BoostPurchaseModalProps) => {
+const BoostPurchaseModal = ({ isOpen, onClose, content, onPurchase }: BoostPurchaseModalProps) => {
   const [selectedTier, setSelectedTier] = useState<'micro' | 'standard' | 'premium' | null>(null);
   const [autoBoost, setAutoBoost] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -57,12 +59,22 @@ const BoostPurchaseModal = ({ isOpen, onClose, content }: BoostPurchaseModalProp
       // Simulate Stripe payment processing
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      toast({
-        title: "Boost Purchased!",
-        description: `${boostTiers.find(t => t.id === selectedTier)?.name} has been applied to your content.`,
-      });
-      
-      onClose();
+      const boostData = {
+        tier: selectedTier,
+        autoBoost,
+        contentId: content.id
+      };
+
+      if (onPurchase) {
+        onPurchase(boostData);
+      } else {
+        toast({
+          title: "Boost Purchased!",
+          description: `${boostTiers.find(t => t.id === selectedTier)?.name} has been applied to your content.`,
+        });
+        
+        onClose();
+      }
     } catch (error) {
       toast({
         title: "Payment Failed",

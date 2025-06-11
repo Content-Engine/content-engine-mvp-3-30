@@ -15,6 +15,7 @@ import Dashboard from "./pages/Dashboard";
 import CampaignBuilder from "./pages/CampaignBuilder";
 import CalendarOverview from "./pages/CalendarOverview";
 import SocialMediaManagerView from "./pages/SocialMediaManagerView";
+import SocialManagerDashboard from "./pages/SocialManagerDashboard";
 import EditorView from "./pages/EditorView";
 import QualityControlPanel from "./pages/QualityControlPanel";
 import UserManagement from "./pages/UserManagement";
@@ -83,7 +84,13 @@ const App = () => (
             } />
             
             {/* Role-based routes */}
-            <Route path="/social-manager" element={
+            <Route path="/social-manager/*" element={
+              <RoleBasedRoute allowedRoles={['admin', 'social_media_manager']}>
+                <SocialManagerDashboard />
+              </RoleBasedRoute>
+            } />
+            
+            <Route path="/social-media-manager" element={
               <RoleBasedRoute allowedRoles={['admin', 'social_media_manager']}>
                 <SocialMediaManagerView />
               </RoleBasedRoute>

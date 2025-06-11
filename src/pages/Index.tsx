@@ -21,7 +21,7 @@ const Index = () => {
           navigate('/social-manager');
           break;
         case 'editor':
-          navigate('/editor-dashboard');
+          navigate('/editor');
           break;
         default:
           navigate('/dashboard');

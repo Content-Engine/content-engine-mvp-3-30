@@ -33,12 +33,12 @@ const SocialManagerDashboard = () => {
   const [currentCampaign, setCurrentCampaign] = useState("All Campaigns");
 
   const sidebarItems = [
-    { path: "/social-manager/calendar", label: "Calendar", icon: Calendar },
-    { path: "/social-manager/editors", label: "Editors & Schedulers", icon: Users },
-    { path: "/social-manager/syndication", label: "Syndication", icon: Share2 },
-    { path: "/social-manager/performance", label: "Performance", icon: BarChart3 },
-    { path: "/social-manager/assets", label: "Content Library", icon: FolderOpen },
-    { path: "/social-manager/training", label: "Training & SOPs", icon: GraduationCap },
+    { path: "/social/calendar", label: "Calendar", icon: Calendar },
+    { path: "/social/editors", label: "Editors & Schedulers", icon: Users },
+    { path: "/social/syndication", label: "Syndication", icon: Share2 },
+    { path: "/social/performance", label: "Performance", icon: BarChart3 },
+    { path: "/social/assets", label: "Content Library", icon: FolderOpen },
+    { path: "/social/training", label: "Training & SOPs", icon: GraduationCap },
   ];
 
   useEffect(() => {
@@ -172,12 +172,14 @@ const SocialManagerDashboard = () => {
               <h2 className="text-2xl font-semibold text-text-main">{getCurrentPageTitle()}</h2>
               <div className="flex items-center gap-4">
                 <div className="relative">
+                  {/*
                   <Search className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-text-muted" />
                   <input
                     type="text"
                     placeholder="Search..."
                     className="input-primary pl-10 pr-4 py-2 w-64"
                   />
+                  */}
                 </div>
                 <Button variant="ghost" size="sm" className="text-text-muted hover:text-text-main">
                   <Bell className="h-4 w-4" />
@@ -198,7 +200,7 @@ const SocialManagerDashboard = () => {
               <Route path="/performance" element={<PerformanceView currentCampaign={currentCampaign} />} />
               <Route path="/assets" element={<AssetsLibrary currentCampaign={currentCampaign} />} />
               <Route path="/training" element={<TrainingView />} />
-              <Route path="/*" element={<SocialCalendarView currentCampaign={currentCampaign} />} />
+              <Route path="/" element={<SocialCalendarView currentCampaign={currentCampaign} />} />
             </Routes>
           </div>
         </div>

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,41 +8,46 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-
 const Auth = () => {
   const navigate = useNavigate();
-  const { signIn, signUp } = useAuth();
-  const { toast } = useToast();
-  
-  const [loginForm, setLoginForm] = useState({ email: '', password: '' });
-  const [signupForm, setSignupForm] = useState({ 
-    email: '', 
-    password: '', 
-    fullName: '', 
+  const {
+    signIn,
+    signUp
+  } = useAuth();
+  const {
+    toast
+  } = useToast();
+  const [loginForm, setLoginForm] = useState({
+    email: '',
+    password: ''
+  });
+  const [signupForm, setSignupForm] = useState({
+    email: '',
+    password: '',
+    fullName: '',
     role: 'user' as 'admin' | 'social_media_manager' | 'editor' | 'user'
   });
   const [loading, setLoading] = useState(false);
-
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    
     try {
       console.log('🔐 Attempting login for:', loginForm.email);
-      const { error } = await signIn(loginForm.email, loginForm.password);
-      
+      const {
+        error
+      } = await signIn(loginForm.email, loginForm.password);
       if (error) {
         console.error('❌ Login failed:', error);
         toast({
           title: "Login Failed",
           description: error.message,
-          variant: "destructive",
+          variant: "destructive"
         });
       } else {
         console.log('✅ Login successful, redirecting to dashboard');
         toast({
           title: "Welcome back!",
-          description: "You have been successfully logged in.",
+          description: "You have been successfully logged in."
         });
         // Force page refresh to ensure clean state
         window.location.href = '/dashboard';
@@ -53,38 +57,32 @@ const Auth = () => {
       toast({
         title: "Login Error",
         description: err.message || "An unexpected error occurred",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setLoading(false);
     }
   };
-
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    
     try {
       console.log('📝 Attempting signup for:', signupForm.email);
-      const { error } = await signUp(
-        signupForm.email, 
-        signupForm.password, 
-        signupForm.fullName,
-        signupForm.role
-      );
-      
+      const {
+        error
+      } = await signUp(signupForm.email, signupForm.password, signupForm.fullName, signupForm.role);
       if (error) {
         console.error('❌ Signup failed:', error);
         toast({
           title: "Signup Failed",
           description: error.message,
-          variant: "destructive",
+          variant: "destructive"
         });
       } else {
         console.log('✅ Signup successful, user can login immediately');
         toast({
           title: "Account Created!",
-          description: "You can now sign in. A confirmation email has been sent to secure your account.",
+          description: "You can now sign in. A confirmation email has been sent to secure your account."
         });
         // Redirect to dashboard since they can login without confirmation
         window.location.href = '/dashboard';
@@ -94,15 +92,13 @@ const Auth = () => {
       toast({
         title: "Signup Error",
         description: err.message || "An unexpected error occurred",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setLoading(false);
     }
   };
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-gray-950 to-gray-900 flex items-center justify-center p-4">
+  return <div className="min-h-screen bg-gradient-to-br from-black via-gray-950 to-gray-900 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-blue-900/10 to-pink-900/20"></div>
       
       <Card className="w-full max-w-md relative z-10 glass-card">
@@ -116,7 +112,7 @@ const Auth = () => {
         <CardContent>
           <Tabs defaultValue="login" className="space-y-4">
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="login">Login</TabsTrigger>
+              <TabsTrigger value="login" className="bg-[009cff]">Login</TabsTrigger>
               <TabsTrigger value="signup">Sign Up</TabsTrigger>
             </TabsList>
             
@@ -124,27 +120,17 @@ const Auth = () => {
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="email" className="text-white">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={loginForm.email}
-                    onChange={(e) => setLoginForm(prev => ({ ...prev, email: e.target.value }))}
-                    className="bg-white/10 border-white/20 text-white"
-                    required
-                    disabled={loading}
-                  />
+                  <Input id="email" type="email" value={loginForm.email} onChange={e => setLoginForm(prev => ({
+                  ...prev,
+                  email: e.target.value
+                }))} className="bg-white/10 border-white/20 text-white" required disabled={loading} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="password" className="text-white">Password</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    value={loginForm.password}
-                    onChange={(e) => setLoginForm(prev => ({ ...prev, password: e.target.value }))}
-                    className="bg-white/10 border-white/20 text-white"
-                    required
-                    disabled={loading}
-                  />
+                  <Input id="password" type="password" value={loginForm.password} onChange={e => setLoginForm(prev => ({
+                  ...prev,
+                  password: e.target.value
+                }))} className="bg-white/10 border-white/20 text-white" required disabled={loading} />
                 </div>
                 <Button type="submit" className="w-full glass-button-primary" disabled={loading}>
                   {loading ? 'Signing in...' : 'Sign In'}
@@ -156,49 +142,31 @@ const Auth = () => {
               <form onSubmit={handleSignup} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="fullName" className="text-white">Full Name</Label>
-                  <Input
-                    id="fullName"
-                    type="text"
-                    value={signupForm.fullName}
-                    onChange={(e) => setSignupForm(prev => ({ ...prev, fullName: e.target.value }))}
-                    className="bg-white/10 border-white/20 text-white"
-                    required
-                    disabled={loading}
-                  />
+                  <Input id="fullName" type="text" value={signupForm.fullName} onChange={e => setSignupForm(prev => ({
+                  ...prev,
+                  fullName: e.target.value
+                }))} className="bg-white/10 border-white/20 text-white" required disabled={loading} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="signupEmail" className="text-white">Email</Label>
-                  <Input
-                    id="signupEmail"
-                    type="email"
-                    value={signupForm.email}
-                    onChange={(e) => setSignupForm(prev => ({ ...prev, email: e.target.value }))}
-                    className="bg-white/10 border-white/20 text-white"
-                    required
-                    disabled={loading}
-                  />
+                  <Input id="signupEmail" type="email" value={signupForm.email} onChange={e => setSignupForm(prev => ({
+                  ...prev,
+                  email: e.target.value
+                }))} className="bg-white/10 border-white/20 text-white" required disabled={loading} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="signupPassword" className="text-white">Password</Label>
-                  <Input
-                    id="signupPassword"
-                    type="password"
-                    value={signupForm.password}
-                    onChange={(e) => setSignupForm(prev => ({ ...prev, password: e.target.value }))}
-                    className="bg-white/10 border-white/20 text-white"
-                    required
-                    disabled={loading}
-                  />
+                  <Input id="signupPassword" type="password" value={signupForm.password} onChange={e => setSignupForm(prev => ({
+                  ...prev,
+                  password: e.target.value
+                }))} className="bg-white/10 border-white/20 text-white" required disabled={loading} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="role" className="text-white">Role</Label>
-                  <Select 
-                    value={signupForm.role} 
-                    onValueChange={(value: 'admin' | 'social_media_manager' | 'editor' | 'user') => 
-                      setSignupForm(prev => ({ ...prev, role: value }))
-                    }
-                    disabled={loading}
-                  >
+                  <Select value={signupForm.role} onValueChange={(value: 'admin' | 'social_media_manager' | 'editor' | 'user') => setSignupForm(prev => ({
+                  ...prev,
+                  role: value
+                }))} disabled={loading}>
                     <SelectTrigger className="bg-white/10 border-white/20 text-white">
                       <SelectValue />
                     </SelectTrigger>
@@ -221,8 +189,6 @@ const Auth = () => {
           </Tabs>
         </CardContent>
       </Card>
-    </div>
-  );
+    </div>;
 };
-
 export default Auth;

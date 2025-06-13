@@ -62,7 +62,13 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
-				}
+				},
+				// Custom theme colors
+				'theme-blue': '#009CFF',
+				'theme-purple': '#D44DFF', 
+				'theme-dark': '#2D2A32',
+				'theme-light': '#E5E9EC',
+				'theme-beige': '#ABA194'
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
@@ -108,10 +114,10 @@ export default {
 				},
 				'glow': {
 					'0%': {
-						boxShadow: '0 0 20px rgba(255, 45, 85, 0.4)'
+						boxShadow: '0 0 20px rgba(0, 156, 255, 0.4)'
 					},
 					'100%': {
-						boxShadow: '0 0 30px rgba(255, 45, 85, 0.8)'
+						boxShadow: '0 0 30px rgba(0, 156, 255, 0.8)'
 					}
 				}
 			},

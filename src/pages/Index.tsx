@@ -1,3 +1,4 @@
+
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,12 +12,10 @@ const Index = () => {
   const [hasRedirected, setHasRedirected] = useState(false);
 
   useEffect(() => {
-    // Prevent infinite redirect loops by only redirecting once
     if (!loading && user && !hasRedirected) {
       console.log('User authenticated, redirecting based on role:', userRole);
       setHasRedirected(true);
 
-      // Add a small delay to prevent race conditions
       setTimeout(() => {
         switch (userRole) {
           case 'admin':
@@ -37,53 +36,58 @@ const Index = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-black via-gray-950 to-gray-900 flex items-center justify-center">
-        <div className="text-white text-xl">Loading...</div>
+      <div className="min-h-screen bg-theme-dark flex items-center justify-center">
+        <div className="text-theme-light text-xl">Loading...</div>
       </div>
     );
   }
 
-  // Don't render the landing page if user is authenticated to prevent flash
   if (user && !hasRedirected) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-black via-gray-950 to-gray-900 flex items-center justify-center">
-        <div className="text-white text-xl">Redirecting...</div>
+      <div className="min-h-screen bg-theme-dark flex items-center justify-center">
+        <div className="text-theme-light text-xl">Redirecting...</div>
       </div>
     );
   }
 
-  // Only show landing page if user is not authenticated
   if (user) {
     return null;
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-gray-950 to-gray-900 text-white">
-      {/* Ambient background effects */}
-      <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-blue-900/10 to-pink-900/20"></div>
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl animate-pulse"></div>
-      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+    <div className="min-h-screen bg-theme-dark text-theme-light">
+      {/* Ambient background effects using theme colors */}
+      <div className="absolute inset-0 bg-gradient-to-br from-theme-blue/10 via-theme-purple/5 to-theme-beige/10"></div>
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-theme-blue/20 rounded-full blur-3xl animate-pulse"></div>
+      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-theme-purple/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
       
       <div className="relative z-10 container mx-auto px-4">
         {/* Header */}
         <nav className="py-6 flex items-center justify-between">
-          <div className="text-2xl font-bold">Content Engine</div>
-          <Button onClick={() => navigate('/auth')} className="glass-button-primary">
+          <div className="text-2xl font-bold text-theme-light">Content Engine</div>
+          <Button 
+            onClick={() => navigate('/auth')} 
+            className="bg-theme-blue hover:bg-theme-blue/80 text-white border-none"
+          >
             Sign In
           </Button>
         </nav>
 
         {/* Hero Section */}
-        <div className="py-20 text-center bg-gradient-to-r from-[#009CFF] via-[#D44DFF] to-[#2D2A32]">
-          <h1 className="text-6xl font-bold mb-6 bg-gradient-to-r from-white via-[#E5E9EC] to-[#ABA194] bg-clip-text text-transparent">
+        <div className="py-20 text-center">
+          <h1 className="text-6xl font-bold mb-6 bg-gradient-to-r from-theme-blue via-theme-purple to-theme-light bg-clip-text text-transparent">
             Content Syndication Platform
           </h1>
-          <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
+          <p className="text-xl text-theme-beige mb-8 max-w-2xl mx-auto">
             Streamline your content creation workflow with automated syndication, 
             quality control, and performance analytics.
           </p>
           <div className="flex gap-4 justify-center">
-            <Button onClick={() => navigate('/auth')} size="lg" className="bg-[#009CFF] hover:bg-[#007ACC] text-white shadow-lg">
+            <Button 
+              onClick={() => navigate('/auth')} 
+              size="lg" 
+              className="bg-theme-blue hover:bg-theme-blue/80 text-white shadow-lg border-none"
+            >
               Get Started
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
@@ -92,57 +96,57 @@ const Index = () => {
 
         {/* Features Grid */}
         <div className="py-20 grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card className="glass-card">
+          <Card className="bg-theme-dark/50 border-theme-beige/30 backdrop-blur-md">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-white">
-                <Users className="h-5 w-5 text-[#009CFF]" />
+              <CardTitle className="flex items-center gap-2 text-theme-light">
+                <Users className="h-5 w-5 text-theme-blue" />
                 Team Management
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-white/70">
+              <p className="text-theme-beige">
                 Manage editors, social media managers, and content workflows.
               </p>
             </CardContent>
           </Card>
 
-          <Card className="glass-card">
+          <Card className="bg-theme-dark/50 border-theme-beige/30 backdrop-blur-md">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-white">
-                <Calendar className="h-5 w-5 text-[#D44DFF]" />
+              <CardTitle className="flex items-center gap-2 text-theme-light">
+                <Calendar className="h-5 w-5 text-theme-purple" />
                 Content Scheduling
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-white/70">
+              <p className="text-theme-beige">
                 Schedule and syndicate content across multiple platforms.
               </p>
             </CardContent>
           </Card>
 
-          <Card className="glass-card">
+          <Card className="bg-theme-dark/50 border-theme-beige/30 backdrop-blur-md">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-white">
-                <BarChart3 className="h-5 w-5 text-[#E5E9EC]" />
+              <CardTitle className="flex items-center gap-2 text-theme-light">
+                <BarChart3 className="h-5 w-5 text-theme-light" />
                 Analytics Dashboard
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-white/70">
+              <p className="text-theme-beige">
                 Track performance metrics and optimize your content strategy.
               </p>
             </CardContent>
           </Card>
 
-          <Card className="glass-card">
+          <Card className="bg-theme-dark/50 border-theme-beige/30 backdrop-blur-md">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-white">
-                <Zap className="h-5 w-5 text-[#ABA194]" />
+              <CardTitle className="flex items-center gap-2 text-theme-light">
+                <Zap className="h-5 w-5 text-theme-beige" />
                 Boost Integration
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-white/70">
+              <p className="text-theme-beige">
                 Amplify your best content with intelligent boost recommendations.
               </p>
             </CardContent>

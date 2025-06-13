@@ -72,14 +72,14 @@ const TopNavBar = () => {
   const roleBasedItems = getRoleBasedNavItems();
 
   return (
-    <nav className="bg-white/10 backdrop-blur-md border-b border-white/20 sticky top-0 z-50">
+    <nav className="bg-theme-dark/90 backdrop-blur-md border-b border-theme-beige/20 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center">
             <button
               onClick={() => navigate('/')}
-              className="text-white font-bold text-xl hover:text-white/80 transition-colors"
+              className="text-theme-light font-bold text-xl hover:text-theme-blue transition-colors"
             >
               Content Engine
             </button>
@@ -93,7 +93,7 @@ const TopNavBar = () => {
                   <Button
                     variant="ghost"
                     onClick={() => navigate('/dashboard')}
-                    className="text-white/90 hover:text-white hover:bg-white/10"
+                    className="text-theme-beige hover:text-theme-light hover:bg-theme-light/10"
                   >
                     Dashboard
                   </Button>
@@ -104,20 +104,20 @@ const TopNavBar = () => {
                       <DropdownMenuTrigger asChild>
                         <Button
                           variant="ghost"
-                          className="text-white/90 hover:text-white hover:bg-white/10"
+                          className="text-theme-beige hover:text-theme-light hover:bg-theme-light/10"
                         >
                           Admin Tools
                           <ChevronDown className="h-4 w-4 ml-2" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent className="bg-white/95 backdrop-blur-md border border-white/20">
+                      <DropdownMenuContent className="bg-theme-dark/95 backdrop-blur-md border border-theme-beige/20">
                         {roleBasedItems.map((item) => {
                           const Icon = item.icon;
                           return (
                             <DropdownMenuItem
                               key={item.path}
                               onClick={() => navigate(item.path)}
-                              className="cursor-pointer"
+                              className="cursor-pointer text-theme-light hover:bg-theme-light/10"
                             >
                               <Icon className="h-4 w-4 mr-2" />
                               {item.label}
@@ -136,7 +136,7 @@ const TopNavBar = () => {
                         key={item.path}
                         variant="ghost"
                         onClick={() => navigate(item.path)}
-                        className="text-white/90 hover:text-white hover:bg-white/10"
+                        className="text-theme-beige hover:text-theme-light hover:bg-theme-light/10"
                       >
                         <Icon className="h-4 w-4 mr-2" />
                         {item.label}
@@ -147,7 +147,7 @@ const TopNavBar = () => {
                   <Button
                     variant="ghost"
                     onClick={() => navigate('/payment-tiers')}
-                    className="text-white/90 hover:text-white hover:bg-white/10"
+                    className="text-theme-beige hover:text-theme-light hover:bg-theme-light/10"
                   >
                     <CreditCard className="h-4 w-4 mr-2" />
                     Plans
@@ -168,14 +168,14 @@ const TopNavBar = () => {
                   </span>
                   
                   <div className="flex items-center space-x-2">
-                    <User className="h-4 w-4 text-white/70" />
-                    <span className="text-white/90 text-sm">{user.email}</span>
+                    <User className="h-4 w-4 text-theme-beige" />
+                    <span className="text-theme-light text-sm">{user.email}</span>
                   </div>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={handleSignOut}
-                    className="text-white/90 hover:text-white hover:bg-white/10"
+                    className="text-theme-beige hover:text-theme-light hover:bg-theme-light/10"
                   >
                     <LogOut className="h-4 w-4 mr-2" />
                     Sign Out
@@ -184,7 +184,7 @@ const TopNavBar = () => {
               ) : (
                 <Button
                   onClick={() => navigate('/auth')}
-                  className="bg-white/20 hover:bg-white/30 text-white border-white/30"
+                  className="bg-theme-blue hover:bg-theme-blue/80 text-white border-theme-blue/30"
                 >
                   Sign In
                 </Button>
@@ -198,7 +198,7 @@ const TopNavBar = () => {
               variant="ghost"
               size="sm"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="text-white hover:bg-white/10"
+              className="text-theme-light hover:bg-theme-light/10"
             >
               {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </Button>
@@ -209,7 +209,7 @@ const TopNavBar = () => {
       {/* Mobile Navigation */}
       {isMenuOpen && (
         <div className="md:hidden">
-          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white/5 backdrop-blur-md">
+          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-theme-dark/95 backdrop-blur-md">
             {user && (
               <>
                 <Button
@@ -218,7 +218,7 @@ const TopNavBar = () => {
                     navigate('/dashboard');
                     setIsMenuOpen(false);
                   }}
-                  className="w-full justify-start text-white/90 hover:text-white hover:bg-white/10"
+                  className="w-full justify-start text-theme-beige hover:text-theme-light hover:bg-theme-light/10"
                 >
                   Dashboard
                 </Button>
@@ -234,7 +234,7 @@ const TopNavBar = () => {
                         navigate(item.path);
                         setIsMenuOpen(false);
                       }}
-                      className="w-full justify-start text-white/90 hover:text-white hover:bg-white/10"
+                      className="w-full justify-start text-theme-beige hover:text-theme-light hover:bg-theme-light/10"
                     >
                       <Icon className="h-4 w-4 mr-2" />
                       {item.label}
@@ -248,12 +248,12 @@ const TopNavBar = () => {
                     navigate('/payment-tiers');
                     setIsMenuOpen(false);
                   }}
-                  className="w-full justify-start text-white/90 hover:text-white hover:bg-white/10"
+                  className="w-full justify-start text-theme-beige hover:text-theme-light hover:bg-theme-light/10"
                 >
                   <CreditCard className="h-4 w-4 mr-2" />
                   Plans
                 </Button>
-                <div className="border-t border-white/20 pt-3 mt-3">
+                <div className="border-t border-theme-beige/20 pt-3 mt-3">
                   <div className="flex items-center px-3 mb-2">
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTierBadgeColor(paymentTier)}`}>
                       {paymentTier || 'free'}
@@ -265,7 +265,7 @@ const TopNavBar = () => {
                       handleSignOut();
                       setIsMenuOpen(false);
                     }}
-                    className="w-full justify-start text-white/90 hover:text-white hover:bg-white/10"
+                    className="w-full justify-start text-theme-beige hover:text-theme-light hover:bg-theme-light/10"
                   >
                     <LogOut className="h-4 w-4 mr-2" />
                     Sign Out

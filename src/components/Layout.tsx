@@ -8,7 +8,7 @@ interface LayoutProps {
 
 const Layout = ({ children }: LayoutProps) => {
   return (
-    <div className="min-h-screen bg-bg-main">
+    <div className="min-h-screen bg-theme-dark">
       <TopNavBar />
       
       {/* Main Content with top padding to account for fixed navbar */}

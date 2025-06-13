@@ -98,41 +98,41 @@ const Auth = () => {
       setLoading(false);
     }
   };
-  return <div className="min-h-screen bg-gradient-to-br from-black via-gray-950 to-gray-900 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-blue-900/10 to-pink-900/20"></div>
+  return <div className="min-h-screen bg-theme-dark flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-gradient-to-br from-theme-blue/10 via-theme-purple/5 to-theme-beige/10"></div>
       
-      <Card className="w-full max-w-md relative z-10 glass-card">
+      <Card className="w-full max-w-md relative z-10 bg-theme-dark/80 border-theme-beige/30 backdrop-blur-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold text-white">
+          <CardTitle className="text-2xl font-bold text-theme-light">
             Content Engine
           </CardTitle>
-          <p className="text-white/70">Sign in to your account</p>
+          <p className="text-theme-beige">Sign in to your account</p>
         </CardHeader>
         
         <CardContent>
           <Tabs defaultValue="login" className="space-y-4">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="login" className="bg-[009cff]">Login</TabsTrigger>
-              <TabsTrigger value="signup">Sign Up</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 bg-theme-dark/50">
+              <TabsTrigger value="login" className="data-[state=active]:bg-theme-blue data-[state=active]:text-white">Login</TabsTrigger>
+              <TabsTrigger value="signup" className="data-[state=active]:bg-theme-purple data-[state=active]:text-white">Sign Up</TabsTrigger>
             </TabsList>
             
             <TabsContent value="login">
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="text-white">Email</Label>
+                  <Label htmlFor="email" className="text-theme-light">Email</Label>
                   <Input id="email" type="email" value={loginForm.email} onChange={e => setLoginForm(prev => ({
                   ...prev,
                   email: e.target.value
-                }))} className="bg-white/10 border-white/20 text-white" required disabled={loading} />
+                }))} className="bg-theme-dark/50 border-theme-beige/30 text-theme-light placeholder:text-theme-beige/60" required disabled={loading} />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="password" className="text-white">Password</Label>
+                  <Label htmlFor="password" className="text-theme-light">Password</Label>
                   <Input id="password" type="password" value={loginForm.password} onChange={e => setLoginForm(prev => ({
                   ...prev,
                   password: e.target.value
-                }))} className="bg-white/10 border-white/20 text-white" required disabled={loading} />
+                }))} className="bg-theme-dark/50 border-theme-beige/30 text-theme-light placeholder:text-theme-beige/60" required disabled={loading} />
                 </div>
-                <Button type="submit" className="w-full glass-button-primary" disabled={loading}>
+                <Button type="submit" className="w-full bg-theme-blue hover:bg-theme-blue/80 text-white border-none" disabled={loading}>
                   {loading ? 'Signing in...' : 'Sign In'}
                 </Button>
               </form>
@@ -141,47 +141,47 @@ const Auth = () => {
             <TabsContent value="signup">
               <form onSubmit={handleSignup} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="fullName" className="text-white">Full Name</Label>
+                  <Label htmlFor="fullName" className="text-theme-light">Full Name</Label>
                   <Input id="fullName" type="text" value={signupForm.fullName} onChange={e => setSignupForm(prev => ({
                   ...prev,
                   fullName: e.target.value
-                }))} className="bg-white/10 border-white/20 text-white" required disabled={loading} />
+                }))} className="bg-theme-dark/50 border-theme-beige/30 text-theme-light placeholder:text-theme-beige/60" required disabled={loading} />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signupEmail" className="text-white">Email</Label>
+                  <Label htmlFor="signupEmail" className="text-theme-light">Email</Label>
                   <Input id="signupEmail" type="email" value={signupForm.email} onChange={e => setSignupForm(prev => ({
                   ...prev,
                   email: e.target.value
-                }))} className="bg-white/10 border-white/20 text-white" required disabled={loading} />
+                }))} className="bg-theme-dark/50 border-theme-beige/30 text-theme-light placeholder:text-theme-beige/60" required disabled={loading} />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signupPassword" className="text-white">Password</Label>
+                  <Label htmlFor="signupPassword" className="text-theme-light">Password</Label>
                   <Input id="signupPassword" type="password" value={signupForm.password} onChange={e => setSignupForm(prev => ({
                   ...prev,
                   password: e.target.value
-                }))} className="bg-white/10 border-white/20 text-white" required disabled={loading} />
+                }))} className="bg-theme-dark/50 border-theme-beige/30 text-theme-light placeholder:text-theme-beige/60" required disabled={loading} />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="role" className="text-white">Role</Label>
+                  <Label htmlFor="role" className="text-theme-light">Role</Label>
                   <Select value={signupForm.role} onValueChange={(value: 'admin' | 'social_media_manager' | 'editor' | 'user') => setSignupForm(prev => ({
                   ...prev,
                   role: value
                 }))} disabled={loading}>
-                    <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                    <SelectTrigger className="bg-theme-dark/50 border-theme-beige/30 text-theme-light">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="user">User</SelectItem>
-                      <SelectItem value="editor">Editor</SelectItem>
-                      <SelectItem value="social_media_manager">Social Media Manager</SelectItem>
-                      <SelectItem value="admin">Admin</SelectItem>
+                    <SelectContent className="bg-theme-dark border-theme-beige/30">
+                      <SelectItem value="user" className="text-theme-light">User</SelectItem>
+                      <SelectItem value="editor" className="text-theme-light">Editor</SelectItem>
+                      <SelectItem value="social_media_manager" className="text-theme-light">Social Media Manager</SelectItem>
+                      <SelectItem value="admin" className="text-theme-light">Admin</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-                <Button type="submit" className="w-full glass-button-primary" disabled={loading}>
+                <Button type="submit" className="w-full bg-theme-purple hover:bg-theme-purple/80 text-white border-none" disabled={loading}>
                   {loading ? 'Creating account...' : 'Create Account'}
                 </Button>
-                <p className="text-white/60 text-sm text-center">
+                <p className="text-theme-beige/80 text-sm text-center">
                   You can sign in immediately after creating your account. A confirmation email will be sent to secure your account.
                 </p>
               </form>

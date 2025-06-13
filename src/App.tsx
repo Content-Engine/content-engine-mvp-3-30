@@ -7,11 +7,6 @@ import { AuthProvider } from "@/hooks/useAuth";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import CampaignBuilder from "./pages/CampaignBuilder";
-import CampaignBuilderStep1 from "./pages/CampaignBuilderStep1";
-import CampaignBuilderStep2 from "./pages/CampaignBuilderStep2";
-import CampaignBuilderStep3 from "./pages/CampaignBuilderStep3";
-import CampaignBuilderStep4 from "./pages/CampaignBuilderStep4";
-import CampaignBuilderStep5 from "./pages/CampaignBuilderStep5";
 import Campaigns from "./pages/Campaigns";
 import EditorView from "./pages/EditorView";
 import SocialManagerDashboard from "./pages/SocialManagerDashboard";
@@ -47,11 +42,6 @@ function App() {
               <Route path="/login-page" element={<LoginPage />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/campaign-builder" element={<CampaignBuilder />} />
-              <Route path="/campaign-builder/step-1" element={<CampaignBuilderStep1 />} />
-              <Route path="/campaign-builder/step-2" element={<CampaignBuilderStep2 />} />
-              <Route path="/campaign-builder/step-3" element={<CampaignBuilderStep3 />} />
-              <Route path="/campaign-builder/step-4" element={<CampaignBuilderStep4 />} />
-              <Route path="/campaign-builder/step-5" element={<CampaignBuilderStep5 />} />
               <Route path="/campaigns" element={<Campaigns />} />
               <Route path="/editor-view" element={<EditorView />} />
               <Route path="/social-manager-dashboard" element={<SocialManagerDashboard />} />

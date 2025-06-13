@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Users, Crown, Calendar, Edit, UserPlus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 import Layout from '@/components/Layout';
 
 interface UserProfile {
@@ -23,10 +23,12 @@ interface UserProfile {
 const UserManagement = () => {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
+  const [inviteLoading, setInviteLoading] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState<'admin' | 'social_media_manager' | 'editor' | 'user'>('editor');
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   useEffect(() => {
     fetchUsers();
@@ -118,21 +120,45 @@ const UserManagement = () => {
   };
 
   const handleInviteUser = async () => {
+    if (!inviteEmail.includes('@')) {
+      toast({
+        title: "Error",
+        description: "Please enter a valid email address",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
-      setLoading(true);
-      setInviteDialogOpen(false);
-
-      if (!inviteEmail.includes('@')) {
-        throw new Error('Invalid email format.');
-      }
-
+      setInviteLoading(true);
       console.log('Inviting user:', inviteEmail, 'with role:', inviteRole);
 
+      const { data, error } = await supabase.functions.invoke('invite-user', {
+        body: {
+          email: inviteEmail,
+          role: inviteRole,
+          inviterName: user?.email || 'Admin'
+        }
+      });
+
+      if (error) {
+        throw new Error(error.message || 'Failed to invite user');
+      }
+
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to invite user');
+      }
+
       toast({
-        title: "Info",
-        description: "User invitation feature requires backend implementation",
+        title: "Success",
+        description: data.message || "User invited successfully!",
       });
       
+      setInviteDialogOpen(false);
+      setInviteEmail('');
+      setInviteRole('editor');
+      
+      // Refresh users list
       await fetchUsers();
     } catch (error: any) {
       console.error('Error inviting user:', error);
@@ -142,8 +168,7 @@ const UserManagement = () => {
         variant: "destructive",
       });
     } finally {
-      setLoading(false);
-      setInviteEmail('');
+      setInviteLoading(false);
     }
   };
 
@@ -200,13 +225,19 @@ const UserManagement = () => {
                     onChange={(e) => setInviteEmail(e.target.value)}
                     className="col-span-3"
                     type="email"
+                    placeholder="user@example.com"
+                    disabled={inviteLoading}
                   />
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="role" className="text-right">
                     Role
                   </Label>
-                  <Select onValueChange={(value: 'admin' | 'social_media_manager' | 'editor' | 'user') => setInviteRole(value)} defaultValue="editor">
+                  <Select 
+                    onValueChange={(value: 'admin' | 'social_media_manager' | 'editor' | 'user') => setInviteRole(value)} 
+                    defaultValue="editor"
+                    disabled={inviteLoading}
+                  >
                     <SelectTrigger className="col-span-3">
                       <SelectValue placeholder="Select a role" />
                     </SelectTrigger>
@@ -219,8 +250,8 @@ const UserManagement = () => {
                   </Select>
                 </div>
               </div>
-              <Button onClick={handleInviteUser} disabled={loading}>
-                {loading ? 'Inviting...' : 'Invite User'}
+              <Button onClick={handleInviteUser} disabled={inviteLoading || !inviteEmail}>
+                {inviteLoading ? 'Inviting...' : 'Send Invitation'}
               </Button>
             </DialogContent>
           </Dialog>

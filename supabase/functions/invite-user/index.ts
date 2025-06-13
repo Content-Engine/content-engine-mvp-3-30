@@ -37,15 +37,21 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log('Inviting user:', email, 'with role:', role);
 
-    // Check if user already exists
-    const { data: existingUser, error: checkError } = await supabaseAdmin.auth.admin.getUserByEmail(email);
+    // Check if user already exists by trying to get user by email
+    const { data: existingUsers, error: listError } = await supabaseAdmin.auth.admin.listUsers();
     
-    if (existingUser.user) {
+    if (listError) {
+      console.error('Error listing users:', listError);
+    }
+
+    const existingUser = existingUsers?.users?.find(user => user.email === email);
+    
+    if (existingUser) {
       // User exists, just update their role
       const { error: roleError } = await supabaseAdmin
         .from('user_roles')
         .upsert({
-          user_id: existingUser.user.id,
+          user_id: existingUser.id,
           role: role
         });
 

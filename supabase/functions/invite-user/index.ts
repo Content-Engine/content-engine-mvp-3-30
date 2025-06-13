@@ -1,9 +1,6 @@
 
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.0';
-import { Resend } from "npm:resend@2.0.0";
-
-const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -24,11 +21,17 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    // Check if required environment variables are set
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    const resendApiKey = Deno.env.get('RESEND_API_KEY');
+
+    if (!supabaseUrl || !supabaseServiceKey) {
+      throw new Error('Missing Supabase configuration');
+    }
+
     // Create Supabase admin client
-    const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
     const { email, role, inviterName }: InviteUserRequest = await req.json();
 
@@ -65,7 +68,7 @@ const handler = async (req: Request): Promise<Response> => {
         role: role,
         invited_by: inviterName || 'Admin'
       },
-      redirectTo: `${Deno.env.get('SUPABASE_URL')?.replace('.supabase.co', '')}.vercel.app/auth`
+      redirectTo: `https://qpaomtgbpjxvnamtqhtv.supabase.co/auth/v1/verify`
     });
 
     if (inviteError) {
@@ -87,30 +90,38 @@ const handler = async (req: Request): Promise<Response> => {
       }
     }
 
-    // Send welcome email
-    try {
-      await resend.emails.send({
-        from: "Content Engine <onboarding@resend.dev>",
-        to: [email],
-        subject: "Welcome to Content Engine!",
-        html: `
-          <h1>Welcome to Content Engine!</h1>
-          <p>You've been invited to join Content Engine with the role of <strong>${role.replace('_', ' ')}</strong>.</p>
-          <p>You should receive a separate email with your login credentials shortly.</p>
-          <p>If you have any questions, please don't hesitate to reach out to your administrator.</p>
-          <p>Best regards,<br>The Content Engine Team</p>
-        `,
-      });
-    } catch (emailError) {
-      console.error('Email sending failed:', emailError);
-      // Don't fail the request if email fails
+    // Send welcome email only if Resend API key is configured
+    if (resendApiKey) {
+      try {
+        const { Resend } = await import("npm:resend@2.0.0");
+        const resend = new Resend(resendApiKey);
+        
+        await resend.emails.send({
+          from: "Content Engine <onboarding@resend.dev>",
+          to: [email],
+          subject: "Welcome to Content Engine!",
+          html: `
+            <h1>Welcome to Content Engine!</h1>
+            <p>You've been invited to join Content Engine with the role of <strong>${role.replace('_', ' ')}</strong>.</p>
+            <p>You should receive a separate email with your login credentials shortly.</p>
+            <p>If you have any questions, please don't hesitate to reach out to your administrator.</p>
+            <p>Best regards,<br>The Content Engine Team</p>
+          `,
+        });
+        console.log('Welcome email sent successfully');
+      } catch (emailError) {
+        console.error('Email sending failed:', emailError);
+        // Don't fail the request if email fails
+      }
+    } else {
+      console.log('Resend API key not configured, skipping welcome email');
     }
 
     console.log('User invited successfully:', email);
 
     return new Response(JSON.stringify({ 
       success: true, 
-      message: 'User invited successfully' 
+      message: 'User invited successfully' + (resendApiKey ? '' : ' (welcome email not sent - configure RESEND_API_KEY)')
     }), {
       status: 200,
       headers: { "Content-Type": "application/json", ...corsHeaders },

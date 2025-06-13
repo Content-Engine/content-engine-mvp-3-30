@@ -103,7 +103,7 @@ const Auth = () => {
       
       <Card className="w-full max-w-md relative z-10 bg-theme-dark/80 border-theme-beige/30 backdrop-blur-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold text-theme-light">
+          <CardTitle className="font-bold text-theme-light text-3xl">
             Content Engine
           </CardTitle>
           <p className="text-theme-beige">Sign in to your account</p>

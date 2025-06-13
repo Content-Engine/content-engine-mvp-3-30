@@ -117,6 +117,7 @@ const Auth = () => {
             </button>
           </div>
 
+          {/*
           {/* Demo Accounts */}
           <div className="mt-6 space-y-3">
             <div className="p-3 glass-card-subtle rounded-lg">
@@ -137,6 +138,7 @@ const Auth = () => {
                 Use Admin Demo
               </Button>
             </div>
+            */}
 
             <div className="p-3 glass-card-subtle rounded-lg">
               <p className="text-white/70 text-sm font-semibold mb-2">Demo Editor Account:</p>

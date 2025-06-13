@@ -127,10 +127,13 @@ const handler = async (req: Request): Promise<Response> => {
         const inviterDisplayName = inviterProfile?.full_name || inviterName || inviter.email;
         const invitedDisplayName = invitedProfile.full_name || invitedProfile.email;
         
-        // Create URLs for accept/reject actions
-        const baseUrl = supabaseUrl.replace('//', '//').replace('supabase.co', 'lovable.app'); // Use your app URL
+        // Use the current request URL to determine the app base URL
+        const requestUrl = new URL(req.url);
+        const baseUrl = `https://074e051a-3ca5-499f-9c58-e4b60e19495a.lovableproject.com`;
         const acceptUrl = `${baseUrl}/invitation-response?action=accept&id=${newAffiliation.id}`;
         const rejectUrl = `${baseUrl}/invitation-response?action=reject&id=${newAffiliation.id}`;
+        
+        console.log('Generated URLs:', { acceptUrl, rejectUrl });
         
         const html = await renderAsync(
           React.createElement(InvitationEmail, {
@@ -142,16 +145,31 @@ const handler = async (req: Request): Promise<Response> => {
           })
         );
         
-        await resend.emails.send({
+        const emailResult = await resend.emails.send({
           from: "Content Engine <onboarding@resend.dev>",
           to: [email],
           subject: "You've been invited to collaborate on Content Engine!",
           html: html,
         });
-        console.log('Collaboration invitation email sent successfully');
+        
+        console.log('Email sent successfully:', emailResult);
+        
+        if (emailResult.error) {
+          console.error('Resend API error:', emailResult.error);
+          throw new Error(`Email sending failed: ${emailResult.error}`);
+        }
+        
       } catch (emailError) {
         console.error('Email sending failed:', emailError);
-        // Don't fail the request if email fails
+        // Return the error so user knows email failed
+        return new Response(JSON.stringify({ 
+          success: false, 
+          message: `Invitation created but email failed to send: ${emailError.message}`,
+          affiliation_id: newAffiliation.id
+        }), {
+          status: 500,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        });
       }
     } else {
       console.log('Resend API key not configured, skipping collaboration email');
@@ -161,7 +179,8 @@ const handler = async (req: Request): Promise<Response> => {
 
     return new Response(JSON.stringify({ 
       success: true, 
-      message: `Invitation sent to ${invitedProfile.full_name || email}` + (resendApiKey ? ' via email' : ' (email not sent - configure RESEND_API_KEY)')
+      message: `Invitation sent to ${invitedProfile.full_name || email}` + (resendApiKey ? ' via email' : ' (email not sent - configure RESEND_API_KEY)'),
+      affiliation_id: newAffiliation.id
     }), {
       status: 200,
       headers: { "Content-Type": "application/json", ...corsHeaders },

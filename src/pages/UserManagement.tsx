@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -98,13 +97,7 @@ const UserManagement = () => {
       // Get user affiliations where current user is either inviter or invited
       const { data: affiliations, error: affiliationError } = await supabase
         .from('user_affiliations')
-        .select(`
-          id,
-          status,
-          inviter_id,
-          invited_user_id,
-          profiles!user_affiliations_invited_user_id_fkey(id, email, full_name, created_at)
-        `)
+        .select('id, status, inviter_id, invited_user_id')
         .or(`inviter_id.eq.${user.id},invited_user_id.eq.${user.id}`);
 
       if (affiliationError) {
@@ -112,24 +105,53 @@ const UserManagement = () => {
         return;
       }
 
+      console.log('Affiliations fetched:', affiliations);
+
+      if (!affiliations || affiliations.length === 0) {
+        setAffiliatedUsers([]);
+        return;
+      }
+
+      // Get the user IDs of affiliated users (excluding current user)
+      const affiliatedUserIds = affiliations.map(affiliation => 
+        affiliation.inviter_id === user.id ? affiliation.invited_user_id : affiliation.inviter_id
+      );
+
+      console.log('Affiliated user IDs:', affiliatedUserIds);
+
+      // Get profiles for affiliated users
+      const { data: affiliatedProfiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, email, full_name, created_at')
+        .in('id', affiliatedUserIds);
+
+      if (profilesError) {
+        console.error('Error fetching affiliated profiles:', profilesError);
+        return;
+      }
+
       // Get user roles for affiliated users
       const { data: userRoles, error: rolesError } = await supabase
         .from('user_roles')
-        .select('user_id, role');
+        .select('user_id, role')
+        .in('user_id', affiliatedUserIds);
 
       if (rolesError) {
         console.error('Error fetching user roles:', rolesError);
       }
 
-      // Transform affiliations to user profiles
-      const affiliatedUsersList = affiliations?.map(affiliation => {
-        const profile = affiliation.profiles;
+      // Transform to user profiles with affiliation status
+      const affiliatedUsersList = affiliatedProfiles?.map(profile => {
         const userRole = userRoles?.find(role => role.user_id === profile.id);
+        const affiliation = affiliations.find(aff => 
+          (aff.inviter_id === profile.id || aff.invited_user_id === profile.id) && 
+          (aff.inviter_id === user.id || aff.invited_user_id === user.id)
+        );
         
         return {
           ...profile,
           role: (userRole?.role || 'editor'),
-          affiliation_status: affiliation.status
+          affiliation_status: affiliation?.status || 'pending'
         };
       }) || [];
 

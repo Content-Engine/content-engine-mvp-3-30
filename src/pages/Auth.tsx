@@ -42,7 +42,8 @@ const Auth = () => {
           title: "Welcome back!",
           description: "You have been successfully logged in.",
         });
-        navigate('/dashboard');
+        // Force page refresh to ensure clean state
+        window.location.href = '/dashboard';
       }
     } catch (err: any) {
       toast({

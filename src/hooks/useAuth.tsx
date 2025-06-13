@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -19,6 +20,27 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+// Utility function to clean up all auth-related storage
+const cleanupAuthState = () => {
+  console.log('🧹 Cleaning up auth state...');
+  
+  // Remove all Supabase auth keys from localStorage
+  Object.keys(localStorage).forEach((key) => {
+    if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+      localStorage.removeItem(key);
+    }
+  });
+  
+  // Remove from sessionStorage if in use
+  if (typeof sessionStorage !== 'undefined') {
+    Object.keys(sessionStorage).forEach((key) => {
+      if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+        sessionStorage.removeItem(key);
+      }
+    });
+  }
+};
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -223,12 +245,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
     
     try {
+      console.log('🔐 Starting sign in process...');
       setAuthError(null);
+      
+      // Clean up existing state first
+      cleanupAuthState();
+      
+      // Attempt global sign out to clear any existing sessions
+      try {
+        await supabase.auth.signOut({ scope: 'global' });
+      } catch (err) {
+        console.log('⚠️ Global sign out failed (continuing anyway):', err);
+      }
+      
+      // Sign in with new credentials
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
-      return { error };
+      
+      if (error) {
+        console.error('❌ Sign in failed:', error);
+        return { error };
+      }
+      
+      console.log('✅ Sign in successful');
+      return { error: null };
     } catch (error) {
       console.error('❌ Sign in error:', error);
       setAuthError('Sign in failed');
@@ -278,8 +320,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
     
     try {
+      console.log('🚪 Starting sign out process...');
       setAuthError(null);
-      await supabase.auth.signOut();
+      
+      // Clean up auth state first
+      cleanupAuthState();
+      
+      // Attempt global sign out
+      try {
+        await supabase.auth.signOut({ scope: 'global' });
+      } catch (err) {
+        console.log('⚠️ Global sign out failed (continuing anyway):', err);
+      }
+      
+      // Reset local state
+      setUser(null);
+      setSession(null);
+      setUserRole(null);
+      
+      console.log('✅ Sign out complete');
     } catch (error) {
       console.error('❌ Sign out error:', error);
       setAuthError('Sign out failed');

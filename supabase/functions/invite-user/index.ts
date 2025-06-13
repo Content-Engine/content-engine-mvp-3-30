@@ -1,6 +1,10 @@
 
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.0';
+import React from 'npm:react@18.3.1'
+import { Resend } from 'npm:resend@4.0.0'
+import { renderAsync } from 'npm:@react-email/components@0.0.22'
+import { InvitationEmail } from './_templates/invitation-email.tsx'
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -81,13 +85,15 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // Create user affiliation
-    const { error: affiliationError } = await supabaseAdmin
+    const { data: newAffiliation, error: affiliationError } = await supabaseAdmin
       .from('user_affiliations')
       .insert({
         inviter_id: inviter.id,
         invited_user_id: invitedProfile.id,
         status: 'pending'
-      });
+      })
+      .select()
+      .single();
 
     if (affiliationError) {
       throw new Error(`Failed to create user affiliation: ${affiliationError.message}`);
@@ -106,25 +112,43 @@ const handler = async (req: Request): Promise<Response> => {
       // Don't throw here as the affiliation was created successfully
     }
 
-    // Send notification email if Resend API key is configured
+    // Send invitation email if Resend API key is configured
     if (resendApiKey) {
       try {
-        const { Resend } = await import("npm:resend@2.0.0");
         const resend = new Resend(resendApiKey);
+        
+        // Get inviter profile for display name
+        const { data: inviterProfile } = await supabaseAdmin
+          .from('profiles')
+          .select('full_name')
+          .eq('id', inviter.id)
+          .single();
+        
+        const inviterDisplayName = inviterProfile?.full_name || inviterName || inviter.email;
+        const invitedDisplayName = invitedProfile.full_name || invitedProfile.email;
+        
+        // Create URLs for accept/reject actions
+        const baseUrl = supabaseUrl.replace('//', '//').replace('supabase.co', 'lovable.app'); // Use your app URL
+        const acceptUrl = `${baseUrl}/invitation-response?action=accept&id=${newAffiliation.id}`;
+        const rejectUrl = `${baseUrl}/invitation-response?action=reject&id=${newAffiliation.id}`;
+        
+        const html = await renderAsync(
+          React.createElement(InvitationEmail, {
+            inviterName: inviterDisplayName,
+            invitedUserName: invitedDisplayName,
+            role: role,
+            acceptUrl: acceptUrl,
+            rejectUrl: rejectUrl,
+          })
+        );
         
         await resend.emails.send({
           from: "Content Engine <onboarding@resend.dev>",
           to: [email],
-          subject: "You've been invited to collaborate!",
-          html: `
-            <h1>Collaboration Invitation</h1>
-            <p>You've been invited by ${inviterName || inviter.email} to collaborate on Content Engine with the role of <strong>${role.replace('_', ' ')}</strong>.</p>
-            <p>You can now access shared campaigns and work together on content projects.</p>
-            <p>Log in to your Content Engine account to start collaborating!</p>
-            <p>Best regards,<br>The Content Engine Team</p>
-          `,
+          subject: "You've been invited to collaborate on Content Engine!",
+          html: html,
         });
-        console.log('Collaboration email sent successfully');
+        console.log('Collaboration invitation email sent successfully');
       } catch (emailError) {
         console.error('Email sending failed:', emailError);
         // Don't fail the request if email fails
@@ -137,7 +161,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     return new Response(JSON.stringify({ 
       success: true, 
-      message: `User ${invitedProfile.full_name || email} has been invited to collaborate` + (resendApiKey ? '' : ' (notification email not sent - configure RESEND_API_KEY)')
+      message: `Invitation sent to ${invitedProfile.full_name || email}` + (resendApiKey ? ' via email' : ' (email not sent - configure RESEND_API_KEY)')
     }), {
       status: 200,
       headers: { "Content-Type": "application/json", ...corsHeaders },

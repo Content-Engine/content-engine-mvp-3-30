@@ -1,22 +1,23 @@
-
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowRight, Users, Calendar, BarChart3, Zap } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect, useState } from "react";
-
 const Index = () => {
   const navigate = useNavigate();
-  const { user, userRole, loading } = useAuth();
+  const {
+    user,
+    userRole,
+    loading
+  } = useAuth();
   const [hasRedirected, setHasRedirected] = useState(false);
-
   useEffect(() => {
     // Prevent infinite redirect loops by only redirecting once
     if (!loading && user && !hasRedirected) {
       console.log('User authenticated, redirecting based on role:', userRole);
       setHasRedirected(true);
-      
+
       // Add a small delay to prevent race conditions
       setTimeout(() => {
         switch (userRole) {
@@ -35,44 +36,34 @@ const Index = () => {
       }, 100);
     }
   }, [user, userRole, loading, navigate, hasRedirected]);
-
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-black via-gray-950 to-gray-900 flex items-center justify-center">
+    return <div className="min-h-screen bg-gradient-to-br from-black via-gray-950 to-gray-900 flex items-center justify-center">
         <div className="text-white text-xl">Loading...</div>
-      </div>
-    );
+      </div>;
   }
 
   // Don't render the landing page if user is authenticated to prevent flash
   if (user && !hasRedirected) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-black via-gray-950 to-gray-900 flex items-center justify-center">
+    return <div className="min-h-screen bg-gradient-to-br from-black via-gray-950 to-gray-900 flex items-center justify-center">
         <div className="text-white text-xl">Redirecting...</div>
-      </div>
-    );
+      </div>;
   }
 
   // Only show landing page if user is not authenticated
   if (user) {
     return null;
   }
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-gray-950 to-gray-900 text-white">
+  return <div className="min-h-screen bg-gradient-to-br from-black via-gray-950 to-gray-900 text-white">
       {/* Ambient background effects */}
       <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-blue-900/10 to-pink-900/20"></div>
       <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl animate-pulse"></div>
       <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
       
-      <div className="relative z-10 container mx-auto px-4">
+      <div className="relative z-10 container mx-auto px-4 bg-[2d2a32]">
         {/* Header */}
         <nav className="py-6 flex items-center justify-between">
           <div className="text-2xl font-bold">Content Engine</div>
-          <Button 
-            onClick={() => navigate('/auth')}
-            className="glass-button-primary"
-          >
+          <Button onClick={() => navigate('/auth')} className="glass-button-primary text-base">
             Sign In
           </Button>
         </nav>
@@ -87,11 +78,7 @@ const Index = () => {
             quality control, and performance analytics.
           </p>
           <div className="flex gap-4 justify-center">
-            <Button 
-              onClick={() => navigate('/auth')}
-              size="lg"
-              className="glass-button-primary"
-            >
+            <Button onClick={() => navigate('/auth')} size="lg" className="glass-button-primary">
               Get Started
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
@@ -157,8 +144,6 @@ const Index = () => {
           </Card>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default Index;

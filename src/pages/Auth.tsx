@@ -77,9 +77,10 @@ const Auth = () => {
       } else {
         toast({
           title: "Account Created!",
-          description: "Please check your email to verify your account.",
+          description: "You can now sign in. A confirmation email has been sent to secure your account.",
         });
-        // Don't navigate immediately - user needs to verify email
+        // Redirect to dashboard since they can login without confirmation
+        window.location.href = '/dashboard';
       }
     } catch (err: any) {
       toast({
@@ -204,6 +205,9 @@ const Auth = () => {
                 <Button type="submit" className="w-full glass-button-primary" disabled={loading}>
                   {loading ? 'Creating account...' : 'Create Account'}
                 </Button>
+                <p className="text-white/60 text-sm text-center">
+                  You can sign in immediately after creating your account. A confirmation email will be sent to secure your account.
+                </p>
               </form>
             </TabsContent>
           </Tabs>

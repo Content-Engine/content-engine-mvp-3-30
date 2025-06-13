@@ -23,9 +23,20 @@ const Login = () => {
 
     try {
       if (isSignUp) {
-        await signUp(email, password, fullName);
+        const { error } = await signUp(email, password, fullName);
+        if (error) {
+          setError(error.message);
+        } else {
+          // Users can login immediately after signup
+          window.location.href = '/dashboard';
+        }
       } else {
-        await signIn(email, password);
+        const { error } = await signIn(email, password);
+        if (error) {
+          setError(error.message);
+        } else {
+          window.location.href = '/dashboard';
+        }
       }
     } catch (err: any) {
       setError(err.message || 'Authentication failed');
@@ -101,6 +112,12 @@ const Login = () => {
             >
               {loading ? 'Loading...' : (isSignUp ? 'Create Account' : 'Sign In')}
             </Button>
+
+            {isSignUp && (
+              <p className="text-white/60 text-sm text-center">
+                You can sign in immediately after creating your account. A confirmation email will be sent to secure your account.
+              </p>
+            )}
           </form>
 
           <div className="mt-6 text-center">

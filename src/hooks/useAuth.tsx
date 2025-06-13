@@ -12,11 +12,13 @@ interface AuthContextType {
   userRole: UserRole | null;
   loading: boolean;
   authError: string | null;
+  isEmailConfirmed: boolean;
   signIn: (email: string, password: string) => Promise<{ error?: any }>;
   signUp: (email: string, password: string, fullName?: string, role?: UserRole) => Promise<{ error?: any }>;
   signOut: () => Promise<void>;
   updateUserRole: (userId: string, role: UserRole) => Promise<void>;
   refreshUserRole: () => Promise<void>;
+  resendConfirmation: () => Promise<{ error?: any }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -48,6 +50,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [isEmailConfirmed, setIsEmailConfirmed] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
 
   const fetchUserRole = async (userId: string): Promise<UserRole> => {
@@ -86,6 +89,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(DEV_MODE.MOCK_USER as User);
       setSession(mockSession);
       setUserRole(DEV_MODE.DEFAULT_ROLE);
+      setIsEmailConfirmed(true);
       setLoading(false);
       setIsInitialized(true);
       return;
@@ -96,6 +100,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       console.log('🔧 Dev mode enabled, using mock user');
       setUser(DEV_MODE.MOCK_USER as User);
       setUserRole(DEV_MODE.DEFAULT_ROLE);
+      setIsEmailConfirmed(true);
       setLoading(false);
       setIsInitialized(true);
       return;
@@ -139,6 +144,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             }
             
             if (session?.user) {
+              // Check email confirmation status
+              const emailConfirmed = session.user.email_confirmed_at !== null;
+              setIsEmailConfirmed(emailConfirmed);
+              
+              if (!emailConfirmed) {
+                console.log('📧 User email not confirmed, but allowing login');
+              }
+              
               // Set a timeout for role fetching
               roleTimeout = setTimeout(async () => {
                 if (!isMounted) return;
@@ -159,6 +172,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               }, 100);
             } else {
               setUserRole(null);
+              setIsEmailConfirmed(false);
               setLoading(false);
             }
           }
@@ -179,6 +193,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           setUser(session?.user ?? null);
           
           if (session?.user) {
+            // Check email confirmation status
+            const emailConfirmed = session.user.email_confirmed_at !== null;
+            setIsEmailConfirmed(emailConfirmed);
+            
             try {
               const role = await fetchUserRole(session.user.id);
               if (isMounted) {
@@ -304,6 +322,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             user_id: data.user.id,
             role: role,
           });
+          
+        console.log('✅ Sign up successful - user can login without email confirmation');
       }
 
       return { error };
@@ -337,6 +357,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(null);
       setSession(null);
       setUserRole(null);
+      setIsEmailConfirmed(false);
       
       console.log('✅ Sign out complete');
     } catch (error) {
@@ -369,6 +390,35 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const resendConfirmation = async () => {
+    if (DEV_MODE.DISABLE_AUTH || DEV_MODE.USE_MOCK_AUTH || !user?.email) {
+      return { error: null };
+    }
+    
+    try {
+      setAuthError(null);
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: user.email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`,
+        },
+      });
+      
+      if (error) {
+        console.error('❌ Resend confirmation failed:', error);
+        return { error };
+      }
+      
+      console.log('✅ Confirmation email resent');
+      return { error: null };
+    } catch (error) {
+      console.error('❌ Resend confirmation error:', error);
+      setAuthError('Failed to resend confirmation');
+      return { error };
+    }
+  };
+
   return (
     <AuthContext.Provider value={{
       user,
@@ -376,11 +426,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       userRole,
       loading,
       authError,
+      isEmailConfirmed,
       signIn,
       signUp,
       signOut,
       updateUserRole,
       refreshUserRole,
+      resendConfirmation,
     }}>
       {children}
     </AuthContext.Provider>

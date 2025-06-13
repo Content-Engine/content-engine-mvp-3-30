@@ -35,68 +35,78 @@ const handler = async (req: Request): Promise<Response> => {
 
     const { email, role, inviterName }: InviteUserRequest = await req.json();
 
-    console.log('Inviting user:', email, 'with role:', role);
+    console.log('Creating affiliation with user:', email, 'with role:', role);
 
-    // Check if user already exists by trying to get user by email
-    const { data: existingUsers, error: listError } = await supabaseAdmin.auth.admin.listUsers();
-    
-    if (listError) {
-      console.error('Error listing users:', listError);
+    // Get the inviter's user ID from the request headers
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      throw new Error('No authorization header provided');
     }
 
-    const existingUser = existingUsers?.users?.find(user => user.email === email);
-    
-    if (existingUser) {
-      // User exists, just update their role
-      const { error: roleError } = await supabaseAdmin
-        .from('user_roles')
-        .upsert({
-          user_id: existingUser.id,
-          role: role
-        });
+    const { data: { user: inviter }, error: authError } = await supabaseAdmin.auth.getUser(
+      authHeader.replace('Bearer ', '')
+    );
 
-      if (roleError) {
-        throw new Error(`Failed to update user role: ${roleError.message}`);
-      }
+    if (authError || !inviter) {
+      throw new Error('Invalid authorization token');
+    }
 
+    // Find the user by email in profiles table
+    const { data: invitedProfile, error: profileError } = await supabaseAdmin
+      .from('profiles')
+      .select('id, email, full_name')
+      .eq('email', email)
+      .single();
+
+    if (profileError || !invitedProfile) {
+      throw new Error(`User with email ${email} not found. They need to sign up first.`);
+    }
+
+    // Check if affiliation already exists
+    const { data: existingAffiliation, error: affiliationCheckError } = await supabaseAdmin
+      .from('user_affiliations')
+      .select('id, status')
+      .eq('inviter_id', inviter.id)
+      .eq('invited_user_id', invitedProfile.id)
+      .single();
+
+    if (existingAffiliation) {
       return new Response(JSON.stringify({ 
         success: true, 
-        message: 'User already exists, role updated successfully' 
+        message: `User affiliation already exists with status: ${existingAffiliation.status}` 
       }), {
         status: 200,
         headers: { "Content-Type": "application/json", ...corsHeaders },
       });
     }
 
-    // Create new user with invite
-    const { data: newUser, error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
-      data: {
-        role: role,
-        invited_by: inviterName || 'Admin'
-      },
-      redirectTo: `https://qpaomtgbpjxvnamtqhtv.supabase.co/auth/v1/verify`
-    });
+    // Create user affiliation
+    const { error: affiliationError } = await supabaseAdmin
+      .from('user_affiliations')
+      .insert({
+        inviter_id: inviter.id,
+        invited_user_id: invitedProfile.id,
+        status: 'pending'
+      });
 
-    if (inviteError) {
-      throw new Error(`Failed to invite user: ${inviteError.message}`);
+    if (affiliationError) {
+      throw new Error(`Failed to create user affiliation: ${affiliationError.message}`);
     }
 
-    // Set the user role
-    if (newUser.user) {
-      const { error: roleError } = await supabaseAdmin
-        .from('user_roles')
-        .insert({
-          user_id: newUser.user.id,
-          role: role
-        });
+    // Set or update the user role
+    const { error: roleError } = await supabaseAdmin
+      .from('user_roles')
+      .upsert({
+        user_id: invitedProfile.id,
+        role: role
+      });
 
-      if (roleError) {
-        console.error('Role assignment error:', roleError);
-        // Don't throw here as the user was created successfully
-      }
+    if (roleError) {
+      console.error('Role assignment error:', roleError);
+      // Don't throw here as the affiliation was created successfully
     }
 
-    // Send welcome email only if Resend API key is configured
+    // Send notification email if Resend API key is configured
     if (resendApiKey) {
       try {
         const { Resend } = await import("npm:resend@2.0.0");
@@ -105,29 +115,29 @@ const handler = async (req: Request): Promise<Response> => {
         await resend.emails.send({
           from: "Content Engine <onboarding@resend.dev>",
           to: [email],
-          subject: "Welcome to Content Engine!",
+          subject: "You've been invited to collaborate!",
           html: `
-            <h1>Welcome to Content Engine!</h1>
-            <p>You've been invited to join Content Engine with the role of <strong>${role.replace('_', ' ')}</strong>.</p>
-            <p>You should receive a separate email with your login credentials shortly.</p>
-            <p>If you have any questions, please don't hesitate to reach out to your administrator.</p>
+            <h1>Collaboration Invitation</h1>
+            <p>You've been invited by ${inviterName || inviter.email} to collaborate on Content Engine with the role of <strong>${role.replace('_', ' ')}</strong>.</p>
+            <p>You can now access shared campaigns and work together on content projects.</p>
+            <p>Log in to your Content Engine account to start collaborating!</p>
             <p>Best regards,<br>The Content Engine Team</p>
           `,
         });
-        console.log('Welcome email sent successfully');
+        console.log('Collaboration email sent successfully');
       } catch (emailError) {
         console.error('Email sending failed:', emailError);
         // Don't fail the request if email fails
       }
     } else {
-      console.log('Resend API key not configured, skipping welcome email');
+      console.log('Resend API key not configured, skipping collaboration email');
     }
 
-    console.log('User invited successfully:', email);
+    console.log('User affiliation created successfully:', email);
 
     return new Response(JSON.stringify({ 
       success: true, 
-      message: 'User invited successfully' + (resendApiKey ? '' : ' (welcome email not sent - configure RESEND_API_KEY)')
+      message: `User ${invitedProfile.full_name || email} has been invited to collaborate` + (resendApiKey ? '' : ' (notification email not sent - configure RESEND_API_KEY)')
     }), {
       status: 200,
       headers: { "Content-Type": "application/json", ...corsHeaders },

@@ -153,6 +153,41 @@ export type Database = {
           },
         ]
       }
+      campaign_collaborators: {
+        Row: {
+          added_by: string
+          campaign_id: string
+          created_at: string
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          added_by: string
+          campaign_id: string
+          created_at?: string
+          id?: string
+          role?: string
+          user_id: string
+        }
+        Update: {
+          added_by?: string
+          campaign_id?: string
+          created_at?: string
+          id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_collaborators_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       campaigns: {
         Row: {
           assigned_editor_id: string | null
@@ -999,6 +1034,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_affiliations: {
+        Row: {
+          created_at: string
+          id: string
+          invited_user_id: string
+          inviter_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          invited_user_id: string
+          inviter_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          invited_user_id?: string
+          inviter_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       user_payments: {
         Row: {

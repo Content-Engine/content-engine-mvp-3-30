@@ -23,22 +23,29 @@ const Login = () => {
 
     try {
       if (isSignUp) {
+        console.log('📝 Attempting signup for:', email);
         const { error } = await signUp(email, password, fullName);
         if (error) {
+          console.error('❌ Signup failed:', error);
           setError(error.message);
         } else {
+          console.log('✅ Signup successful, user can login immediately');
           // Users can login immediately after signup
           window.location.href = '/dashboard';
         }
       } else {
+        console.log('🔐 Attempting login for:', email);
         const { error } = await signIn(email, password);
         if (error) {
+          console.error('❌ Login failed:', error);
           setError(error.message);
         } else {
+          console.log('✅ Login successful, redirecting to dashboard');
           window.location.href = '/dashboard';
         }
       }
     } catch (err: any) {
+      console.error('❌ Authentication error:', err);
       setError(err.message || 'Authentication failed');
     } finally {
       setLoading(false);

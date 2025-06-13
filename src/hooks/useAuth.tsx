@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -122,7 +121,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
 
     let isMounted = true;
-    let roleTimeout: NodeJS.Timeout;
 
     const initializeAuth = async () => {
       try {
@@ -138,22 +136,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             setSession(session);
             setUser(session?.user ?? null);
             
-            // Clear any existing role timeout
-            if (roleTimeout) {
-              clearTimeout(roleTimeout);
-            }
-            
             if (session?.user) {
-              // Check email confirmation status
+              // Check email confirmation status - allow login regardless
               const emailConfirmed = session.user.email_confirmed_at !== null;
               setIsEmailConfirmed(emailConfirmed);
               
-              if (!emailConfirmed) {
-                console.log('📧 User email not confirmed, but allowing login');
-              }
+              console.log('📧 User email confirmed:', emailConfirmed);
               
-              // Set a timeout for role fetching
-              roleTimeout = setTimeout(async () => {
+              // Fetch user role regardless of email confirmation
+              setTimeout(async () => {
                 if (!isMounted) return;
                 try {
                   const role = await fetchUserRole(session.user.id);
@@ -162,7 +153,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                     setLoading(false);
                   }
                 } catch (error) {
-                  console.error('❌ Error fetching user role in timeout:', error);
+                  console.error('❌ Error fetching user role:', error);
                   if (isMounted) {
                     setUserRole('user');
                     setLoading(false);
@@ -217,9 +208,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
         return () => {
           subscription.unsubscribe();
-          if (roleTimeout) {
-            clearTimeout(roleTimeout);
-          }
         };
       } catch (error) {
         console.error('❌ Error initializing auth:', error);
@@ -235,9 +223,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     return () => {
       isMounted = false;
-      if (roleTimeout) {
-        clearTimeout(roleTimeout);
-      }
       clearTimeout(authTimeout);
     };
   }, [isInitialized, loading]);
@@ -276,8 +261,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         console.log('⚠️ Global sign out failed (continuing anyway):', err);
       }
       
-      // Sign in with new credentials
-      const { error } = await supabase.auth.signInWithPassword({
+      // Sign in with new credentials - IMPORTANT: Don't check email confirmation
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
@@ -287,7 +272,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return { error };
       }
       
-      console.log('✅ Sign in successful');
+      console.log('✅ Sign in successful, user confirmed status:', data.user?.email_confirmed_at ? 'confirmed' : 'unconfirmed');
       return { error: null };
     } catch (error) {
       console.error('❌ Sign in error:', error);

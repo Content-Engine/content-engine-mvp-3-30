@@ -29,15 +29,18 @@ const Auth = () => {
     setLoading(true);
     
     try {
+      console.log('🔐 Attempting login for:', loginForm.email);
       const { error } = await signIn(loginForm.email, loginForm.password);
       
       if (error) {
+        console.error('❌ Login failed:', error);
         toast({
           title: "Login Failed",
           description: error.message,
           variant: "destructive",
         });
       } else {
+        console.log('✅ Login successful, redirecting to dashboard');
         toast({
           title: "Welcome back!",
           description: "You have been successfully logged in.",
@@ -46,6 +49,7 @@ const Auth = () => {
         window.location.href = '/dashboard';
       }
     } catch (err: any) {
+      console.error('❌ Login error:', err);
       toast({
         title: "Login Error",
         description: err.message || "An unexpected error occurred",
@@ -61,6 +65,7 @@ const Auth = () => {
     setLoading(true);
     
     try {
+      console.log('📝 Attempting signup for:', signupForm.email);
       const { error } = await signUp(
         signupForm.email, 
         signupForm.password, 
@@ -69,12 +74,14 @@ const Auth = () => {
       );
       
       if (error) {
+        console.error('❌ Signup failed:', error);
         toast({
           title: "Signup Failed",
           description: error.message,
           variant: "destructive",
         });
       } else {
+        console.log('✅ Signup successful, user can login immediately');
         toast({
           title: "Account Created!",
           description: "You can now sign in. A confirmation email has been sent to secure your account.",
@@ -83,6 +90,7 @@ const Auth = () => {
         window.location.href = '/dashboard';
       }
     } catch (err: any) {
+      console.error('❌ Signup error:', err);
       toast({
         title: "Signup Error",
         description: err.message || "An unexpected error occurred",

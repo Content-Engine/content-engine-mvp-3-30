@@ -59,17 +59,17 @@ const Index = () => {
       <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl animate-pulse"></div>
       <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
       
-      <div className="relative z-10 container mx-auto px-4 bg-[2d2a32]">
+      <div className="relative z-10 container mx-auto px-4">
         {/* Header */}
         <nav className="py-6 flex items-center justify-between">
           <div className="text-2xl font-bold">Content Engine</div>
-          <Button onClick={() => navigate('/auth')} className="glass-button-primary text-base">
+          <Button onClick={() => navigate('/auth')} className="glass-button-primary">
             Sign In
           </Button>
         </nav>
 
         {/* Hero Section */}
-        <div className="py-20 text-center">
+        <div className="py-20 text-center bg-[009cff]">
           <h1 className="text-6xl font-bold mb-6 bg-gradient-to-r from-purple-400 via-blue-400 to-pink-400 bg-clip-text text-transparent">
             Content Syndication Platform
           </h1>

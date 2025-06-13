@@ -20,7 +20,7 @@ const TopNavBar = () => {
 
   const handleSignOut = async () => {
     await signOut();
-    navigate('/');
+    navigate('/auth');
   };
 
   const getTierBadgeColor = (tier: string | null) => {

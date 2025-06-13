@@ -42,6 +42,7 @@ function App() {
               <Route path="/login-page" element={<LoginPage />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/campaign-builder" element={<CampaignBuilder />} />
+              <Route path="/campaign-builder/step/:stepNumber" element={<CampaignBuilder />} />
               <Route path="/campaigns" element={<Campaigns />} />
               <Route path="/editor-view" element={<EditorView />} />
               <Route path="/social-manager-dashboard" element={<SocialManagerDashboard />} />
@@ -55,8 +56,8 @@ function App() {
               <Route path="/payment/cancel" element={<PaymentCancel />} />
               <Route path="/user-management" element={<UserManagement />} />
               <Route path="/invitation-response" element={<InvitationResponse />} />
-              <Route path="*" element={<NotFound />} />
               <Route path="/unauthorized" element={<Unauthorized />} />
+              <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
         </TooltipProvider>

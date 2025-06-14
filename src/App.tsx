@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/hooks/useAuth";
@@ -41,6 +41,12 @@ function App() {
               <Route path="/auth" element={<Auth />} />
               <Route path="/login" element={<Login />} />
               <Route path="/login-page" element={<LoginPage />} />
+              
+              {/* Social Manager Redirect */}
+              <Route 
+                path="/social-manager" 
+                element={<Navigate to="/social-manager-dashboard" replace />} 
+              />
               
               {/* Protected Dashboard Route */}
               <Route 

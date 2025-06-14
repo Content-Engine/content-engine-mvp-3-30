@@ -39,7 +39,7 @@ const TopNavBar = () => {
     // Admin can see everything
     if (userRole === 'admin') {
       items.push(
-        { path: '/social-manager-dashboard', label: 'Social Media Manager', icon: Calendar },
+        { path: '/social-manager', label: 'Social Media Manager', icon: Calendar },
         { path: '/editor', label: 'Editor Portal', icon: Edit },
         { path: '/user-management', label: 'User Management', icon: Users },
         { path: '/campaign-builder', label: 'Campaign Builder', icon: Edit }
@@ -49,7 +49,7 @@ const TopNavBar = () => {
     // Social Media Manager
     if (userRole === 'social_media_manager') {
       items.push(
-        { path: '/social-manager-dashboard', label: 'Social Media Manager', icon: Calendar }
+        { path: '/social-manager', label: 'Social Media Manager', icon: Calendar }
       );
     }
     

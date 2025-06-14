@@ -42,10 +42,10 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/login-page" element={<LoginPage />} />
               
-              {/* Social Manager Redirect */}
+              {/* Social Manager Dashboard Redirect */}
               <Route 
-                path="/social-manager" 
-                element={<Navigate to="/social-manager-dashboard" replace />} 
+                path="/social-manager-dashboard" 
+                element={<Navigate to="/social-manager" replace />} 
               />
               
               {/* Protected Dashboard Route */}
@@ -140,9 +140,9 @@ function App() {
                 } 
               />
               
-              {/* Social Manager Routes */}
+              {/* Social Manager Routes - Primary route structure */}
               <Route 
-                path="/social-manager-dashboard" 
+                path="/social-manager/*" 
                 element={
                   <ProtectedRoute>
                     <RoleBasedRoute allowedRoles={['admin', 'social_media_manager']}>
@@ -154,17 +154,6 @@ function App() {
               
               <Route 
                 path="/social-media-manager-view" 
-                element={
-                  <ProtectedRoute>
-                    <RoleBasedRoute allowedRoles={['admin', 'social_media_manager']}>
-                      <SocialMediaManagerView />
-                    </RoleBasedRoute>
-                  </ProtectedRoute>
-                } 
-              />
-              
-              <Route 
-                path="/social-manager/calendar" 
                 element={
                   <ProtectedRoute>
                     <RoleBasedRoute allowedRoles={['admin', 'social_media_manager']}>

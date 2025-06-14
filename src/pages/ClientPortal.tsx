@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useScheduledPosts } from "@/hooks/useScheduledPosts";
 import { useCampaignData } from "@/hooks/useCampaignData";
+import { usePayments } from "@/hooks/usePayments";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -18,7 +19,9 @@ import {
   XCircle,
   ArrowLeft,
   TrendingUp,
-  Settings
+  Settings,
+  Activity,
+  Shield
 } from "lucide-react";
 import Layout from "@/components/Layout";
 import AyrshareApiKeyManager from "@/components/AyrshareApiKeyManager";
@@ -27,6 +30,7 @@ const ClientPortal = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { userRole, loading, user } = useAuth();
+  const { paymentTier } = usePayments();
   const { posts, loading: postsLoading } = useScheduledPosts();
   const { campaigns, loading: campaignsLoading } = useCampaignData();
 
@@ -42,6 +46,9 @@ const ClientPortal = () => {
       navigate("/dashboard");
     }
   }, [userRole, loading, navigate, toast, user]);
+
+  // Premium access logic
+  const showPremiumButtons = userRole === 'admin' || (userRole === 'user' && paymentTier === 'pro');
 
   if (loading || postsLoading || campaignsLoading) {
     return (
@@ -123,6 +130,74 @@ const ClientPortal = () => {
               Client Access
             </Badge>
           </div>
+
+          {/* Premium Access Cards */}
+          {showPremiumButtons && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <Card className="bg-card-bg/50 border-border-color hover:bg-card-bg/70 transition-colors cursor-pointer">
+                <CardContent className="p-6">
+                  <Button
+                    onClick={() => navigate('/calendar-overview')}
+                    className="w-full h-auto p-0 bg-transparent hover:bg-transparent text-left"
+                    variant="ghost"
+                  >
+                    <div className="flex items-center justify-between w-full">
+                      <div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <Calendar className="h-6 w-6 text-accent" />
+                          <span className="text-lg">📅</span>
+                        </div>
+                        <h3 className="font-semibold text-text-main">Calendar Overview</h3>
+                        <p className="text-sm text-text-muted">View your content calendar</p>
+                      </div>
+                    </div>
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-card-bg/50 border-border-color hover:bg-card-bg/70 transition-colors cursor-pointer">
+                <CardContent className="p-6">
+                  <Button
+                    onClick={() => navigate('/performance-dashboard')}
+                    className="w-full h-auto p-0 bg-transparent hover:bg-transparent text-left"
+                    variant="ghost"
+                  >
+                    <div className="flex items-center justify-between w-full">
+                      <div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <Activity className="h-6 w-6 text-accent" />
+                          <span className="text-lg">📊</span>
+                        </div>
+                        <h3 className="font-semibold text-text-main">Performance Dashboard</h3>
+                        <p className="text-sm text-text-muted">Track your analytics</p>
+                      </div>
+                    </div>
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-card-bg/50 border-border-color hover:bg-card-bg/70 transition-colors cursor-pointer">
+                <CardContent className="p-6">
+                  <Button
+                    onClick={() => navigate('/quality-control-panel')}
+                    className="w-full h-auto p-0 bg-transparent hover:bg-transparent text-left"
+                    variant="ghost"
+                  >
+                    <div className="flex items-center justify-between w-full">
+                      <div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <Shield className="h-6 w-6 text-accent" />
+                          <span className="text-lg">🛡️</span>
+                        </div>
+                        <h3 className="font-semibold text-text-main">Quality Control</h3>
+                        <p className="text-sm text-text-muted">Review content quality</p>
+                      </div>
+                    </div>
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+          )}
 
           <Tabs defaultValue="overview" className="space-y-6">
             <TabsList className="grid w-full grid-cols-3 bg-card-bg/50">

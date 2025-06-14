@@ -25,14 +25,14 @@ const RoleBasedRoute = ({ children, allowedRoles }: RoleBasedRouteProps) => {
       setHasCheckedRole(true);
       
       if (!user) {
-        console.log('User not authenticated, redirecting to auth');
-        navigate('/auth');
+        console.log('❌ RoleBasedRoute: User not authenticated, redirecting to auth');
+        navigate('/auth', { replace: true });
         return;
       }
       
       if (userRole && !allowedRoles.includes(userRole)) {
-        console.log(`User role ${userRole} not in allowed roles:`, allowedRoles);
-        navigate('/unauthorized');
+        console.log(`❌ RoleBasedRoute: User role ${userRole} not in allowed roles:`, allowedRoles);
+        navigate('/unauthorized', { replace: true });
         return;
       }
     }
@@ -51,10 +51,14 @@ const RoleBasedRoute = ({ children, allowedRoles }: RoleBasedRouteProps) => {
   }
 
   if (!user) {
+    // Fallback redirect if somehow we get here without a user
+    navigate('/auth', { replace: true });
     return null;
   }
 
   if (userRole && !allowedRoles.includes(userRole)) {
+    // Fallback redirect if somehow we get here without proper role
+    navigate('/unauthorized', { replace: true });
     return null;
   }
 

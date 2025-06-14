@@ -1,3 +1,4 @@
+
 import { ReactNode, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -38,7 +39,8 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
       
       if (!user) {
         console.log('❌ ProtectedRoute: User not authenticated, redirecting to auth');
-        navigate('/auth');
+        navigate('/auth', { replace: true });
+        return;
       }
     }
   }, [user, loading, navigate, hasCheckedAuth]);
@@ -55,10 +57,10 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
           <div className="text-red-400 text-xl mb-4">Authentication Error</div>
           <div className="text-white/70 text-sm mb-4">{authError}</div>
           <button 
-            onClick={() => navigate('/auth')}
+            onClick={() => navigate('/auth', { replace: true })}
             className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
           >
-            Try Again
+            Go to Login
           </button>
         </div>
       </div>
@@ -73,8 +75,14 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
           <div className="text-yellow-400 text-xl mb-4">Authentication Timeout</div>
           <div className="text-white/70 text-sm mb-4">Taking longer than expected...</div>
           <button 
+            onClick={() => navigate('/auth', { replace: true })}
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 mr-2"
+          >
+            Go to Login
+          </button>
+          <button 
             onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
           >
             Refresh Page
           </button>
@@ -95,6 +103,8 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   }
 
   if (!user) {
+    // Fallback redirect if somehow we get here without a user
+    navigate('/auth', { replace: true });
     return null;
   }
 

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -34,6 +33,13 @@ const ClientPortal = () => {
   const { posts, loading: postsLoading } = useScheduledPosts();
   const { campaigns, loading: campaignsLoading } = useCampaignData();
 
+  // --- Admin Impersonation Toggle ---
+  const [impersonating, setImpersonating] = useState(false);
+  const effectiveUserRole = impersonating ? 'user' : userRole;
+  const effectivePaymentTier = impersonating ? 'pro' : paymentTier;
+  const showPremiumButtons =
+    effectiveUserRole === 'admin' || (effectiveUserRole === 'user' && effectivePaymentTier === 'pro');
+
   useEffect(() => {
     if (!loading && (!user || (userRole && userRole === 'user'))) {
       // Allow regular users (clients) to access this portal
@@ -46,9 +52,6 @@ const ClientPortal = () => {
       navigate("/dashboard");
     }
   }, [userRole, loading, navigate, toast, user]);
-
-  // Premium access logic
-  const showPremiumButtons = userRole === 'admin' || (userRole === 'user' && paymentTier === 'pro');
 
   if (loading || postsLoading || campaignsLoading) {
     return (
@@ -109,6 +112,24 @@ const ClientPortal = () => {
     <Layout>
       <div className="min-h-screen bg-bg-main text-text-main p-6">
         <div className="max-w-7xl mx-auto space-y-6">
+
+          {/* --- Admin-only Impersonation Mode Toggle --- */}
+          {userRole === 'admin' && (
+            <div className="flex items-center justify-end mb-2">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="accent-blue-500"
+                  checked={impersonating}
+                  onChange={() => setImpersonating(val => !val)}
+                />
+                <span className="text-sm text-blue-600 select-none">
+                  Impersonate Pro Client
+                </span>
+              </label>
+            </div>
+          )}
+
           {/* Header */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -133,70 +154,89 @@ const ClientPortal = () => {
 
           {/* Premium Access Cards */}
           {showPremiumButtons && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Card className="bg-card-bg/50 border-border-color hover:bg-card-bg/70 transition-colors cursor-pointer">
-                <CardContent className="p-6">
-                  <Button
-                    onClick={() => navigate('/calendar-overview')}
-                    className="w-full h-auto p-0 bg-transparent hover:bg-transparent text-left"
-                    variant="ghost"
-                  >
-                    <div className="flex items-center justify-between w-full">
-                      <div>
-                        <div className="flex items-center gap-2 mb-2">
-                          <Calendar className="h-6 w-6 text-accent" />
-                          <span className="text-lg">📅</span>
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <Card className="bg-card-bg/50 border-border-color hover:bg-card-bg/70 transition-colors cursor-pointer">
+                  <CardContent className="p-6">
+                    <Button
+                      onClick={() => navigate('/calendar-overview')}
+                      className="w-full h-auto p-0 bg-transparent hover:bg-transparent text-left"
+                      variant="ghost"
+                    >
+                      <div className="flex items-center justify-between w-full">
+                        <div>
+                          <div className="flex items-center gap-2 mb-2">
+                            <Calendar className="h-6 w-6 text-accent" />
+                            <span className="text-lg">📅</span>
+                          </div>
+                          <h3 className="font-semibold text-text-main">Calendar Overview</h3>
+                          <p className="text-sm text-text-muted">View your content calendar</p>
                         </div>
-                        <h3 className="font-semibold text-text-main">Calendar Overview</h3>
-                        <p className="text-sm text-text-muted">View your content calendar</p>
                       </div>
-                    </div>
-                  </Button>
-                </CardContent>
-              </Card>
+                    </Button>
+                  </CardContent>
+                </Card>
+                <Card className="bg-card-bg/50 border-border-color hover:bg-card-bg/70 transition-colors cursor-pointer">
+                  <CardContent className="p-6">
+                    <Button
+                      onClick={() => navigate('/performance-dashboard')}
+                      className="w-full h-auto p-0 bg-transparent hover:bg-transparent text-left"
+                      variant="ghost"
+                    >
+                      <div className="flex items-center justify-between w-full">
+                        <div>
+                          <div className="flex items-center gap-2 mb-2">
+                            <Activity className="h-6 w-6 text-accent" />
+                            <span className="text-lg">📊</span>
+                          </div>
+                          <h3 className="font-semibold text-text-main">Performance Dashboard</h3>
+                          <p className="text-sm text-text-muted">Track your analytics</p>
+                        </div>
+                      </div>
+                    </Button>
+                  </CardContent>
+                </Card>
+                <Card className="bg-card-bg/50 border-border-color hover:bg-card-bg/70 transition-colors cursor-pointer">
+                  <CardContent className="p-6">
+                    <Button
+                      onClick={() => navigate('/quality-control-panel')}
+                      className="w-full h-auto p-0 bg-transparent hover:bg-transparent text-left"
+                      variant="ghost"
+                    >
+                      <div className="flex items-center justify-between w-full">
+                        <div>
+                          <div className="flex items-center gap-2 mb-2">
+                            <Shield className="h-6 w-6 text-accent" />
+                            <span className="text-lg">🛡️</span>
+                          </div>
+                          <h3 className="font-semibold text-text-main">Quality Control</h3>
+                          <p className="text-sm text-text-muted">Review content quality</p>
+                        </div>
+                      </div>
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
 
-              <Card className="bg-card-bg/50 border-border-color hover:bg-card-bg/70 transition-colors cursor-pointer">
-                <CardContent className="p-6">
-                  <Button
-                    onClick={() => navigate('/performance-dashboard')}
-                    className="w-full h-auto p-0 bg-transparent hover:bg-transparent text-left"
-                    variant="ghost"
-                  >
-                    <div className="flex items-center justify-between w-full">
-                      <div>
-                        <div className="flex items-center gap-2 mb-2">
-                          <Activity className="h-6 w-6 text-accent" />
-                          <span className="text-lg">📊</span>
-                        </div>
-                        <h3 className="font-semibold text-text-main">Performance Dashboard</h3>
-                        <p className="text-sm text-text-muted">Track your analytics</p>
-                      </div>
-                    </div>
-                  </Button>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-card-bg/50 border-border-color hover:bg-card-bg/70 transition-colors cursor-pointer">
-                <CardContent className="p-6">
-                  <Button
-                    onClick={() => navigate('/quality-control-panel')}
-                    className="w-full h-auto p-0 bg-transparent hover:bg-transparent text-left"
-                    variant="ghost"
-                  >
-                    <div className="flex items-center justify-between w-full">
-                      <div>
-                        <div className="flex items-center gap-2 mb-2">
-                          <Shield className="h-6 w-6 text-accent" />
-                          <span className="text-lg">🛡️</span>
-                        </div>
-                        <h3 className="font-semibold text-text-main">Quality Control</h3>
-                        <p className="text-sm text-text-muted">Review content quality</p>
-                      </div>
-                    </div>
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
+              {/* --- Pro Features Metrics Panel --- */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
+                {/* Scheduled Posts Card */}
+                <div className="p-4 bg-white rounded-lg shadow-md flex flex-col items-center">
+                  <div className="text-xs text-muted-foreground font-medium mb-2">Scheduled Posts</div>
+                  <div className="text-3xl font-bold text-accent">42</div>
+                </div>
+                {/* Campaign Performance Card */}
+                <div className="p-4 bg-white rounded-lg shadow-md flex flex-col items-center">
+                  <div className="text-xs text-muted-foreground font-medium mb-2">Campaign Performance</div>
+                  <div className="text-3xl font-bold text-green-500 flex items-center gap-1">+18.2% <span className="ml-1 text-lg">↑</span></div>
+                </div>
+                {/* QC Flags Card */}
+                <div className="p-4 bg-white rounded-lg shadow-md flex flex-col items-center">
+                  <div className="text-xs text-muted-foreground font-medium mb-2">QC Flags</div>
+                  <div className="text-3xl font-bold text-yellow-600">3</div>
+                </div>
+              </div>
+            </>
           )}
 
           <Tabs defaultValue="overview" className="space-y-6">

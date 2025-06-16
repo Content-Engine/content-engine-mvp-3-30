@@ -2,18 +2,10 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { Tables } from '@/integrations/supabase/types';
 
-export interface Notification {
-  id: string;
-  user_id: string;
-  type: 'affiliation_invitation' | 'general';
-  title: string;
-  message: string;
-  data?: any;
-  read: boolean;
-  created_at: string;
-  updated_at: string;
-}
+// Use the Supabase generated type directly
+export type Notification = Tables<'notifications'>;
 
 export const useNotifications = () => {
   const { user } = useAuth();

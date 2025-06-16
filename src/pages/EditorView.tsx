@@ -3,15 +3,54 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Edit, FileText, Calendar, CheckSquare, Clock, User } from "lucide-react";
+import { Edit, FileText, Calendar, CheckSquare, Clock, User, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useEditorAssignments } from "@/hooks/useEditorAssignments";
 import Layout from "@/components/Layout";
 import NotificationButton from "@/components/NotificationButton";
+import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 
 const EditorView = () => {
-  const { assignments, loading, updateAssignment } = useEditorAssignments();
+  const { assignments, loading, updateAssignment, error } = useEditorAssignments();
   const { toast } = useToast();
+  const { user, userRole, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
+  const [hasCheckedAccess, setHasCheckedAccess] = useState(false);
+
+  console.log('EditorView: Current state', { 
+    user: !!user, 
+    userRole, 
+    authLoading, 
+    assignmentsLoading: loading,
+    assignmentsCount: assignments.length,
+    error 
+  });
+
+  // Check access permissions
+  useEffect(() => {
+    if (!authLoading && !hasCheckedAccess) {
+      setHasCheckedAccess(true);
+      
+      if (!user) {
+        console.log('EditorView: No user, redirecting to auth');
+        navigate('/auth');
+        return;
+      }
+      
+      if (userRole && !['admin', 'editor'].includes(userRole)) {
+        console.log('EditorView: Invalid role for editor access:', userRole);
+        toast({
+          title: "Access Denied",
+          description: "You don't have permission to access the Editor Portal.",
+          variant: "destructive",
+        });
+        navigate('/dashboard');
+        return;
+      }
+    }
+  }, [authLoading, hasCheckedAccess, user, userRole, navigate, toast]);
 
   const handleStatusUpdate = async (assignmentId: string, newStatus: string) => {
     try {
@@ -46,8 +85,78 @@ const EditorView = () => {
     }
   };
 
-  console.log('EditorView render - assignments:', assignments, 'loading:', loading);
+  // Show loading while checking auth
+  if (authLoading || !hasCheckedAccess) {
+    return (
+      <Layout>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-pulse">
+              <div className="h-8 loading-skeleton w-48 mb-4 mx-auto"></div>
+              <div className="h-4 loading-skeleton w-32 mx-auto"></div>
+            </div>
+            <p className="text-muted-foreground mt-4">Checking access permissions...</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
+  // Show error if access check failed
+  if (!user) {
+    return (
+      <Layout>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+            <h2 className="text-xl font-semibold mb-2">Authentication Required</h2>
+            <p className="text-muted-foreground mb-4">Please log in to access the Editor Portal.</p>
+            <Button onClick={() => navigate('/auth')} className="bg-blue-600 hover:bg-blue-700">
+              Go to Login
+            </Button>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  // Show error if user doesn't have editor access
+  if (userRole && !['admin', 'editor'].includes(userRole)) {
+    return (
+      <Layout>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+            <h2 className="text-xl font-semibold mb-2">Access Denied</h2>
+            <p className="text-muted-foreground mb-4">You don't have permission to access the Editor Portal.</p>
+            <Button onClick={() => navigate('/dashboard')} className="bg-blue-600 hover:bg-blue-700">
+              Back to Dashboard
+            </Button>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  // Show error if there was a data fetching error
+  if (error) {
+    return (
+      <Layout>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+            <h2 className="text-xl font-semibold mb-2">Error Loading Editor Portal</h2>
+            <p className="text-muted-foreground mb-4">{error}</p>
+            <Button onClick={() => window.location.reload()} className="bg-blue-600 hover:bg-blue-700">
+              Retry
+            </Button>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  // Show loading while fetching assignments
   if (loading) {
     return (
       <Layout>
@@ -56,6 +165,7 @@ const EditorView = () => {
             <div className="h-8 loading-skeleton w-48 mb-4 mx-auto"></div>
             <div className="h-4 loading-skeleton w-32 mx-auto"></div>
           </div>
+          <p className="text-muted-foreground mt-4">Loading assignments...</p>
         </div>
       </Layout>
     );

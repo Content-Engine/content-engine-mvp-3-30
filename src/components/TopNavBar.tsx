@@ -42,6 +42,12 @@ const TopNavBar = () => {
     }
   };
 
+  const handleContentEngineClick = () => {
+    // Always go to dashboard for the Content Engine button
+    console.log('Content Engine clicked, navigating to dashboard');
+    handleNavigation('/dashboard');
+  };
+
   const getTierBadgeColor = (tier: string | null) => {
     switch (tier) {
       case 'basic': return 'bg-blue-100 text-blue-800';
@@ -97,7 +103,7 @@ const TopNavBar = () => {
           {/* Logo */}
           <div className="flex items-center">
             <button
-              onClick={() => handleNavigation('/')}
+              onClick={handleContentEngineClick}
               className="text-theme-light font-bold text-xl hover:text-theme-blue transition-colors"
             >
               Content Engine

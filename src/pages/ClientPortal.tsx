@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -24,6 +25,7 @@ import {
 } from "lucide-react";
 import Layout from "@/components/Layout";
 import AyrshareApiKeyManager from "@/components/AyrshareApiKeyManager";
+import NotificationButton from "@/components/NotificationButton";
 
 const ClientPortal = () => {
   const navigate = useNavigate();
@@ -147,9 +149,12 @@ const ClientPortal = () => {
                 <p className="text-text-muted">Manage your campaigns and account settings</p>
               </div>
             </div>
-            <Badge variant="secondary" className="bg-blue-500/20 text-blue-400">
-              Client Access
-            </Badge>
+            <div className="flex items-center gap-3">
+              <NotificationButton />
+              <Badge variant="secondary" className="bg-blue-500/20 text-blue-400">
+                Client Access
+              </Badge>
+            </div>
           </div>
 
           {/* Premium Access Cards */}

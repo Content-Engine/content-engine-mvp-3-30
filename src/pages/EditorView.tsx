@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -7,6 +6,7 @@ import { Edit, FileText, Calendar, CheckSquare, Clock, User } from "lucide-react
 import { useToast } from "@/hooks/use-toast";
 import { useEditorAssignments } from "@/hooks/useEditorAssignments";
 import Layout from "@/components/Layout";
+import NotificationButton from "@/components/NotificationButton";
 
 const EditorView = () => {
   const { assignments, loading, updateAssignment } = useEditorAssignments();
@@ -74,9 +74,12 @@ const EditorView = () => {
               Content editing and assignment management
             </p>
           </div>
-          <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-            Editor Access
-          </Badge>
+          <div className="flex items-center gap-3">
+            <NotificationButton />
+            <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+              Editor Access
+            </Badge>
+          </div>
         </div>
 
         {/* Quick Actions */}

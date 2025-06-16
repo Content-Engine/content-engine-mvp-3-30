@@ -11,6 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import NotificationButton from '@/components/NotificationButton';
 
 const TopNavBar = () => {
   const { user, userRole, signOut } = useAuth();
@@ -172,6 +173,9 @@ const TopNavBar = () => {
                     <User className="h-4 w-4 text-theme-beige" />
                     <span className="text-theme-light text-sm">{user.email}</span>
                   </div>
+                  
+                  <NotificationButton />
+                  
                   <Button
                     variant="ghost"
                     size="sm"

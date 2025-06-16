@@ -14,17 +14,26 @@ export const useNotifications = () => {
   const [unreadCount, setUnreadCount] = useState(0);
 
   const fetchNotifications = async () => {
-    if (!user) return;
+    if (!user) {
+      console.log('No user found, skipping notification fetch');
+      setLoading(false);
+      return;
+    }
 
     try {
+      console.log('Fetching notifications for user:', user.id);
       const { data, error } = await supabase
         .from('notifications')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching notifications:', error);
+        throw error;
+      }
 
+      console.log('Fetched notifications:', data);
       setNotifications(data || []);
       setUnreadCount(data?.filter(n => !n.read).length || 0);
     } catch (error) {
@@ -56,6 +65,8 @@ export const useNotifications = () => {
 
   const respondToAffiliationInvitation = async (notificationId: string, affiliationId: string, accept: boolean) => {
     try {
+      console.log('Responding to affiliation invitation:', { notificationId, affiliationId, accept });
+      
       // Update affiliation status
       const { error: affiliationError } = await supabase
         .from('user_affiliations')
@@ -65,13 +76,18 @@ export const useNotifications = () => {
         })
         .eq('id', affiliationId);
 
-      if (affiliationError) throw affiliationError;
+      if (affiliationError) {
+        console.error('Error updating affiliation:', affiliationError);
+        throw affiliationError;
+      }
 
       // Mark notification as read
       await markAsRead(notificationId);
 
       // Remove notification from list since it's been handled
       setNotifications(prev => prev.filter(n => n.id !== notificationId));
+      
+      console.log('Successfully responded to affiliation invitation');
     } catch (error) {
       console.error('Error responding to invitation:', error);
       throw error;
@@ -79,13 +95,19 @@ export const useNotifications = () => {
   };
 
   useEffect(() => {
+    console.log('useNotifications effect triggered, user:', user?.id);
     fetchNotifications();
   }, [user]);
 
   // Set up real-time subscription for new notifications
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      console.log('No user for real-time subscription');
+      return;
+    }
 
+    console.log('Setting up real-time notification subscription for user:', user.id);
+    
     const channel = supabase
       .channel('notifications')
       .on(
@@ -97,6 +119,7 @@ export const useNotifications = () => {
           filter: `user_id=eq.${user.id}`
         },
         (payload) => {
+          console.log('Received new notification:', payload);
           setNotifications(prev => [payload.new as Notification, ...prev]);
           setUnreadCount(prev => prev + 1);
         }
@@ -104,6 +127,7 @@ export const useNotifications = () => {
       .subscribe();
 
     return () => {
+      console.log('Cleaning up notification subscription');
       supabase.removeChannel(channel);
     };
   }, [user]);

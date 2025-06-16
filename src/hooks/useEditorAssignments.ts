@@ -37,6 +37,15 @@ export const useEditorAssignments = () => {
       setLoading(true);
       setError(null);
       
+      console.log('Fetching assignments for user:', user?.id, 'role:', userRole);
+      
+      if (!user) {
+        console.log('No user found, skipping assignment fetch');
+        setAssignments([]);
+        setLoading(false);
+        return;
+      }
+      
       let query = supabase
         .from('editor_assignments')
         .select(`
@@ -61,6 +70,8 @@ export const useEditorAssignments = () => {
         throw error;
       }
       
+      console.log('Fetched assignments:', data);
+      
       // Type cast the data to ensure proper typing
       const typedData = (data || []).map(assignment => ({
         ...assignment,
@@ -79,12 +90,17 @@ export const useEditorAssignments = () => {
 
   const updateAssignment = async (id: string, updates: Partial<EditorAssignment>) => {
     try {
+      console.log('Updating assignment:', id, updates);
+      
       const { error } = await supabase
         .from('editor_assignments')
         .update({ ...updates, updated_at: new Date().toISOString() })
         .eq('id', id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating assignment:', error);
+        throw error;
+      }
       
       await fetchAssignments();
     } catch (err) {
@@ -95,6 +111,8 @@ export const useEditorAssignments = () => {
 
   const createAssignment = async (assignment: Omit<EditorAssignment, 'id' | 'created_at' | 'updated_at'>) => {
     try {
+      console.log('Creating assignment:', assignment);
+      
       const { error } = await supabase
         .from('editor_assignments')
         .insert({
@@ -104,7 +122,10 @@ export const useEditorAssignments = () => {
           updated_at: new Date().toISOString()
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error creating assignment:', error);
+        throw error;
+      }
       
       await fetchAssignments();
     } catch (err) {
@@ -114,8 +135,13 @@ export const useEditorAssignments = () => {
   };
 
   useEffect(() => {
+    console.log('useEditorAssignments effect triggered, user:', user?.id, 'userRole:', userRole);
+    
     if (user && userRole && ['admin', 'social_media_manager', 'editor'].includes(userRole)) {
       fetchAssignments();
+    } else {
+      // Set loading to false if user doesn't have proper role
+      setLoading(false);
     }
   }, [user, userRole]);
 

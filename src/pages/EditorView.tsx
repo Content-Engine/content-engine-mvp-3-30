@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -25,6 +26,7 @@ const EditorView = () => {
         description: "Assignment status updated successfully",
       });
     } catch (error) {
+      console.error('Error updating assignment status:', error);
       toast({
         title: "Error",
         description: "Failed to update assignment status",
@@ -43,6 +45,8 @@ const EditorView = () => {
       default: return 'bg-gray-100 text-gray-800';
     }
   };
+
+  console.log('EditorView render - assignments:', assignments, 'loading:', loading);
 
   if (loading) {
     return (

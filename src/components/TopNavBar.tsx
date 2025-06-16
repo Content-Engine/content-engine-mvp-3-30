@@ -20,9 +20,26 @@ const TopNavBar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const handleSignOut = async () => {
-    await signOut();
-    // Force page refresh to ensure completely clean state
-    window.location.href = '/auth';
+    try {
+      await signOut();
+      // Use window.location for clean navigation after sign out
+      window.location.href = '/auth';
+    } catch (error) {
+      console.error('Sign out error:', error);
+      // Fallback to force navigation
+      window.location.href = '/auth';
+    }
+  };
+
+  const handleNavigation = (path: string) => {
+    console.log('Navigating to:', path);
+    try {
+      navigate(path);
+    } catch (error) {
+      console.error('Navigation error:', error);
+      // Fallback to window.location if navigate fails
+      window.location.href = path;
+    }
   };
 
   const getTierBadgeColor = (tier: string | null) => {
@@ -40,7 +57,7 @@ const TopNavBar = () => {
     // Admin can see everything
     if (userRole === 'admin') {
       items.push(
-        { path: '/social-manager', label: 'Social Media Manager', icon: Calendar },
+        { path: '/social-manager/calendar', label: 'Social Media Manager', icon: Calendar },
         { path: '/editor', label: 'Editor Portal', icon: Edit },
         { path: '/user-management', label: 'User Management', icon: Users },
         { path: '/campaign-builder', label: 'Campaign Builder', icon: Edit }
@@ -50,7 +67,7 @@ const TopNavBar = () => {
     // Social Media Manager
     if (userRole === 'social_media_manager') {
       items.push(
-        { path: '/social-manager', label: 'Social Media Manager', icon: Calendar }
+        { path: '/social-manager/calendar', label: 'Social Media Manager', icon: Calendar }
       );
     }
     
@@ -80,7 +97,7 @@ const TopNavBar = () => {
           {/* Logo */}
           <div className="flex items-center">
             <button
-              onClick={() => navigate('/')}
+              onClick={() => handleNavigation('/')}
               className="text-theme-light font-bold text-xl hover:text-theme-blue transition-colors"
             >
               Content Engine
@@ -94,7 +111,7 @@ const TopNavBar = () => {
                 <>
                   <Button
                     variant="ghost"
-                    onClick={() => navigate('/dashboard')}
+                    onClick={() => handleNavigation('/dashboard')}
                     className="text-theme-beige hover:text-theme-light hover:bg-theme-light/10"
                   >
                     Dashboard
@@ -118,7 +135,7 @@ const TopNavBar = () => {
                           return (
                             <DropdownMenuItem
                               key={item.path}
-                              onClick={() => navigate(item.path)}
+                              onClick={() => handleNavigation(item.path)}
                               className="cursor-pointer text-theme-light hover:bg-theme-light/10"
                             >
                               <Icon className="h-4 w-4 mr-2" />
@@ -137,7 +154,7 @@ const TopNavBar = () => {
                       <Button
                         key={item.path}
                         variant="ghost"
-                        onClick={() => navigate(item.path)}
+                        onClick={() => handleNavigation(item.path)}
                         className="text-theme-beige hover:text-theme-light hover:bg-theme-light/10"
                       >
                         <Icon className="h-4 w-4 mr-2" />
@@ -148,7 +165,7 @@ const TopNavBar = () => {
                   
                   <Button
                     variant="ghost"
-                    onClick={() => navigate('/payment-tiers')}
+                    onClick={() => handleNavigation('/payment-tiers')}
                     className="text-theme-beige hover:text-theme-light hover:bg-theme-light/10"
                   >
                     <CreditCard className="h-4 w-4 mr-2" />
@@ -188,7 +205,7 @@ const TopNavBar = () => {
                 </>
               ) : (
                 <Button
-                  onClick={() => navigate('/auth')}
+                  onClick={() => handleNavigation('/auth')}
                   className="bg-theme-blue hover:bg-theme-blue/80 text-white border-theme-blue/30"
                 >
                   Sign In
@@ -220,7 +237,7 @@ const TopNavBar = () => {
                 <Button
                   variant="ghost"
                   onClick={() => {
-                    navigate('/dashboard');
+                    handleNavigation('/dashboard');
                     setIsMenuOpen(false);
                   }}
                   className="w-full justify-start text-theme-beige hover:text-theme-light hover:bg-theme-light/10"
@@ -236,7 +253,7 @@ const TopNavBar = () => {
                       key={item.path}
                       variant="ghost"
                       onClick={() => {
-                        navigate(item.path);
+                        handleNavigation(item.path);
                         setIsMenuOpen(false);
                       }}
                       className="w-full justify-start text-theme-beige hover:text-theme-light hover:bg-theme-light/10"
@@ -250,7 +267,7 @@ const TopNavBar = () => {
                 <Button
                   variant="ghost"
                   onClick={() => {
-                    navigate('/payment-tiers');
+                    handleNavigation('/payment-tiers');
                     setIsMenuOpen(false);
                   }}
                   className="w-full justify-start text-theme-beige hover:text-theme-light hover:bg-theme-light/10"

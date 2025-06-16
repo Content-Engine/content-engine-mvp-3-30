@@ -41,12 +41,23 @@ const SocialManagerDashboard = () => {
     { path: "/social-manager/training", label: "Training & SOPs", icon: GraduationCap },
   ];
 
+  const handleNavigation = (path: string) => {
+    console.log('SocialManager navigating to:', path);
+    try {
+      navigate(path);
+    } catch (error) {
+      console.error('SocialManager navigation error:', error);
+      // Fallback to window.location if navigate fails
+      window.location.href = path;
+    }
+  };
+
   useEffect(() => {
     if (!loading && !hasCheckedAccess) {
       setHasCheckedAccess(true);
       
       if (!user) {
-        navigate("/auth");
+        handleNavigation("/auth");
         return;
       }
       
@@ -57,10 +68,10 @@ const SocialManagerDashboard = () => {
           description: "You don't have permission to access the Social Media Manager dashboard.",
           variant: "destructive",
         });
-        navigate("/unauthorized");
+        handleNavigation("/unauthorized");
       }
     }
-  }, [userRole, loading, user, navigate, toast, hasCheckedAccess]);
+  }, [userRole, loading, user, toast, hasCheckedAccess]);
 
   if (loading || !hasCheckedAccess) {
     return (
@@ -80,7 +91,7 @@ const SocialManagerDashboard = () => {
           <AlertCircle className="h-12 w-12 text-accent mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-text-main mb-2">Authentication Required</h2>
           <p className="text-text-muted mb-4">Please log in to access the Social Manager Dashboard.</p>
-          <Button onClick={() => navigate('/auth')} className="btn-primary">
+          <Button onClick={() => handleNavigation('/auth')} className="btn-primary">
             Go to Login
           </Button>
         </div>
@@ -95,7 +106,7 @@ const SocialManagerDashboard = () => {
           <AlertCircle className="h-12 w-12 text-accent mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-text-main mb-2">Access Denied</h2>
           <p className="text-text-muted mb-4">You don't have permission to access this area.</p>
-          <Button onClick={() => navigate('/dashboard')} className="btn-primary">
+          <Button onClick={() => handleNavigation('/dashboard')} className="btn-primary">
             Back to Dashboard
           </Button>
         </div>
@@ -119,7 +130,7 @@ const SocialManagerDashboard = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => navigate("/")}
+                onClick={() => handleNavigation("/")}
                 className="text-text-muted hover:text-text-main"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
@@ -164,7 +175,7 @@ const SocialManagerDashboard = () => {
                       ? "bg-secondary text-text-main border border-border-color" 
                       : "text-text-muted hover:text-text-main hover:bg-secondary/50"
                   }`}
-                  onClick={() => navigate(item.path)}
+                  onClick={() => handleNavigation(item.path)}
                 >
                   <Icon className="h-4 w-4 mr-3" />
                   {item.label}

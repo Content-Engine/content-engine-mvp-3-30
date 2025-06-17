@@ -1,26 +1,10 @@
 
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { Tables } from '@/integrations/supabase/types';
-
-// Use the Supabase generated type directly
-export type Notification = Tables<'notifications'>;
-
-// Define a type for the profile data we're working with
-type ProfileData = {
-  id: string;
-  email: string;
-  full_name?: string | null;
-};
-
-// Define a type for the auth user data
-type AuthUser = {
-  id: string;
-  email?: string;
-  user_metadata?: any;
-};
+import { Notification } from '@/types/notifications';
+import { fetchUserNotifications, markNotificationAsRead, updateAffiliationStatus } from '@/services/notificationService';
+import { sendAffiliationInvitation } from '@/services/affiliationService';
 
 export const useNotifications = () => {
   const { user } = useAuth();
@@ -36,22 +20,9 @@ export const useNotifications = () => {
     }
 
     try {
-      console.log('🔄 Fetching notifications for user:', user.id);
-      const { data, error } = await supabase
-        .from('notifications')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('❌ Error fetching notifications:', error);
-        throw error;
-      }
-
-      console.log('✅ Fetched notifications:', data?.length || 0, 'notifications');
-      console.log('📋 Notification details:', data);
-      setNotifications(data || []);
-      setUnreadCount(data?.filter(n => !n.read).length || 0);
+      const data = await fetchUserNotifications(user.id);
+      setNotifications(data);
+      setUnreadCount(data.filter(n => !n.read).length);
     } catch (error) {
       console.error('❌ Error in fetchNotifications:', error);
     } finally {
@@ -61,24 +32,13 @@ export const useNotifications = () => {
 
   const markAsRead = async (notificationId: string) => {
     try {
-      console.log('📖 Marking notification as read:', notificationId);
-      const { error } = await supabase
-        .from('notifications')
-        .update({ read: true, updated_at: new Date().toISOString() })
-        .eq('id', notificationId);
-
-      if (error) {
-        console.error('❌ Error marking notification as read:', error);
-        throw error;
-      }
-
+      await markNotificationAsRead(notificationId);
       setNotifications(prev =>
         prev.map(n =>
           n.id === notificationId ? { ...n, read: true } : n
         )
       );
       setUnreadCount(prev => Math.max(0, prev - 1));
-      console.log('✅ Notification marked as read');
     } catch (error) {
       console.error('❌ Error marking notification as read:', error);
     }
@@ -86,21 +46,8 @@ export const useNotifications = () => {
 
   const respondToAffiliationInvitation = async (notificationId: string, affiliationId: string, accept: boolean) => {
     try {
-      console.log('🤝 Responding to affiliation invitation:', { notificationId, affiliationId, accept });
-      
       // Update affiliation status
-      const { error: affiliationError } = await supabase
-        .from('user_affiliations')
-        .update({ 
-          status: accept ? 'accepted' : 'rejected',
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', affiliationId);
-
-      if (affiliationError) {
-        console.error('❌ Error updating affiliation:', affiliationError);
-        throw affiliationError;
-      }
+      await updateAffiliationStatus(affiliationId, accept);
 
       // Mark notification as read and remove from list
       await markAsRead(notificationId);
@@ -113,159 +60,13 @@ export const useNotifications = () => {
     }
   };
 
-  const sendAffiliationInvitation = async (invitedEmail: string) => {
+  const handleSendAffiliationInvitation = async (invitedEmail: string) => {
     if (!user) {
       throw new Error('No authenticated user');
     }
 
     try {
-      console.log('📧 Sending affiliation invitation to:', invitedEmail);
-      
-      // First, try to find the user by email in auth.users via profiles
-      console.log('🔍 Looking up user by email in profiles...');
-      let profiles: ProfileData | null = null;
-      
-      try {
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .select('id, email, full_name')
-          .eq('email', invitedEmail)
-          .maybeSingle();
-
-        if (profileError) {
-          console.warn('⚠️ Profile lookup error:', profileError);
-        } else if (profileData) {
-          profiles = profileData;
-        }
-      } catch (error) {
-        console.warn('⚠️ Error in profile lookup:', error);
-      }
-
-      console.log('👤 Profile lookup result:', profiles);
-
-      // If no profile found, try to get user info from admin API
-      if (!profiles) {
-        console.log('🔍 No profile found, checking if user exists in auth system...');
-        
-        // Use the admin API to check if user exists
-        try {
-          const { data: authUsersResponse, error: authError } = await supabase.auth.admin.listUsers();
-          
-          if (authError) {
-            console.error('❌ Error checking auth users:', authError);
-            throw new Error('Unable to verify user existence. Please ensure the user has signed up.');
-          }
-
-          if (!authUsersResponse || !authUsersResponse.users) {
-            console.log('❌ No users data returned from auth system');
-            throw new Error('User not found with that email address. Make sure they have signed up first.');
-          }
-
-          const matchingUser = (authUsersResponse.users as AuthUser[]).find((u: AuthUser) => u.email === invitedEmail);
-          
-          if (!matchingUser) {
-            console.log('❌ No user found in auth system with email:', invitedEmail);
-            throw new Error('User not found with that email address. Make sure they have signed up first.');
-          }
-
-          console.log('✅ Found user in auth system:', matchingUser.id);
-
-          // Create profile if it doesn't exist
-          const { data: newProfile, error: createProfileError } = await supabase
-            .from('profiles')
-            .insert({
-              id: matchingUser.id,
-              email: invitedEmail,
-              full_name: matchingUser.user_metadata?.full_name || null
-            })
-            .select('id, email, full_name')
-            .single();
-
-          if (createProfileError) {
-            console.error('❌ Error creating profile:', createProfileError);
-            // Continue anyway, we have the user ID
-            profiles = { 
-              id: matchingUser.id, 
-              email: invitedEmail,
-              full_name: matchingUser.user_metadata?.full_name || null
-            };
-          } else {
-            console.log('✅ Created new profile:', newProfile);
-            profiles = newProfile;
-          }
-        } catch (error) {
-          console.error('❌ Error in auth user lookup:', error);
-          throw new Error('User not found with that email address. Make sure they have signed up first.');
-        }
-      }
-
-      if (!profiles) {
-        throw new Error('User not found with that email address. Make sure they have signed up first.');
-      }
-
-      console.log('✅ Found user:', profiles.id);
-
-      // Check if invitation already exists
-      const { data: existingAffiliation, error: checkError } = await supabase
-        .from('user_affiliations')
-        .select('id, status')
-        .eq('inviter_id', user.id)
-        .eq('invited_user_id', profiles.id)
-        .maybeSingle();
-
-      if (checkError) {
-        console.error('❌ Error checking existing affiliation:', checkError);
-      }
-
-      if (existingAffiliation) {
-        console.log('⚠️ Existing affiliation found:', existingAffiliation);
-        throw new Error(`User has already been invited (status: ${existingAffiliation.status})`);
-      }
-
-      // Create the affiliation record
-      console.log('🔗 Creating affiliation record...');
-      const { data: affiliation, error: affiliationError } = await supabase
-        .from('user_affiliations')
-        .insert({
-          inviter_id: user.id,
-          invited_user_id: profiles.id,
-          status: 'pending'
-        })
-        .select()
-        .single();
-
-      if (affiliationError) {
-        console.error('❌ Error creating affiliation:', affiliationError);
-        if (affiliationError.code === '23505') {
-          throw new Error('This user has already been invited');
-        }
-        throw affiliationError;
-      }
-
-      console.log('✅ Affiliation created successfully:', affiliation);
-
-      // Wait a moment for the trigger to create the notification
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Check if notification was created
-      const { data: createdNotification, error: notificationCheckError } = await supabase
-        .from('notifications')
-        .select('*')
-        .eq('user_id', profiles.id)
-        .eq('type', 'affiliation_invitation')
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (notificationCheckError) {
-        console.error('❌ Error checking notification creation:', notificationCheckError);
-      } else if (createdNotification) {
-        console.log('✅ Notification created successfully:', createdNotification);
-      } else {
-        console.log('⚠️ No notification found after affiliation creation');
-      }
-
-      return affiliation;
+      return await sendAffiliationInvitation(user.id, invitedEmail);
     } catch (error) {
       console.error('❌ Error in sendAffiliationInvitation:', error);
       throw error;
@@ -329,8 +130,7 @@ export const useNotifications = () => {
     unreadCount,
     markAsRead,
     respondToAffiliationInvitation,
-    sendAffiliationInvitation,
+    sendAffiliationInvitation: handleSendAffiliationInvitation,
     refetch: fetchNotifications
   };
 };
-

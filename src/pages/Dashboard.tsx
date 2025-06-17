@@ -1,185 +1,253 @@
-
-import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, TrendingUp, Users, Zap, AlertCircle } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { useCampaignData } from '@/hooks/useCampaignData';
-import Layout from '@/components/Layout';
-import { useAuth } from '@/hooks/useAuth';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { 
+  TrendingUp, 
+  Users, 
+  FileVideo, 
+  Calendar,
+  Upload,
+  Edit,
+  BarChart3,
+  Settings,
+  Zap
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import Layout from "@/components/Layout";
+import NotificationButton from "@/components/NotificationButton";
+import AffiliationInviteTest from "@/components/AffiliationInviteTest";
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { campaigns, loading: campaignsLoading } = useCampaignData();
-  const { loading: authLoading, authError, user, userRole } = useAuth();
-  const [diagnosticInfo, setDiagnosticInfo] = useState<string>('');
+  const { userRole } = useAuth();
 
-  // Add diagnostic logging
-  useEffect(() => {
-    const info = [
-      `🔐 Auth Loading: ${authLoading}`,
-      `👤 User Present: ${!!user}`,
-      `🎭 Role: ${userRole || 'none'}`,
-      `⚠️ Auth Error: ${authError || 'none'}`,
-      `📊 Campaigns Loading: ${campaignsLoading}`,
-      `🕐 Timestamp: ${new Date().toISOString()}`
-    ].join('\n');
-    
-    setDiagnosticInfo(info);
-    console.log('📊 Dashboard Diagnostic Info:', info);
-  }, [authLoading, user, userRole, authError, campaignsLoading]);
-
-  // Demo data for metrics
-  const metrics = {
-    totalReach: 125400,
-    activeCampaigns: campaigns.filter(c => c.status === 'active').length,
-    boostImpact: 87.5,
-  };
-
-  // Show auth error state
-  if (authError) {
-    return (
-      <Layout>
-        <div className="space-y-8">
-          <Card className="glass-card">
-            <CardHeader>
-              <CardTitle className="text-red-400 flex items-center gap-2">
-                <AlertCircle className="h-5 w-5" />
-                Authentication Error
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-white/70 mb-4">{authError}</p>
-              <pre className="text-xs text-white/50 bg-black/20 p-4 rounded overflow-auto">
-                {diagnosticInfo}
-              </pre>
-            </CardContent>
-          </Card>
-        </div>
-      </Layout>
-    );
-  }
-
-  // Show loading state with diagnostic info
-  if (authLoading || campaignsLoading) {
-    return (
-      <Layout>
-        <div className="space-y-8">
-          <Card className="glass-card">
-            <CardHeader>
-              <CardTitle className="text-white">Loading Dashboard...</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="animate-pulse">
-                  <div className="h-4 bg-white/20 rounded w-3/4 mb-2"></div>
-                  <div className="h-4 bg-white/20 rounded w-1/2"></div>
-                </div>
-                <details className="text-xs">
-                  <summary className="text-white/70 cursor-pointer">Show Diagnostic Info</summary>
-                  <pre className="text-white/50 bg-black/20 p-4 rounded mt-2 overflow-auto">
-                    {diagnosticInfo}
-                  </pre>
-                </details>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </Layout>
-    );
-  }
+  const mockData = [
+    { name: "Jan", posts: 1200, engagement: 800 },
+    { name: "Feb", posts: 1100, engagement: 900 },
+    { name: "Mar", posts: 1000, engagement: 700 },
+    { name: "Apr", posts: 1300, engagement: 1000 },
+    { name: "May", posts: 900, engagement: 600 },
+    { name: "Jun", posts: 1400, engagement: 1100 },
+  ];
+  const mockMetrics = [
+    { name: "Mon", posts: 4, engagement: 12 },
+    { name: "Tue", posts: 6, engagement: 18 },
+    { name: "Wed", posts: 8, engagement: 24 },
+    { name: "Thu", posts: 5, engagement: 15 },
+    { name: "Fri", posts: 7, engagement: 21 },
+    { name: "Sat", posts: 9, engagement: 30 },
+    { name: "Sun", posts: 6, engagement: 20 },
+  ];
 
   return (
     <Layout>
-      <div className="space-y-8">
+      <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-4xl font-bold text-white mb-2">Campaign Dashboard</h1>
-            <p className="text-white/70">Manage your music content campaigns</p>
-            {process.env.NODE_ENV === 'development' && (
-              <details className="mt-2">
-                <summary className="text-xs text-white/50 cursor-pointer">Debug Info</summary>
-                <pre className="text-xs text-white/40 mt-1">{diagnosticInfo}</pre>
-              </details>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              Content Engine Dashboard
+            </h1>
+            <p className="text-muted-foreground">
+              Welcome back! Here's what's happening with your content.
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <NotificationButton />
+            <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+              {userRole || 'user'}
+            </Badge>
+          </div>
+        </div>
+
+        {/* Quick Actions */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/campaign-builder')}>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">New Campaign</CardTitle>
+              <Upload className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <p className="text-xs text-muted-foreground">Start creating content</p>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/campaigns')}>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">View Campaigns</CardTitle>
+              <FileVideo className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <p className="text-xs text-muted-foreground">Manage your content</p>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/calendar-overview')}>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Calendar</CardTitle>
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <p className="text-xs text-muted-foreground">Schedule posts</p>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/performance-dashboard')}>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Analytics</CardTitle>
+              <BarChart3 className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <p className="text-xs text-muted-foreground">View performance</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Performance Overview */}
+          <div className="lg:col-span-2">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5" />
+                  Weekly Performance
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={mockMetrics}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Bar dataKey="posts" fill="#3b82f6" name="Posts" />
+                    <Bar dataKey="engagement" fill="#8b5cf6" name="Engagement" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Quick Stats */}
+          <div className="space-y-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Posts</CardTitle>
+                <FileVideo className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">156</div>
+                <p className="text-xs text-muted-foreground">+20% from last month</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Engagement Rate</CardTitle>
+                <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">8.2%</div>
+                <p className="text-xs text-muted-foreground">+2.1% from last week</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Active Campaigns</CardTitle>
+                <Zap className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">12</div>
+                <p className="text-xs text-muted-foreground">3 ending this week</p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        {/* Role-based Features */}
+        {(userRole === 'admin' || userRole === 'social_media_manager') && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {userRole === 'admin' && (
+              <>
+                <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/user-management')}>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Users className="h-5 w-5" />
+                      User Management
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground">Manage users and permissions</p>
+                  </CardContent>
+                </Card>
+
+                <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/quality-control')}>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Settings className="h-5 w-5" />
+                      Quality Control
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground">Review and approve content</p>
+                  </CardContent>
+                </Card>
+                
+                <div>
+                  <AffiliationInviteTest />
+                </div>
+              </>
+            )}
+            
+            {(userRole === 'admin' || userRole === 'social_media_manager') && (
+              <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/social-manager/calendar')}>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Edit className="h-5 w-5" />
+                    Social Media Manager
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground">Advanced content management</p>
+                </CardContent>
+              </Card>
             )}
           </div>
-          <Button
-            onClick={() => navigate('/campaign-builder/step/1')}
-            size="lg"
-            className="glass-button-primary"
-          >
-            <Plus className="h-5 w-5 mr-2" />
-            Create New Campaign
-          </Button>
-        </div>
+        )}
 
-        {/* Metrics Cards */}
-        <div className="grid md:grid-cols-3 gap-6">
-          <Card className="glass-card">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-white/90">Total Reach</CardTitle>
-              <TrendingUp className="h-4 w-4 text-green-400" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-white">{metrics.totalReach.toLocaleString()}</div>
-              <p className="text-xs text-white/60">+12% from last month</p>
-            </CardContent>
-          </Card>
-
-          <Card className="glass-card">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-white/90">Active Campaigns</CardTitle>
-              <Users className="h-4 w-4 text-blue-400" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-white">{metrics.activeCampaigns}</div>
-              <p className="text-xs text-white/60">Across all platforms</p>
-            </CardContent>
-          </Card>
-
-          <Card className="glass-card">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-white/90">Boost Impact</CardTitle>
-              <Zap className="h-4 w-4 text-yellow-400" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-white">{metrics.boostImpact}%</div>
-              <p className="text-xs text-white/60">Average engagement increase</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Campaigns List */}
-        <Card className="glass-card">
+        {/* Recent Activity */}
+        <Card>
           <CardHeader>
-            <CardTitle className="text-white">Recent Campaigns</CardTitle>
+            <CardTitle>Recent Activity</CardTitle>
           </CardHeader>
           <CardContent>
-            {campaigns.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-white/60 mb-4">No campaigns yet. Create your first campaign to get started!</p>
-                <Button onClick={() => navigate('/campaign-builder/step/1')} variant="secondary">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Create Campaign
-                </Button>
+            <div className="space-y-4">
+              <div className="flex items-center gap-4">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium">New campaign "Summer Vibes" created</p>
+                  <p className="text-xs text-muted-foreground">2 hours ago</p>
+                </div>
               </div>
-            ) : (
-              <div className="space-y-4">
-                {campaigns.slice(0, 5).map((campaign) => (
-                  <div key={campaign.id} className="glass-card-subtle p-4 rounded-lg border border-white/10">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="text-white font-semibold">{campaign.name}</h3>
-                        <p className="text-white/60 text-sm capitalize">
-                          Goal: {campaign.goal} • Status: {campaign.status}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+              <div className="flex items-center gap-4">
+                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium">5 new posts scheduled for tomorrow</p>
+                  <p className="text-xs text-muted-foreground">4 hours ago</p>
+                </div>
               </div>
-            )}
+              <div className="flex items-center gap-4">
+                <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium">Campaign "Brand Awareness" completed</p>
+                  <p className="text-xs text-muted-foreground">1 day ago</p>
+                </div>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>

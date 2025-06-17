@@ -45,16 +45,12 @@ export const useNotifications = () => {
 
   const markAsRead = async (notificationId: string) => {
     try {
-      console.log('Marking notification as read:', notificationId);
       const { error } = await supabase
         .from('notifications')
         .update({ read: true, updated_at: new Date().toISOString() })
         .eq('id', notificationId);
 
-      if (error) {
-        console.error('Error marking notification as read:', error);
-        throw error;
-      }
+      if (error) throw error;
 
       setNotifications(prev =>
         prev.map(n =>
@@ -62,7 +58,6 @@ export const useNotifications = () => {
         )
       );
       setUnreadCount(prev => Math.max(0, prev - 1));
-      console.log('Successfully marked notification as read');
     } catch (error) {
       console.error('Error marking notification as read:', error);
     }
@@ -127,14 +122,12 @@ export const useNotifications = () => {
           filter: `user_id=eq.${user.id}`
         },
         (payload) => {
-          console.log('Received new notification via real-time:', payload);
+          console.log('Received new notification:', payload);
           setNotifications(prev => [payload.new as Notification, ...prev]);
           setUnreadCount(prev => prev + 1);
         }
       )
-      .subscribe((status) => {
-        console.log('Notification subscription status:', status);
-      });
+      .subscribe();
 
     return () => {
       console.log('Cleaning up notification subscription:', channelName);

@@ -1,7 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { ProfileData } from '@/types/notifications';
-import { findUserByEmail, findUserInAuthSystem, createProfileForUser } from './authService';
+import { validateUserExists } from './authService';
 
 export const checkExistingAffiliation = async (inviterId: string, invitedUserId: string) => {
   const { data: existingAffiliation, error: checkError } = await supabase
@@ -71,18 +70,8 @@ export const verifyNotificationCreation = async (invitedUserId: string) => {
 export const sendAffiliationInvitation = async (inviterId: string, invitedEmail: string) => {
   console.log('📧 Sending affiliation invitation to:', invitedEmail);
   
-  // First, try to find the user by email in profiles
-  let userProfile = await findUserByEmail(invitedEmail);
-
-  // If no profile found, try to get user info from admin API
-  if (!userProfile) {
-    const authUser = await findUserInAuthSystem(invitedEmail);
-    userProfile = await createProfileForUser(authUser, invitedEmail);
-  }
-
-  if (!userProfile) {
-    throw new Error('User not found with that email address. Make sure they have signed up first.');
-  }
+  // Validate that the user exists in our profiles table
+  const userProfile = await validateUserExists(invitedEmail);
 
   console.log('✅ Found user:', userProfile.id);
 

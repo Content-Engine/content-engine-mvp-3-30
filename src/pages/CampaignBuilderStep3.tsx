@@ -2,208 +2,285 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check, Zap, Users, TrendingUp } from "lucide-react";
-import BoostSettings from "@/components/upload/BoostSettings";
+import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Minus, Plus, ArrowLeft } from "lucide-react";
 
-const tiers = [
-  {
-    id: "basic",
-    name: "Basic",
-    price: 99,
-    accounts: 5,
-    features: [
-      "5 syndication accounts",
-      "Basic analytics",
-      "Standard support",
-      "Manual content approval"
-    ],
-    avgViews: "10K-25K",
-    engagement: "2-4%",
-    gradient: "from-secondary/20 to-muted/20"
-  },
-  {
-    id: "pro", 
-    name: "Pro",
-    price: 299,
-    accounts: 15,
-    features: [
-      "15 syndication accounts",
-      "Advanced analytics",
-      "Priority support", 
-      "Auto-approval rules",
-      "Comment seeding boost"
-    ],
-    avgViews: "25K-75K",
-    engagement: "4-8%",
-    gradient: "from-blue-500/20 to-purple-600/20",
-    popular: true
-  },
-  {
-    id: "max",
-    name: "Max",
-    price: 599,
-    accounts: 30,
-    features: [
-      "30+ syndication accounts",
-      "Real-time analytics",
-      "Dedicated support",
-      "AI-powered optimization",
-      "All boost features",
-      "Custom integrations"
-    ],
-    avgViews: "75K-200K+",
-    engagement: "8-15%",
-    gradient: "from-accent/20 to-accent/10"
-  }
+const platforms = [
+  { id: "tiktok", name: "TikTok", icon: "🎵", premium: false },
+  { id: "instagram", name: "Instagram", icon: "📷", premium: false },
+  { id: "youtube", name: "YouTube", icon: "▶️", premium: false },
+  { id: "twitter", name: "X (Twitter)", icon: "🐦", premium: false },
+  { id: "facebook", name: "Facebook", icon: "👥", premium: false },
+  { id: "rednote", name: "RedNote", icon: "📝", premium: true },
+  { id: "vevo", name: "VEVO", icon: "🎶", premium: true },
+];
+
+const regions = [
+  "Auto-Detect",
+  "United States", 
+  "LATAM",
+  "Brazil", 
+  "Europe",
+  "Africa",
+  "Southeast Asia"
 ];
 
 interface CampaignBuilderStep3Props {
   campaignData: any;
   updateCampaignData: (updates: any) => void;
   onNext: () => void;
+  onPrevious?: () => void;
 }
 
-const CampaignBuilderStep3 = ({ campaignData, updateCampaignData, onNext }: CampaignBuilderStep3Props) => {
-  const [showBoostSettings, setShowBoostSettings] = useState(false);
+const CampaignBuilderStep3 = ({ campaignData, updateCampaignData, onNext, onPrevious }: CampaignBuilderStep3Props) => {
+  const [syndicationVolume, setSyndicationVolume] = useState(campaignData.syndicationVolume || 5);
+  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(campaignData.selectedPlatforms || []);
+  const [accountType, setAccountType] = useState(campaignData.accountType || "");
+  const [localRegion, setLocalRegion] = useState(campaignData.localRegion || "Auto-Detect");
 
-  const handleTierSelect = (tierId: string) => {
-    updateCampaignData({ syndicationTier: tierId });
-    setShowBoostSettings(true);
+  const handleVolumeChange = (change: number) => {
+    const newVolume = Math.max(1, Math.min(100, syndicationVolume + change));
+    setSyndicationVolume(newVolume);
   };
 
-  const handleEchoPlatformsChange = (platforms: number) => {
-    updateCampaignData({ echo_boost_platforms: platforms });
+  const handlePlatformToggle = (platformId: string) => {
+    setSelectedPlatforms(prev => 
+      prev.includes(platformId) 
+        ? prev.filter(id => id !== platformId)
+        : [...prev, platformId]
+    );
   };
 
-  const handleAutoFillToggle = (enabled: boolean) => {
-    updateCampaignData({ auto_fill_lookalike: enabled });
-  };
+  const handleSubmit = async () => {
+    const premiumPlatforms = selectedPlatforms.some(id => 
+      platforms.find(p => p.id === id)?.premium || accountType === "global"
+    );
 
-  const handleCommentTemplatesChange = (templates: string[]) => {
-    updateCampaignData({ comment_templates: templates });
-  };
+    const data = {
+      syndicationVolume,
+      selectedPlatforms,
+      accountType,
+      localRegion: accountType === "local" ? localRegion : null,
+      premiumPlatforms
+    };
 
-  const handleContinue = () => {
-    if (showBoostSettings) {
-      onNext();
+    updateCampaignData(data);
+
+    // POST to API endpoint
+    try {
+      await fetch('/api/hooks/syndication-preferences', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+    } catch (error) {
+      console.error('Failed to save syndication preferences:', error);
     }
+
+    onNext();
   };
+
+  const canContinue = selectedPlatforms.length > 0 && accountType;
 
   return (
-    <div className="space-y-8">
-      {/* Step Title */}
-      <div className="text-center">
-        <div className="glass-card-strong p-8 mb-6 inline-block">
-          <h2 className="text-4xl font-bold bg-gradient-to-r from-accent via-accent/80 to-accent bg-clip-text text-transparent mb-4">
-            Choose Your Syndication Tier 🚀
-          </h2>
-          <div className="h-1 w-full bg-gradient-to-r from-accent via-accent/80 to-accent rounded-full"></div>
-        </div>
-        <p className="text-lg text-foreground/90 glass-card-strong p-4 inline-block">
-          Scale your content distribution across platforms
-        </p>
-      </div>
-
-      {!showBoostSettings ? (
-        <>
-          {/* Tier Cards */}
-          <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
-            {tiers.map((tier) => (
-              <Card
-                key={tier.id}
-                className={`frosted-glass bg-gradient-to-br ${tier.gradient} border-0 cursor-pointer hover:scale-105 transition-all duration-500 relative overflow-hidden group ${
-                  campaignData.syndicationTier === tier.id ? 'ring-4 ring-accent/50 scale-105 glow-strong' : ''
-                } ${tier.popular ? 'ring-2 ring-yellow-400/50' : ''}`}
-                onClick={() => handleTierSelect(tier.id)}
-              >
-                {tier.popular && (
-                  <div className="absolute top-4 right-4 bg-yellow-400 text-black px-3 py-1 rounded-full text-sm font-bold">
-                    Most Popular
-                  </div>
-                )}
-                
-                <CardHeader className="text-center">
-                  <CardTitle className="text-2xl font-bold text-foreground group-hover:scale-110 transition-transform duration-300">
-                    {tier.name}
-                  </CardTitle>
-                  <div className="text-4xl font-bold text-foreground">
-                    ${tier.price}
-                    <span className="text-lg font-normal text-muted-foreground">/month</span>
-                  </div>
-                </CardHeader>
-
-                <CardContent className="space-y-6">
-                  {/* Key Metrics */}
-                  <div className="grid grid-cols-2 gap-4 text-center">
-                    <div className="glass-card-subtle p-3 rounded-lg">
-                      <Users className="h-5 w-5 text-blue-400 mx-auto mb-1" />
-                      <div className="text-sm text-muted-foreground">Accounts</div>
-                      <div className="font-bold text-foreground">{tier.accounts}</div>
-                    </div>
-                    <div className="glass-card-subtle p-3 rounded-lg">
-                      <TrendingUp className="h-5 w-5 text-green-400 mx-auto mb-1" />
-                      <div className="text-sm text-muted-foreground">Avg Views</div>
-                      <div className="font-bold text-foreground text-xs">{tier.avgViews}</div>
-                    </div>
-                  </div>
-
-                  <div className="text-center glass-card-subtle p-3 rounded-lg">
-                    <Zap className="h-5 w-5 text-yellow-400 mx-auto mb-1" />
-                    <div className="text-sm text-muted-foreground">Engagement Rate</div>
-                    <div className="font-bold text-foreground">{tier.engagement}</div>
-                  </div>
-
-                  {/* Features List */}
-                  <div className="space-y-2">
-                    {tier.features.map((feature, index) => (
-                      <div key={index} className="flex items-center text-foreground/90">
-                        <Check className="h-4 w-4 text-green-400 mr-2 flex-shrink-0" />
-                        <span className="text-sm">{feature}</span>
-                      </div>
-                    ))}
-                  </div>
-
-                  {campaignData.syndicationTier === tier.id && (
-                    <div className="text-center">
-                      <div className="text-green-400 font-semibold text-sm">
-                        ✨ Selected! Configure boost settings below...
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
+    <div className="min-h-screen bg-gradient-to-br from-black via-gray-950 to-gray-900 p-4">
+      <div className="max-w-4xl mx-auto space-y-8">
+        {/* Header */}
+        <div className="text-center">
+          <div className="glass-card-strong p-8 mb-6 inline-block">
+            <h2 className="text-4xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-blue-400 bg-clip-text text-transparent mb-4">
+              📡 Syndication Preferences
+            </h2>
+            <div className="h-1 w-full bg-gradient-to-r from-blue-400 via-purple-400 to-blue-400 rounded-full"></div>
           </div>
+          <p className="text-lg text-gray-300 glass-card-strong p-4 inline-block">
+            Choose your preferred platforms, account type, and number of placements for short-form syndication.
+          </p>
+        </div>
 
-          {/* Help Text */}
-          <div className="text-center">
-            <div className="glass-card-strong p-4 inline-block">
-              <p className="text-muted-foreground font-medium">
-                💡 Click any tier to select and configure boost options
+        {/* Syndication Volume */}
+        <Card className="frosted-glass bg-gradient-to-br from-blue-500/10 to-purple-600/10 border-0">
+          <CardHeader>
+            <CardTitle className="text-white flex items-center gap-2">
+              🔢 Number of syndication placements
+            </CardTitle>
+            <p className="text-gray-400 text-sm">
+              This determines how many partner accounts your content will be published on.
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-center gap-4">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => handleVolumeChange(-1)}
+                disabled={syndicationVolume <= 1}
+                className="border-blue-500/30 text-blue-400 hover:bg-blue-500/20"
+              >
+                <Minus className="h-4 w-4" />
+              </Button>
+              
+              <div className="text-center">
+                <div className="text-4xl font-bold text-white mb-1">{syndicationVolume}</div>
+                <div className="text-sm text-gray-400">placements</div>
+              </div>
+              
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => handleVolumeChange(1)}
+                disabled={syndicationVolume >= 100}
+                className="border-blue-500/30 text-blue-400 hover:bg-blue-500/20"
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Platform Selector */}
+        <Card className="frosted-glass bg-gradient-to-br from-blue-500/10 to-purple-600/10 border-0">
+          <CardHeader>
+            <CardTitle className="text-white">📲 Select platforms to syndicate to:</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {platforms.map((platform) => (
+                <button
+                  key={platform.id}
+                  onClick={() => handlePlatformToggle(platform.id)}
+                  className={`p-4 rounded-xl border transition-all duration-200 ${
+                    selectedPlatforms.includes(platform.id)
+                      ? 'border-blue-400 bg-blue-500/20 text-white'
+                      : 'border-gray-600 bg-gray-800/50 text-gray-300 hover:border-gray-500'
+                  }`}
+                >
+                  <div className="text-2xl mb-2">{platform.icon}</div>
+                  <div className="font-medium text-sm">{platform.name}</div>
+                  {platform.premium && (
+                    <Badge className="mt-2 bg-yellow-500/20 text-yellow-400 text-xs">
+                      🔒 Premium
+                    </Badge>
+                  )}
+                </button>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Account Type */}
+        <Card className="frosted-glass bg-gradient-to-br from-blue-500/10 to-purple-600/10 border-0">
+          <CardHeader>
+            <CardTitle className="text-white">🗺 Choose your account distribution model:</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <RadioGroup value={accountType} onValueChange={setAccountType} className="grid md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="local" className="cursor-pointer">
+                  <Card className={`p-6 transition-all duration-200 ${
+                    accountType === "local" 
+                      ? 'border-blue-400 bg-blue-500/20' 
+                      : 'border-gray-600 bg-gray-800/50 hover:border-gray-500'
+                  }`}>
+                    <div className="flex items-center space-x-3">
+                      <RadioGroupItem value="local" id="local" />
+                      <div className="space-y-1">
+                        <div className="text-lg font-medium text-white flex items-center gap-2">
+                          🏠 Local Creator Accounts
+                        </div>
+                        <p className="text-sm text-gray-400">Regional, micro-niche</p>
+                      </div>
+                    </div>
+                  </Card>
+                </Label>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="global" className="cursor-pointer">
+                  <Card className={`p-6 transition-all duration-200 ${
+                    accountType === "global" 
+                      ? 'border-blue-400 bg-blue-500/20' 
+                      : 'border-gray-600 bg-gray-800/50 hover:border-gray-500'
+                  }`}>
+                    <div className="flex items-center space-x-3">
+                      <RadioGroupItem value="global" id="global" />
+                      <div className="space-y-1">
+                        <div className="text-lg font-medium text-white flex items-center gap-2">
+                          🌍 Global Network Pages
+                          <Badge className="bg-yellow-500/20 text-yellow-400 text-xs">🔒 Premium</Badge>
+                        </div>
+                        <p className="text-sm text-gray-400">Viral, mass-reach</p>
+                      </div>
+                    </div>
+                  </Card>
+                </Label>
+              </div>
+            </RadioGroup>
+          </CardContent>
+        </Card>
+
+        {/* Target Region (conditional) */}
+        {accountType === "local" && (
+          <Card className="frosted-glass bg-gradient-to-br from-blue-500/10 to-purple-600/10 border-0">
+            <CardHeader>
+              <CardTitle className="text-white">🌎 Select your region</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Select value={localRegion} onValueChange={setLocalRegion}>
+                <SelectTrigger className="w-full bg-gray-800/50 border-gray-600 text-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-gray-800 border-gray-600">
+                  {regions.map((region) => (
+                    <SelectItem key={region} value={region} className="text-white">
+                      {region}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Info Notice */}
+        <Card className="frosted-glass bg-gradient-to-br from-yellow-500/10 to-orange-600/10 border-yellow-500/30">
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <p className="text-gray-300 italic">
+                🔔 RedNote, VEVO, and Global Network Pages are premium services. Content Engine currently supports short-form syndication only (clips, reels, shorts).
               </p>
             </div>
-          </div>
-        </>
-      ) : (
-        <>
-          {/* Boost Settings */}
-          <BoostSettings
-            echoPlatforms={campaignData.echo_boost_platforms || 1}
-            autoFillLookalike={campaignData.auto_fill_lookalike || false}
-            commentTemplates={campaignData.comment_templates || []}
-            onEchoPlatformsChange={handleEchoPlatformsChange}
-            onAutoFillToggle={handleAutoFillToggle}
-            onCommentTemplatesChange={handleCommentTemplatesChange}
-          />
+          </CardContent>
+        </Card>
 
-          {/* Continue Button */}
-          <div className="text-center">
-            <Button onClick={handleContinue} size="lg" className="glass-button-primary">
-              Continue to Platform Targets
-            </Button>
-          </div>
-        </>
-      )}
+        {/* Navigation */}
+        <div className="flex justify-between items-center pt-6">
+          <Button
+            variant="outline"
+            onClick={onPrevious}
+            className="text-white border-white/20 hover:bg-white/10"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            ← Back to Tier Selection
+          </Button>
+          
+          <Button 
+            onClick={handleSubmit}
+            size="lg" 
+            className={`px-8 py-3 text-lg font-semibold rounded-2xl transition-all duration-300 ${
+              canContinue
+                ? "bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-xl" 
+                : "bg-gray-600 text-gray-300 cursor-not-allowed"
+            }`}
+            disabled={!canContinue}
+          >
+            Continue to Scheduling →
+          </Button>
+        </div>
+      </div>
     </div>
   );
 };

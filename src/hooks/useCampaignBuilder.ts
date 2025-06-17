@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { FileMetadata } from '@/utils/fileUtils';
 
@@ -20,6 +19,11 @@ interface CampaignBuilderState {
   comment_templates: string[];
   platform_targets: string[];
   hashtags_caption: string;
+  syndicationVolume: number;
+  selectedPlatforms: string[];
+  accountType: string;
+  localRegion: string;
+  premiumPlatforms: boolean;
 }
 
 const initialState: CampaignBuilderState = {
@@ -40,6 +44,11 @@ const initialState: CampaignBuilderState = {
   comment_templates: [],
   platform_targets: [],
   hashtags_caption: '',
+  syndicationVolume: 5,
+  selectedPlatforms: [],
+  accountType: '',
+  localRegion: 'Auto-Detect',
+  premiumPlatforms: false,
 };
 
 export const useCampaignBuilder = () => {

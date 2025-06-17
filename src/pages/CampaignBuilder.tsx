@@ -57,7 +57,12 @@ const CampaignBuilder = () => {
         echo_boost_platforms: state.echo_boost_platforms,
         auto_fill_lookalike: state.auto_fill_lookalike,
         platform_targets: state.platform_targets,
-        hashtags_caption: state.hashtags_caption
+        hashtags_caption: state.hashtags_caption,
+        syndication_volume: state.syndicationVolume,
+        selected_platforms: state.selectedPlatforms,
+        account_type: state.accountType,
+        local_region: state.localRegion,
+        premium_platforms: state.premiumPlatforms
       });
       
       if (campaign) {
@@ -116,16 +121,10 @@ const CampaignBuilder = () => {
       case 3:
         return (
           <Step3Boost 
-            syndicationTier={state.syndicationTier}
-            echoPlatforms={state.echo_boost_platforms}
-            autoFillLookalike={state.auto_fill_lookalike}
-            commentTemplates={state.comment_templates}
-            platformTargets={state.platform_targets}
-            hashtagsCaption={state.hashtags_caption}
-            onSyndicationChange={(tier) => updateState({ syndicationTier: tier })}
-            onEchoPlatformsChange={(count) => updateState({ echo_boost_platforms: count })}
-            onAutoFillChange={(enabled) => updateState({ auto_fill_lookalike: enabled })}
-            onNext={nextStep} 
+            campaignData={state}
+            updateCampaignData={updateState}
+            onNext={nextStep}
+            onPrevious={prevStep}
           />
         );
       case 4:
@@ -174,7 +173,7 @@ const CampaignBuilder = () => {
   const stepTitles = [
     "Campaign Goal",
     "Upload Content", 
-    "Boost Settings",
+    "Syndication Preferences",
     "Schedule Posts",
     "Launch Campaign"
   ];

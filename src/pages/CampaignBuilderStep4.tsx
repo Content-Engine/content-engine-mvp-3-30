@@ -23,16 +23,56 @@ interface CampaignBuilderStep4Props {
   onPrevious?: () => void;
 }
 
+// Debug fallback component
+const DebugBlock = ({ message }: { message: string }) => (
+  <div className="bg-red-600 text-white p-4 rounded-lg font-bold mb-4">
+    🛠 {message}
+  </div>
+);
+
+// Context validation component
+const ContextValidator = ({ campaignData }: { campaignData: any }) => {
+  if (!campaignData?.id && !campaignData?.user_id) {
+    return (
+      <div className="bg-yellow-600/20 border border-yellow-500 text-yellow-200 p-4 rounded-lg mb-4">
+        ⚠️ Missing campaign or user data. Using fallback values for debugging.
+      </div>
+    );
+  }
+  return null;
+};
+
 const CampaignBuilderStep4 = ({ campaignData, updateCampaignData, onNext, onPrevious }: CampaignBuilderStep4Props) => {
-  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(campaignData.selectedPlatforms || []);
+  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(campaignData?.selectedPlatforms || []);
+  const [componentsLoaded, setComponentsLoaded] = useState(false);
+  const [renderError, setRenderError] = useState(false);
   const { toast } = useToast();
 
+  // Self-test: Check if components loaded correctly
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const platformSelector = document.querySelector('[data-testid="platform-selector"]');
+      
+      if (!platformSelector) {
+        console.log("Step 4 repair triggered - missing components");
+        setRenderError(true);
+      } else {
+        setComponentsLoaded(true);
+      }
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, []);
+
   const handlePlatformToggle = (platformId: string) => {
-    setSelectedPlatforms(prev => 
-      prev.includes(platformId) 
-        ? prev.filter(id => id !== platformId)
-        : [...prev, platformId]
-    );
+    const newPlatforms = selectedPlatforms.includes(platformId) 
+      ? selectedPlatforms.filter(id => id !== platformId)
+      : [...selectedPlatforms, platformId];
+    
+    setSelectedPlatforms(newPlatforms);
+    
+    // Trigger webhook sync in real-time
+    triggerWebhookSync(newPlatforms);
   };
 
   const triggerWebhookSync = async (platforms: string[]) => {
@@ -40,12 +80,12 @@ const CampaignBuilderStep4 = ({ campaignData, updateCampaignData, onNext, onPrev
       const premiumFlags = {
         rednote: platforms.includes('rednote'),
         vevo: platforms.includes('vevo'),
-        global_accounts: campaignData.accountType === 'global'
+        global_accounts: campaignData?.accountType === 'global'
       };
 
       const payload = {
-        campaign_id: campaignData.id || 'draft',
-        user_id: campaignData.user_id || 'unknown',
+        campaign_id: campaignData?.id || `draft_campaign_${Date.now()}`,
+        user_id: campaignData?.user_id || 'temp_user',
         selected_platforms: platforms,
         premium_flags: premiumFlags,
         timestamp: new Date().toISOString()
@@ -64,12 +104,6 @@ const CampaignBuilderStep4 = ({ campaignData, updateCampaignData, onNext, onPrev
     }
   };
 
-  useEffect(() => {
-    if (selectedPlatforms.length > 0) {
-      triggerWebhookSync(selectedPlatforms);
-    }
-  }, [selectedPlatforms]);
-
   const handleSubmit = async () => {
     if (selectedPlatforms.length === 0) {
       toast({
@@ -81,7 +115,7 @@ const CampaignBuilderStep4 = ({ campaignData, updateCampaignData, onNext, onPrev
     }
 
     const premiumPlatforms = selectedPlatforms.some(id => 
-      platforms.find(p => p.id === id)?.premium || campaignData.accountType === "global"
+      platforms.find(p => p.id === id)?.premium || campaignData?.accountType === "global"
     );
 
     const data = {
@@ -93,13 +127,36 @@ const CampaignBuilderStep4 = ({ campaignData, updateCampaignData, onNext, onPrev
     onNext();
   };
 
+  // Cross-step integrity check
+  useEffect(() => {
+    if (!campaignData?.id && !campaignData?.user_id) {
+      console.warn('Step 4: Missing campaign context, using fallbacks');
+    }
+  }, [campaignData]);
+
   const hasPremiumSelection = selectedPlatforms.some(id => 
     platforms.find(p => p.id === id)?.premium
-  ) || campaignData.accountType === "global";
+  ) || campaignData?.accountType === "global";
+
+  // Render debug fallback if components failed to load
+  if (renderError) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-black via-gray-950 to-gray-900 p-4">
+        <div className="max-w-4xl mx-auto space-y-8">
+          <DebugBlock message="Step 4 UI fallback: Platform selection failed to render properly." />
+          <Button onClick={onNext} className="bg-blue-600 hover:bg-blue-700">
+            Skip to Next Step →
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-gray-950 to-gray-900 p-4">
       <div className="max-w-4xl mx-auto space-y-8">
+        <ContextValidator campaignData={campaignData} />
+
         {/* Header */}
         <div className="text-center">
           <div className="glass-card-strong p-8 mb-6 inline-block">
@@ -123,7 +180,7 @@ const CampaignBuilderStep4 = ({ campaignData, updateCampaignData, onNext, onPrev
         </Card>
 
         {/* Platform Selector */}
-        <Card className="frosted-glass bg-gradient-to-br from-blue-500/10 to-purple-600/10 border-0">
+        <Card className="frosted-glass bg-gradient-to-br from-blue-500/10 to-purple-600/10 border-0" data-testid="platform-selector">
           <CardHeader>
             <CardTitle className="text-white">🌐 Select the platforms you'd like to syndicate on:</CardTitle>
           </CardHeader>

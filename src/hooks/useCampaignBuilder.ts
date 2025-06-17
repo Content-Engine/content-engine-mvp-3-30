@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { FileMetadata } from '@/utils/fileUtils';
 
@@ -24,6 +25,10 @@ interface CampaignBuilderState {
   accountType: string;
   localRegion: string;
   premiumPlatforms: boolean;
+  // Fallback values
+  campaign_id: string;
+  user_id: string;
+  debug_mode: boolean;
 }
 
 const initialState: CampaignBuilderState = {
@@ -49,26 +54,48 @@ const initialState: CampaignBuilderState = {
   accountType: '',
   localRegion: 'Auto-Detect',
   premiumPlatforms: false,
+  campaign_id: '',
+  user_id: '',
+  debug_mode: false,
 };
 
 export const useCampaignBuilder = () => {
   const [state, setState] = useState<CampaignBuilderState>(initialState);
 
-  // Load from localStorage on mount (excluding contentFiles since File objects can't be serialized)
+  // Generate fallback values if missing
+  const generateFallbackValues = () => {
+    const timestamp = Date.now();
+    return {
+      campaign_id: `draft_campaign_${timestamp}`,
+      user_id: 'temp_user',
+      debug_mode: true
+    };
+  };
+
+  // Validate and set fallback values if needed
+  const validateContext = () => {
+    if (!state.campaign_id || !state.user_id) {
+      const fallbacks = generateFallbackValues();
+      setState(prev => ({ ...prev, ...fallbacks }));
+      console.warn('⚠️ Missing campaign or user data. Using fallback values for debugging.');
+    }
+  };
+
+  // Load from localStorage on mount
   useEffect(() => {
     const saved = localStorage.getItem('campaignBuilderData');
     if (saved) {
       try {
         const parsedData = JSON.parse(saved);
-        // Don't restore contentFiles from localStorage since File objects can't be serialized
         setState({ ...parsedData, contentFiles: [] });
       } catch (error) {
         console.error('Failed to parse saved campaign data:', error);
       }
     }
+    validateContext();
   }, []);
 
-  // Save to localStorage whenever state changes (excluding contentFiles)
+  // Save to localStorage whenever state changes
   useEffect(() => {
     const dataToSave = { ...state, contentFiles: [] };
     localStorage.setItem('campaignBuilderData', JSON.stringify(dataToSave));
@@ -87,5 +114,6 @@ export const useCampaignBuilder = () => {
     state,
     updateState,
     clearState,
+    validateContext,
   };
 };

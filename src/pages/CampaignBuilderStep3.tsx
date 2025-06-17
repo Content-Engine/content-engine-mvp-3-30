@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -7,16 +7,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Minus, Plus, ArrowLeft } from "lucide-react";
-
-const platforms = [
-  { id: "tiktok", name: "TikTok", icon: "🎵", premium: false },
-  { id: "instagram", name: "Instagram", icon: "📷", premium: false },
-  { id: "youtube", name: "YouTube", icon: "▶️", premium: false },
-  { id: "twitter", name: "X (Twitter)", icon: "🐦", premium: false },
-  { id: "facebook", name: "Facebook", icon: "👥", premium: false },
-  { id: "rednote", name: "RedNote", icon: "📝", premium: true },
-  { id: "vevo", name: "VEVO", icon: "🎶", premium: true },
-];
+import { useToast } from "@/hooks/use-toast";
 
 const regions = [
   "Auto-Detect",
@@ -35,59 +26,113 @@ interface CampaignBuilderStep3Props {
   onPrevious?: () => void;
 }
 
+// Debug fallback component
+const DebugBlock = ({ message }: { message: string }) => (
+  <div className="bg-red-600 text-white p-4 rounded-lg font-bold mb-4">
+    🛠 {message}
+  </div>
+);
+
+// Context validation component
+const ContextValidator = ({ campaignData }: { campaignData: any }) => {
+  if (!campaignData?.id && !campaignData?.user_id) {
+    return (
+      <div className="bg-yellow-600/20 border border-yellow-500 text-yellow-200 p-4 rounded-lg mb-4">
+        ⚠️ Missing campaign or user data. Using fallback values for debugging.
+      </div>
+    );
+  }
+  return null;
+};
+
 const CampaignBuilderStep3 = ({ campaignData, updateCampaignData, onNext, onPrevious }: CampaignBuilderStep3Props) => {
-  const [syndicationVolume, setSyndicationVolume] = useState(campaignData.syndicationVolume || 5);
-  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(campaignData.selectedPlatforms || []);
-  const [accountType, setAccountType] = useState(campaignData.accountType || "");
-  const [localRegion, setLocalRegion] = useState(campaignData.localRegion || "Auto-Detect");
+  const [syndicationVolume, setSyndicationVolume] = useState(campaignData?.syndicationVolume || 5);
+  const [accountType, setAccountType] = useState(campaignData?.accountType || "");
+  const [localRegion, setLocalRegion] = useState(campaignData?.localRegion || "Auto-Detect");
+  const [componentsLoaded, setComponentsLoaded] = useState(false);
+  const [renderError, setRenderError] = useState(false);
+  const { toast } = useToast();
+
+  // Self-test: Check if components loaded correctly
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const syndicationVolumeExists = document.querySelector('[data-testid="syndication-volume"]');
+      const accountTypeExists = document.querySelector('[data-testid="account-type"]');
+      
+      if (!syndicationVolumeExists || !accountTypeExists) {
+        console.log("Step 3 repair triggered - missing components");
+        setRenderError(true);
+      } else {
+        setComponentsLoaded(true);
+      }
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleVolumeChange = (change: number) => {
     const newVolume = Math.max(1, Math.min(100, syndicationVolume + change));
     setSyndicationVolume(newVolume);
   };
 
-  const handlePlatformToggle = (platformId: string) => {
-    setSelectedPlatforms(prev => 
-      prev.includes(platformId) 
-        ? prev.filter(id => id !== platformId)
-        : [...prev, platformId]
-    );
-  };
-
   const handleSubmit = async () => {
-    const premiumPlatforms = selectedPlatforms.some(id => 
-      platforms.find(p => p.id === id)?.premium || accountType === "global"
-    );
+    if (!accountType) {
+      toast({
+        title: "Selection Required",
+        description: "Please select an account type to continue",
+        variant: "destructive",
+      });
+      return;
+    }
 
     const data = {
       syndicationVolume,
-      selectedPlatforms,
       accountType,
       localRegion: accountType === "local" ? localRegion : null,
-      premiumPlatforms
+      premiumPlatforms: accountType === "global"
     };
 
     updateCampaignData(data);
 
-    // POST to API endpoint
+    // POST to API endpoint with error handling
     try {
       await fetch('/api/hooks/syndication-preferences', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
+        body: JSON.stringify({
+          ...data,
+          campaign_id: campaignData?.id || `draft_campaign_${Date.now()}`,
+          user_id: campaignData?.user_id || 'temp_user',
+          timestamp: new Date().toISOString()
+        })
       });
     } catch (error) {
       console.error('Failed to save syndication preferences:', error);
+      // Continue anyway - don't block user progress
     }
 
     onNext();
   };
 
-  const canContinue = selectedPlatforms.length > 0 && accountType;
+  // Render debug fallback if components failed to load
+  if (renderError) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-black via-gray-950 to-gray-900 p-4">
+        <div className="max-w-4xl mx-auto space-y-8">
+          <DebugBlock message="Step 3 UI fallback: Syndication components did not load correctly." />
+          <Button onClick={onNext} className="bg-blue-600 hover:bg-blue-700">
+            Skip to Next Step →
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-gray-950 to-gray-900 p-4">
       <div className="max-w-4xl mx-auto space-y-8">
+        <ContextValidator campaignData={campaignData} />
+
         {/* Header */}
         <div className="text-center">
           <div className="glass-card-strong p-8 mb-6 inline-block">
@@ -102,7 +147,7 @@ const CampaignBuilderStep3 = ({ campaignData, updateCampaignData, onNext, onPrev
         </div>
 
         {/* Syndication Volume */}
-        <Card className="frosted-glass bg-gradient-to-br from-blue-500/10 to-purple-600/10 border-0">
+        <Card className="frosted-glass bg-gradient-to-br from-blue-500/10 to-purple-600/10 border-0" data-testid="syndication-volume">
           <CardHeader>
             <CardTitle className="text-white flex items-center gap-2">
               🔢 Number of syndication placements
@@ -141,38 +186,8 @@ const CampaignBuilderStep3 = ({ campaignData, updateCampaignData, onNext, onPrev
           </CardContent>
         </Card>
 
-        {/* Platform Selector */}
-        <Card className="frosted-glass bg-gradient-to-br from-blue-500/10 to-purple-600/10 border-0">
-          <CardHeader>
-            <CardTitle className="text-white">📲 Select platforms to syndicate to:</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {platforms.map((platform) => (
-                <button
-                  key={platform.id}
-                  onClick={() => handlePlatformToggle(platform.id)}
-                  className={`p-4 rounded-xl border transition-all duration-200 ${
-                    selectedPlatforms.includes(platform.id)
-                      ? 'border-blue-400 bg-blue-500/20 text-white'
-                      : 'border-gray-600 bg-gray-800/50 text-gray-300 hover:border-gray-500'
-                  }`}
-                >
-                  <div className="text-2xl mb-2">{platform.icon}</div>
-                  <div className="font-medium text-sm">{platform.name}</div>
-                  {platform.premium && (
-                    <Badge className="mt-2 bg-yellow-500/20 text-yellow-400 text-xs">
-                      🔒 Premium
-                    </Badge>
-                  )}
-                </button>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
         {/* Account Type */}
-        <Card className="frosted-glass bg-gradient-to-br from-blue-500/10 to-purple-600/10 border-0">
+        <Card className="frosted-glass bg-gradient-to-br from-blue-500/10 to-purple-600/10 border-0" data-testid="account-type">
           <CardHeader>
             <CardTitle className="text-white">🗺 Choose your account distribution model:</CardTitle>
           </CardHeader>
@@ -250,7 +265,7 @@ const CampaignBuilderStep3 = ({ campaignData, updateCampaignData, onNext, onPrev
           <CardContent className="pt-6">
             <div className="text-center">
               <p className="text-gray-300 italic">
-                🔔 RedNote, VEVO, and Global Network Pages are premium services. Content Engine currently supports short-form syndication only (clips, reels, shorts).
+                🔔 Short-form syndication only. Music distribution removed. RedNote, VEVO, and Global Network Pages are premium services.
               </p>
             </div>
           </CardContent>
@@ -271,13 +286,13 @@ const CampaignBuilderStep3 = ({ campaignData, updateCampaignData, onNext, onPrev
             onClick={handleSubmit}
             size="lg" 
             className={`px-8 py-3 text-lg font-semibold rounded-2xl transition-all duration-300 ${
-              canContinue
+              accountType
                 ? "bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-xl" 
                 : "bg-gray-600 text-gray-300 cursor-not-allowed"
             }`}
-            disabled={!canContinue}
+            disabled={!accountType}
           >
-            Continue to Scheduling →
+            Continue to Platform Selection →
           </Button>
         </div>
       </div>

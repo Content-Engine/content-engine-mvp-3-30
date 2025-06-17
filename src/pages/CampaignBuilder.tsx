@@ -10,7 +10,6 @@ import { useAuth } from "@/hooks/useAuth";
 // Lazy load step components
 import Step1Goal from "@/components/CampaignBuilder/Step1Goal";
 import Step2Upload from "@/components/CampaignBuilder/Step2Upload";
-import Step3Boost from "@/components/CampaignBuilder/Step3Boost";
 import Step4Schedule from "@/components/CampaignBuilder/Step4Schedule";
 import Step5Launch from "@/components/CampaignBuilder/Step5Launch";
 import CampaignClientLinker from "@/components/campaign/CampaignClientLinker";
@@ -120,20 +119,15 @@ const CampaignBuilder = () => {
         );
       case 3:
         return (
-          <Step3Boost 
-            campaignData={state}
-            updateCampaignData={updateState}
-            onNext={nextStep}
-            onPrevious={prevStep}
-          />
+          <div>
+            {/* This will use the new CampaignBuilderStep3 page */}
+          </div>
         );
       case 4:
         return (
-          <Step4Schedule 
-            boosts={state.boosts}
-            onBoostToggle={handleBoostToggle}
-            onNext={nextStep} 
-          />
+          <div>
+            {/* This will use the new CampaignBuilderStep4 page */}
+          </div>
         );
       case 5:
         return (
@@ -174,7 +168,7 @@ const CampaignBuilder = () => {
     "Campaign Goal",
     "Upload Content", 
     "Syndication Preferences",
-    "Schedule Posts",
+    "Platform Selection",
     "Launch Campaign"
   ];
 

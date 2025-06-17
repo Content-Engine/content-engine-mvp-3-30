@@ -31,6 +31,11 @@ interface Campaign {
   auto_fill_lookalike?: boolean;
   platform_targets?: Json;
   hashtags_caption?: string;
+  syndication_volume?: number;
+  selected_platforms?: Json;
+  account_type?: string;
+  local_region?: string;
+  premium_platforms?: boolean;
 }
 
 export const useCampaignData = () => {

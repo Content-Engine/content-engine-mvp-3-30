@@ -26,7 +26,6 @@ const NotificationButton = () => {
           : "The invitation has been declined.",
       });
     } catch (error) {
-      console.error('Error responding to invitation:', error);
       toast({
         title: "Error",
         description: "Failed to respond to invitation.",

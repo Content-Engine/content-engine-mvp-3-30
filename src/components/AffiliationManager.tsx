@@ -3,13 +3,14 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, Mail, Check, X, AlertCircle } from 'lucide-react';
+import { Plus, Mail, AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useNotifications } from '@/hooks/useNotifications';
 
 const AffiliationManager = () => {
   const [inviteEmail, setInviteEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [lastResult, setLastResult] = useState<string | null>(null);
   const { sendAffiliationInvitation } = useNotifications();
   const { toast } = useToast();
 
@@ -26,22 +27,34 @@ const AffiliationManager = () => {
     }
 
     setIsLoading(true);
+    setLastResult(null);
+
     try {
-      await sendAffiliationInvitation(inviteEmail.trim());
+      console.log('🚀 Starting invitation process for:', inviteEmail.trim());
+      const result = await sendAffiliationInvitation(inviteEmail.trim());
+      
+      const successMessage = `Invitation sent successfully to ${inviteEmail}`;
+      console.log('✅', successMessage);
       
       toast({
         title: "Invitation Sent",
-        description: `Invitation has been sent to ${inviteEmail}`,
+        description: successMessage,
       });
       
+      setLastResult(`✅ Success: Invitation sent to ${inviteEmail}`);
       setInviteEmail('');
     } catch (error: any) {
-      console.error('Error sending invitation:', error);
+      console.error('❌ Invitation failed:', error);
+      
+      const errorMessage = error.message || "Failed to send invitation. Please try again.";
+      
       toast({
         title: "Error",
-        description: error.message || "Failed to send invitation. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
+      
+      setLastResult(`❌ Error: ${errorMessage}`);
     } finally {
       setIsLoading(false);
     }
@@ -78,7 +91,7 @@ const AffiliationManager = () => {
           >
             {isLoading ? (
               <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                 Sending Invitation...
               </>
             ) : (
@@ -89,6 +102,25 @@ const AffiliationManager = () => {
             )}
           </Button>
         </form>
+
+        {lastResult && (
+          <div className={`mt-4 p-3 rounded-lg border ${
+            lastResult.startsWith('✅') 
+              ? 'bg-green-50 border-green-200 text-green-800' 
+              : 'bg-red-50 border-red-200 text-red-800'
+          }`}>
+            <div className="flex items-start gap-2">
+              {lastResult.startsWith('✅') ? (
+                <CheckCircle className="h-4 w-4 mt-0.5" />
+              ) : (
+                <AlertCircle className="h-4 w-4 mt-0.5" />
+              )}
+              <div className="text-sm">
+                {lastResult}
+              </div>
+            </div>
+          </div>
+        )}
         
         <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
           <div className="flex items-start gap-2">
@@ -101,6 +133,9 @@ const AffiliationManager = () => {
                 <li>They can accept or decline the invitation</li>
                 <li>Once accepted, they become an affiliated user and can see your campaigns</li>
               </ol>
+              <p className="mt-2 text-xs font-medium">
+                Note: The user must have already signed up to receive invitations.
+              </p>
             </div>
           </div>
         </div>

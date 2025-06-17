@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { useCampaignData } from '@/hooks/useCampaignData';
 import Layout from '@/components/Layout';
 import { useAuth } from '@/hooks/useAuth';
+import AffiliationManager from '@/components/AffiliationManager';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -149,6 +150,13 @@ const Dashboard = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Admin Features */}
+        {userRole === 'admin' && (
+          <div className="grid md:grid-cols-2 gap-6">
+            <AffiliationManager />
+          </div>
+        )}
 
         {/* Campaigns List */}
         <Card className="glass-card">

@@ -81,15 +81,58 @@ export const useNotifications = () => {
         throw affiliationError;
       }
 
-      // Mark notification as read
+      // Mark notification as read and remove from list
       await markAsRead(notificationId);
-
-      // Remove notification from list since it's been handled
       setNotifications(prev => prev.filter(n => n.id !== notificationId));
       
       console.log('Successfully responded to affiliation invitation');
     } catch (error) {
       console.error('Error responding to invitation:', error);
+      throw error;
+    }
+  };
+
+  const sendAffiliationInvitation = async (invitedEmail: string) => {
+    if (!user) {
+      throw new Error('No authenticated user');
+    }
+
+    try {
+      console.log('Sending affiliation invitation to:', invitedEmail);
+      
+      // First, find the user by email
+      const { data: profiles, error: profileError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', invitedEmail)
+        .single();
+
+      if (profileError || !profiles) {
+        throw new Error('User not found with that email address');
+      }
+
+      // Create the affiliation record
+      const { data: affiliation, error: affiliationError } = await supabase
+        .from('user_affiliations')
+        .insert({
+          inviter_id: user.id,
+          invited_user_id: profiles.id,
+          status: 'pending'
+        })
+        .select()
+        .single();
+
+      if (affiliationError) {
+        if (affiliationError.code === '23505') { // Unique constraint violation
+          throw new Error('This user has already been invited');
+        }
+        throw affiliationError;
+      }
+
+      console.log('Affiliation invitation created:', affiliation);
+      return affiliation;
+    } catch (error) {
+      console.error('Error sending affiliation invitation:', error);
       throw error;
     }
   };
@@ -122,8 +165,9 @@ export const useNotifications = () => {
           filter: `user_id=eq.${user.id}`
         },
         (payload) => {
-          console.log('Received new notification:', payload);
-          setNotifications(prev => [payload.new as Notification, ...prev]);
+          console.log('Received new notification via realtime:', payload);
+          const newNotification = payload.new as Notification;
+          setNotifications(prev => [newNotification, ...prev]);
           setUnreadCount(prev => prev + 1);
         }
       )
@@ -141,6 +185,7 @@ export const useNotifications = () => {
     unreadCount,
     markAsRead,
     respondToAffiliationInvitation,
+    sendAffiliationInvitation,
     refetch: fetchNotifications
   };
 };

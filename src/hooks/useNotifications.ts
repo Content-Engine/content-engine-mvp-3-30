@@ -1,4 +1,5 @@
 
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -12,6 +13,13 @@ type ProfileData = {
   id: string;
   email: string;
   full_name?: string | null;
+};
+
+// Define a type for the auth user data
+type AuthUser = {
+  id: string;
+  email?: string;
+  user_metadata?: any;
 };
 
 export const useNotifications = () => {
@@ -153,7 +161,7 @@ export const useNotifications = () => {
             throw new Error('User not found with that email address. Make sure they have signed up first.');
           }
 
-          const matchingUser = authUsersResponse.users.find(u => u.email === invitedEmail);
+          const matchingUser = (authUsersResponse.users as AuthUser[]).find((u: AuthUser) => u.email === invitedEmail);
           
           if (!matchingUser) {
             console.log('❌ No user found in auth system with email:', invitedEmail);
@@ -325,3 +333,4 @@ export const useNotifications = () => {
     refetch: fetchNotifications
   };
 };
+

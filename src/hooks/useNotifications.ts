@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -6,6 +5,13 @@ import { Tables } from '@/integrations/supabase/types';
 
 // Use the Supabase generated type directly
 export type Notification = Tables<'notifications'>;
+
+// Define a type for the profile data we're working with
+type ProfileData = {
+  id: string;
+  email: string;
+  full_name?: string | null;
+};
 
 export const useNotifications = () => {
   const { user } = useAuth();
@@ -108,18 +114,18 @@ export const useNotifications = () => {
       
       // First, try to find the user by email in auth.users via profiles
       console.log('🔍 Looking up user by email in profiles...');
-      let profiles = null;
+      let profiles: ProfileData | null = null;
       
       try {
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
-          .select('id, email')
+          .select('id, email, full_name')
           .eq('email', invitedEmail)
           .maybeSingle();
 
         if (profileError) {
           console.warn('⚠️ Profile lookup error:', profileError);
-        } else {
+        } else if (profileData) {
           profiles = profileData;
         }
       } catch (error) {
@@ -158,13 +164,17 @@ export const useNotifications = () => {
               email: invitedEmail,
               full_name: matchingUser.user_metadata?.full_name || null
             })
-            .select()
+            .select('id, email, full_name')
             .single();
 
           if (createProfileError) {
             console.error('❌ Error creating profile:', createProfileError);
             // Continue anyway, we have the user ID
-            profiles = { id: matchingUser.id, email: invitedEmail };
+            profiles = { 
+              id: matchingUser.id, 
+              email: invitedEmail,
+              full_name: matchingUser.user_metadata?.full_name || null
+            };
           } else {
             console.log('✅ Created new profile:', newProfile);
             profiles = newProfile;

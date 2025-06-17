@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { useCampaignData } from '@/hooks/useCampaignData';
 import Layout from '@/components/Layout';
 import { useAuth } from '@/hooks/useAuth';
+import AffiliationInviteTest from '@/components/AffiliationInviteTest';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -149,6 +150,13 @@ const Dashboard = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Admin Tools - Show affiliation invite test for admin users */}
+        {userRole === 'admin' && (
+          <div className="grid md:grid-cols-2 gap-6">
+            <AffiliationInviteTest />
+          </div>
+        )}
 
         {/* Campaigns List */}
         <Card className="glass-card">

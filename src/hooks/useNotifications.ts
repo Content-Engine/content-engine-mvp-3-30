@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -140,14 +141,19 @@ export const useNotifications = () => {
         
         // Use the admin API to check if user exists
         try {
-          const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
+          const { data: authUsersResponse, error: authError } = await supabase.auth.admin.listUsers();
           
           if (authError) {
             console.error('❌ Error checking auth users:', authError);
             throw new Error('Unable to verify user existence. Please ensure the user has signed up.');
           }
 
-          const matchingUser = authUsers.users.find(u => u.email === invitedEmail);
+          if (!authUsersResponse || !authUsersResponse.users) {
+            console.log('❌ No users data returned from auth system');
+            throw new Error('User not found with that email address. Make sure they have signed up first.');
+          }
+
+          const matchingUser = authUsersResponse.users.find(u => u.email === invitedEmail);
           
           if (!matchingUser) {
             console.log('❌ No user found in auth system with email:', invitedEmail);

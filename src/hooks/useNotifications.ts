@@ -106,23 +106,76 @@ export const useNotifications = () => {
     try {
       console.log('📧 Sending affiliation invitation to:', invitedEmail);
       
-      // First, find the user by email - check both email and profiles table
-      console.log('🔍 Looking up user by email...');
-      const { data: profiles, error: profileError } = await supabase
-        .from('profiles')
-        .select('id, email')
-        .eq('email', invitedEmail)
-        .maybeSingle();
+      // First, try to find the user by email in auth.users via profiles
+      console.log('🔍 Looking up user by email in profiles...');
+      let profiles = null;
+      
+      try {
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('id, email')
+          .eq('email', invitedEmail)
+          .maybeSingle();
+
+        if (profileError) {
+          console.warn('⚠️ Profile lookup error:', profileError);
+        } else {
+          profiles = profileData;
+        }
+      } catch (error) {
+        console.warn('⚠️ Error in profile lookup:', error);
+      }
 
       console.log('👤 Profile lookup result:', profiles);
 
-      if (profileError) {
-        console.error('❌ Error looking up profile:', profileError);
-        throw new Error('Error looking up user profile');
+      // If no profile found, try to get user info from admin API
+      if (!profiles) {
+        console.log('🔍 No profile found, checking if user exists in auth system...');
+        
+        // Use the admin API to check if user exists
+        try {
+          const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
+          
+          if (authError) {
+            console.error('❌ Error checking auth users:', authError);
+            throw new Error('Unable to verify user existence. Please ensure the user has signed up.');
+          }
+
+          const matchingUser = authUsers.users.find(u => u.email === invitedEmail);
+          
+          if (!matchingUser) {
+            console.log('❌ No user found in auth system with email:', invitedEmail);
+            throw new Error('User not found with that email address. Make sure they have signed up first.');
+          }
+
+          console.log('✅ Found user in auth system:', matchingUser.id);
+
+          // Create profile if it doesn't exist
+          const { data: newProfile, error: createProfileError } = await supabase
+            .from('profiles')
+            .insert({
+              id: matchingUser.id,
+              email: invitedEmail,
+              full_name: matchingUser.user_metadata?.full_name || null
+            })
+            .select()
+            .single();
+
+          if (createProfileError) {
+            console.error('❌ Error creating profile:', createProfileError);
+            // Continue anyway, we have the user ID
+            profiles = { id: matchingUser.id, email: invitedEmail };
+          } else {
+            console.log('✅ Created new profile:', newProfile);
+            profiles = newProfile;
+          }
+        } catch (error) {
+          console.error('❌ Error in auth user lookup:', error);
+          throw new Error('User not found with that email address. Make sure they have signed up first.');
+        }
       }
 
       if (!profiles) {
-        console.log('❌ No user found with email:', invitedEmail);
         throw new Error('User not found with that email address. Make sure they have signed up first.');
       }
 

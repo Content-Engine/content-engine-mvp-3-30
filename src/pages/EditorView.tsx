@@ -19,17 +19,20 @@ const EditorView = () => {
   const navigate = useNavigate();
   const [hasCheckedAccess, setHasCheckedAccess] = useState(false);
 
-  console.log('EditorView: Current state', { 
+  console.log('EditorView: Rendering with state', { 
     user: !!user, 
     userRole, 
     authLoading, 
     assignmentsLoading: loading,
     assignmentsCount: assignments.length,
-    error 
+    error,
+    hasCheckedAccess
   });
 
   // Check access permissions
   useEffect(() => {
+    console.log('EditorView: Access check effect', { authLoading, hasCheckedAccess, user: !!user, userRole });
+    
     if (!authLoading && !hasCheckedAccess) {
       setHasCheckedAccess(true);
       
@@ -87,13 +90,14 @@ const EditorView = () => {
 
   // Show loading while checking auth
   if (authLoading || !hasCheckedAccess) {
+    console.log('EditorView: Showing auth loading state');
     return (
       <Layout>
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
             <div className="animate-pulse">
-              <div className="h-8 loading-skeleton w-48 mb-4 mx-auto"></div>
-              <div className="h-4 loading-skeleton w-32 mx-auto"></div>
+              <div className="h-8 bg-gray-200 rounded w-48 mb-4 mx-auto"></div>
+              <div className="h-4 bg-gray-200 rounded w-32 mx-auto"></div>
             </div>
             <p className="text-muted-foreground mt-4">Checking access permissions...</p>
           </div>
@@ -104,6 +108,7 @@ const EditorView = () => {
 
   // Show error if access check failed
   if (!user) {
+    console.log('EditorView: Showing no user error');
     return (
       <Layout>
         <div className="min-h-screen flex items-center justify-center">
@@ -122,6 +127,7 @@ const EditorView = () => {
 
   // Show error if user doesn't have editor access
   if (userRole && !['admin', 'editor'].includes(userRole)) {
+    console.log('EditorView: Showing access denied for role:', userRole);
     return (
       <Layout>
         <div className="min-h-screen flex items-center justify-center">
@@ -140,6 +146,7 @@ const EditorView = () => {
 
   // Show error if there was a data fetching error
   if (error) {
+    console.log('EditorView: Showing data error:', error);
     return (
       <Layout>
         <div className="min-h-screen flex items-center justify-center">
@@ -158,18 +165,21 @@ const EditorView = () => {
 
   // Show loading while fetching assignments
   if (loading) {
+    console.log('EditorView: Showing assignments loading state');
     return (
       <Layout>
         <div className="text-center py-12">
           <div className="animate-pulse">
-            <div className="h-8 loading-skeleton w-48 mb-4 mx-auto"></div>
-            <div className="h-4 loading-skeleton w-32 mx-auto"></div>
+            <div className="h-8 bg-gray-200 rounded w-48 mb-4 mx-auto"></div>
+            <div className="h-4 bg-gray-200 rounded w-32 mx-auto"></div>
           </div>
           <p className="text-muted-foreground mt-4">Loading assignments...</p>
         </div>
       </Layout>
     );
   }
+
+  console.log('EditorView: Rendering main content');
 
   const pendingAssignments = assignments.filter(a => a.status === 'assigned');
   const inProgressAssignments = assignments.filter(a => a.status === 'in_progress');

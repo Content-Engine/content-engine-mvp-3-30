@@ -1,8 +1,7 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, TrendingUp, Users, Zap, AlertCircle, Crown, Upgrade } from 'lucide-react';
+import { Plus, TrendingUp, Users, Zap, AlertCircle, Crown, ArrowUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCampaignData } from '@/hooks/useCampaignData';
 import { useSubscriptionTier } from '@/hooks/useSubscriptionTier';
@@ -124,7 +123,7 @@ const Dashboard = () => {
                 variant="outline"
                 className="border-yellow-500/50 text-yellow-400 hover:bg-yellow-500/10"
               >
-                <Upgrade className="h-4 w-4 mr-2" />
+                <ArrowUp className="h-4 w-4 mr-2" />
                 Upgrade Plan
               </Button>
             )}

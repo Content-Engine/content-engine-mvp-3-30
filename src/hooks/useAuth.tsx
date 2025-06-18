@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { DEV_MODE } from '@/config/dev';
+import { DEV_MODE, TierSimulation } from '@/config/dev';
 
 export type UserRole = 'admin' | 'social_media_manager' | 'editor' | 'user';
 
@@ -51,6 +51,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [authError, setAuthError] = useState<string | null>(null);
   const [isEmailConfirmed, setIsEmailConfirmed] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
+
+  const getEffectiveRole = (): UserRole | null => {
+    // In development, check for mock role first
+    if (process.env.NODE_ENV === 'development') {
+      const mockRole = TierSimulation.getMockRole();
+      if (mockRole && ['admin', 'social_media_manager', 'editor', 'user'].includes(mockRole)) {
+        return mockRole as UserRole;
+      }
+    }
+    return userRole;
+  };
 
   const fetchUserRole = async (userId: string): Promise<UserRole> => {
     try {
@@ -408,7 +419,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     <AuthContext.Provider value={{
       user,
       session,
-      userRole,
+      userRole: getEffectiveRole(), // Return effective role (mock or real)
       loading,
       authError,
       isEmailConfirmed,

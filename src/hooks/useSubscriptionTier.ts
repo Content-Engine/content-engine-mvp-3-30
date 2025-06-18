@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { TierSimulation } from '@/config/dev';
 
 export type SubscriptionTier = 'free' | 'pro' | 'enterprise';
 
@@ -41,6 +42,17 @@ export const useSubscriptionTier = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
+
+  const getEffectiveTier = (): SubscriptionTier => {
+    // In development, check for mock tier first
+    if (process.env.NODE_ENV === 'development') {
+      const mockTier = TierSimulation.getMockTier();
+      if (mockTier && ['free', 'pro', 'enterprise'].includes(mockTier)) {
+        return mockTier as SubscriptionTier;
+      }
+    }
+    return tier;
+  };
 
   const fetchTier = async () => {
     if (!user) {
@@ -95,12 +107,14 @@ export const useSubscriptionTier = () => {
   };
 
   const hasFeature = (feature: string): boolean => {
-    return TIER_FEATURES[tier]?.[feature] || false;
+    const effectiveTier = getEffectiveTier();
+    return TIER_FEATURES[effectiveTier]?.[feature] || false;
   };
 
   const canAccessPage = (requiredTier: SubscriptionTier): boolean => {
+    const effectiveTier = getEffectiveTier();
     const tierLevels = { free: 0, pro: 1, enterprise: 2 };
-    return tierLevels[tier] >= tierLevels[requiredTier];
+    return tierLevels[effectiveTier] >= tierLevels[requiredTier];
   };
 
   useEffect(() => {
@@ -108,7 +122,8 @@ export const useSubscriptionTier = () => {
   }, [user]);
 
   return {
-    tier,
+    tier: getEffectiveTier(), // Always return the effective tier (mock or real)
+    realTier: tier, // Expose real tier for debugging
     loading,
     error,
     updateTier,

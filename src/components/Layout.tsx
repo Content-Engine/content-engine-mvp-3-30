@@ -1,6 +1,7 @@
 
 import { ReactNode } from 'react';
 import TopNavBar from '@/components/TopNavBar';
+import DevToolbar from '@/components/DevToolbar';
 
 interface LayoutProps {
   children: ReactNode;
@@ -8,15 +9,10 @@ interface LayoutProps {
 
 const Layout = ({ children }: LayoutProps) => {
   return (
-    <div className="min-h-screen bg-theme-dark">
+    <div className="min-h-screen bg-gradient-to-br from-black via-gray-950 to-gray-900">
       <TopNavBar />
-      
-      {/* Main Content with top padding to account for fixed navbar */}
-      <main className="pt-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {children}
-        </div>
-      </main>
+      <main>{children}</main>
+      <DevToolbar />
     </div>
   );
 };

@@ -95,7 +95,7 @@ const Dashboard = () => {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-4xl font-bold text-white mb-2">Campaign Dashboard</h1>
+            <h1 className="text-4xl font-bold text-white mb-2">Campaign Dashboar</h1>
             <p className="text-white/70">Manage your music content campaigns</p>
             {process.env.NODE_ENV === 'development' && (
               <details className="mt-2">

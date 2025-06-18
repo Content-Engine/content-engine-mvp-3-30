@@ -1,8 +1,8 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Json } from '@/integrations/supabase/types';
-import { DEV_MODE } from '@/config/dev';
 
 interface Campaign {
   id: string;
@@ -38,52 +38,41 @@ interface Campaign {
   account_type?: string;
   local_region?: string;
   premium_platforms?: boolean;
+  created_by?: string;
 }
 
 export const useCampaignData = () => {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { user } = useAuth();
+  const { user, userRole } = useAuth();
 
   const fetchCampaigns = async () => {
     try {
       setLoading(true);
       setError(null);
       
-      console.log('🔍 Fetching campaigns for user:', user?.id);
-      
-      // In dev mode with mock auth, fetch all campaigns since we can't create proper user relationships
-      if (DEV_MODE.USE_MOCK_AUTH || DEV_MODE.DISABLE_AUTH) {
-        console.log('🔧 Dev mode: fetching all campaigns');
-        const { data, error } = await supabase
-          .from('campaigns')
-          .select('*')
-          .order('created_at', { ascending: false });
-
-        if (error) {
-          console.error('Error fetching campaigns:', error);
-          throw error;
-        }
-        
-        console.log('✅ Campaigns fetched (dev mode):', data?.length || 0);
-        setCampaigns(data || []);
-      } else {
-        // Production mode: fetch only user's campaigns
-        const { data, error } = await supabase
-          .from('campaigns')
-          .select('*')
-          .eq('user_id', user?.id)
-          .order('created_at', { ascending: false });
-
-        if (error) {
-          console.error('Error fetching campaigns:', error);
-          throw error;
-        }
-        
-        console.log('✅ Campaigns fetched (prod mode):', data?.length || 0);
-        setCampaigns(data || []);
+      if (!user) {
+        console.log('🔍 No user, skipping campaign fetch');
+        setCampaigns([]);
+        return;
       }
+      
+      console.log('🔍 Fetching campaigns for user:', user.id, 'with role:', userRole);
+      
+      // RLS policies will automatically filter based on user permissions
+      const { data, error } = await supabase
+        .from('campaigns')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('❌ Error fetching campaigns:', error);
+        throw error;
+      }
+      
+      console.log('✅ Campaigns fetched:', data?.length || 0);
+      setCampaigns(data || []);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch campaigns';
       setError(errorMessage);
@@ -94,14 +83,13 @@ export const useCampaignData = () => {
   };
 
   const createCampaign = async (campaignData: Partial<Campaign>) => {
-    if (!user && !DEV_MODE.USE_MOCK_AUTH && !DEV_MODE.DISABLE_AUTH) {
+    if (!user) {
       throw new Error('User must be authenticated to create campaigns');
     }
 
     try {
       console.log('📝 Creating campaign with data:', campaignData);
       
-      // Prepare campaign data with proper null handling
       const campaignPayload = {
         name: campaignData.name || `Campaign ${new Date().toLocaleDateString()}`,
         goal: campaignData.goal || 'awareness',
@@ -115,8 +103,8 @@ export const useCampaignData = () => {
         budget_allocated: campaignData.budget_allocated || 0,
         budget_spent: campaignData.budget_spent || 0,
         boost_settings: campaignData.boost_settings || {},
-        // In dev mode, don't set user_id to avoid foreign key constraints
-        user_id: (DEV_MODE.USE_MOCK_AUTH || DEV_MODE.DISABLE_AUTH) ? null : user?.id,
+        user_id: user.id, // Always set user_id for RLS
+        created_by: user.id, // Always set created_by for RLS
         assigned_editor_id: campaignData.assigned_editor_id || null,
         platforms: campaignData.platforms || [],
         clips_count: campaignData.clips_count || 1,
@@ -171,11 +159,13 @@ export const useCampaignData = () => {
   };
 
   useEffect(() => {
-    // In dev mode, always fetch campaigns regardless of user state
-    if (DEV_MODE.USE_MOCK_AUTH || DEV_MODE.DISABLE_AUTH || user) {
+    if (user) {
       fetchCampaigns();
+    } else {
+      setLoading(false);
+      setCampaigns([]);
     }
-  }, [user]);
+  }, [user, userRole]);
 
   return {
     campaigns,

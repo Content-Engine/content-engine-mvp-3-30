@@ -1,10 +1,9 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, User, Menu, X, CreditCard, Users, Edit, Calendar, ChevronDown } from 'lucide-react';
-import { usePayments } from '@/hooks/usePayments';
+import { LogOut, User, Menu, X, CreditCard, Users, Edit, Calendar, ChevronDown, Crown } from 'lucide-react';
+import { useSubscriptionTier } from '@/hooks/useSubscriptionTier';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,7 +14,7 @@ import NotificationButton from '@/components/NotificationButton';
 
 const TopNavBar = () => {
   const { user, userRole, signOut } = useAuth();
-  const { paymentTier } = usePayments();
+  const { tier } = useSubscriptionTier();
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -48,12 +47,11 @@ const TopNavBar = () => {
     handleNavigation('/dashboard');
   };
 
-  const getTierBadgeColor = (tier: string | null) => {
-    switch (tier) {
-      case 'basic': return 'bg-blue-100 text-blue-800';
-      case 'pro': return 'bg-purple-100 text-purple-800';
-      case 'executive': return 'bg-gold-100 text-gold-800';
-      default: return 'bg-gray-100 text-gray-800';
+  const getTierBadgeColor = (currentTier: string) => {
+    switch (currentTier) {
+      case 'pro': return 'bg-gradient-to-r from-purple-500/20 to-blue-500/20 border-purple-500/30 text-purple-300';
+      case 'enterprise': return 'bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border-yellow-500/30 text-yellow-300';
+      default: return 'bg-gray-100/20 text-gray-300 border-gray-500/30';
     }
   };
 
@@ -103,7 +101,7 @@ const TopNavBar = () => {
           {/* Logo */}
           <div className="flex items-center">
             <button
-              onClick={handleContentEngineClick}
+              onClick={() => navigate('/dashboard')}
               className="text-theme-light font-bold text-xl hover:text-theme-blue transition-colors"
             >
               Content Engine
@@ -117,7 +115,7 @@ const TopNavBar = () => {
                 <>
                   <Button
                     variant="ghost"
-                    onClick={() => handleNavigation('/dashboard')}
+                    onClick={() => navigate('/dashboard')}
                     className="text-theme-beige hover:text-theme-light hover:bg-theme-light/10"
                   >
                     Dashboard
@@ -141,7 +139,7 @@ const TopNavBar = () => {
                           return (
                             <DropdownMenuItem
                               key={item.path}
-                              onClick={() => handleNavigation(item.path)}
+                              onClick={() => navigate(item.path)}
                               className="cursor-pointer text-theme-light hover:bg-theme-light/10"
                             >
                               <Icon className="h-4 w-4 mr-2" />
@@ -160,7 +158,7 @@ const TopNavBar = () => {
                       <Button
                         key={item.path}
                         variant="ghost"
-                        onClick={() => handleNavigation(item.path)}
+                        onClick={() => navigate(item.path)}
                         className="text-theme-beige hover:text-theme-light hover:bg-theme-light/10"
                       >
                         <Icon className="h-4 w-4 mr-2" />
@@ -171,7 +169,7 @@ const TopNavBar = () => {
                   
                   <Button
                     variant="ghost"
-                    onClick={() => handleNavigation('/payment-tiers')}
+                    onClick={() => navigate('/payment-tiers')}
                     className="text-theme-beige hover:text-theme-light hover:bg-theme-light/10"
                   >
                     <CreditCard className="h-4 w-4 mr-2" />
@@ -187,10 +185,11 @@ const TopNavBar = () => {
             <div className="ml-4 flex items-center md:ml-6 space-x-3">
               {user ? (
                 <>
-                  {/* Payment Tier Badge */}
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTierBadgeColor(paymentTier)}`}>
-                    {paymentTier || 'free'}
-                  </span>
+                  {/* Subscription Tier Badge */}
+                  <div className={`px-3 py-1 rounded-full text-xs font-medium border ${getTierBadgeColor(tier)} flex items-center gap-1`}>
+                    {tier !== 'free' && <Crown className="h-3 w-3" />}
+                    <span className="capitalize">{tier}</span>
+                  </div>
                   
                   <div className="flex items-center space-x-2">
                     <User className="h-4 w-4 text-theme-beige" />
@@ -202,7 +201,7 @@ const TopNavBar = () => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={handleSignOut}
+                    onClick={signOut}
                     className="text-theme-beige hover:text-theme-light hover:bg-theme-light/10"
                   >
                     <LogOut className="h-4 w-4 mr-2" />
@@ -211,7 +210,7 @@ const TopNavBar = () => {
                 </>
               ) : (
                 <Button
-                  onClick={() => handleNavigation('/auth')}
+                  onClick={() => navigate('/auth')}
                   className="bg-theme-blue hover:bg-theme-blue/80 text-white border-theme-blue/30"
                 >
                   Sign In
@@ -283,14 +282,15 @@ const TopNavBar = () => {
                 </Button>
                 <div className="border-t border-theme-beige/20 pt-3 mt-3">
                   <div className="flex items-center px-3 mb-2">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTierBadgeColor(paymentTier)}`}>
-                      {paymentTier || 'free'}
-                    </span>
+                    <div className={`px-3 py-1 rounded-full text-xs font-medium border ${getTierBadgeColor(tier)} flex items-center gap-1`}>
+                      {tier !== 'free' && <Crown className="h-3 w-3" />}
+                      <span className="capitalize">{tier}</span>
+                    </div>
                   </div>
                   <Button
                     variant="ghost"
                     onClick={() => {
-                      handleSignOut();
+                      signOut();
                       setIsMenuOpen(false);
                     }}
                     className="w-full justify-start text-theme-beige hover:text-theme-light hover:bg-theme-light/10"

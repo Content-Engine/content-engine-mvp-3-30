@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -13,6 +12,9 @@ interface Campaign {
   syndication_tier?: string;
   start_date?: string;
   end_date?: string;
+  scheduled_start_date?: string;
+  scheduled_start_time?: string;
+  auto_start?: boolean;
   budget_allocated?: number;
   budget_spent?: number;
   boost_settings?: Json;

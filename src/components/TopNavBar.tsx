@@ -1,306 +1,181 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { 
+  Menu, 
+  X, 
+  Home, 
+  Users, 
+  Calendar, 
+  BarChart3, 
+  Settings,
+  LogOut,
+  User,
+  CreditCard
+} from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { useNavigate } from 'react-router-dom';
-import { LogOut, User, Menu, X, CreditCard, Users, Edit, Calendar, ChevronDown, Crown } from 'lucide-react';
 import { useSubscriptionTier } from '@/hooks/useSubscriptionTier';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import NotificationButton from '@/components/NotificationButton';
+import NotificationCenter from '@/components/NotificationCenter';
+import ContentEngineLogo from '@/components/ContentEngineLogo';
+import RoleBasedAccess from '@/components/RoleBasedAccess';
 
 const TopNavBar = () => {
-  const { user, userRole, signOut } = useAuth();
-  const { tier } = useSubscriptionTier();
-  const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { user, signOut, userRole } = useAuth();
+  const { tier } = useSubscriptionTier();
 
   const handleSignOut = async () => {
     try {
       await signOut();
-      // Use window.location for clean navigation after sign out
-      window.location.href = '/auth';
+      navigate('/auth');
     } catch (error) {
       console.error('Sign out error:', error);
-      // Fallback to force navigation
-      window.location.href = '/auth';
     }
   };
 
-  const handleNavigation = (path: string) => {
-    console.log('Navigating to:', path);
-    try {
-      navigate(path);
-    } catch (error) {
-      console.error('Navigation error:', error);
-      // Fallback to window.location if navigate fails
-      window.location.href = path;
-    }
+  const menuItems = [
+    { 
+      label: 'Dashboard', 
+      path: '/dashboard', 
+      icon: Home,
+      allowedRoles: ['user', 'admin', 'social_media_manager', 'editor']
+    },
+    { 
+      label: 'Social Manager', 
+      path: '/social-manager-dashboard', 
+      icon: Calendar,
+      allowedRoles: ['social_media_manager', 'admin']
+    },
+    { 
+      label: 'Campaigns', 
+      path: '/campaigns', 
+      icon: BarChart3,
+      allowedRoles: ['user', 'admin', 'social_media_manager']
+    },
+    { 
+      label: 'Performance', 
+      path: '/performance', 
+      icon: BarChart3,
+      allowedRoles: ['admin', 'social_media_manager']
+    },
+    { 
+      label: 'User Management', 
+      path: '/user-management', 
+      icon: Users,
+      allowedRoles: ['admin']
+    },
+  ];
+
+  const isActivePath = (path: string) => {
+    return location.pathname === path || location.pathname.startsWith(path + '/');
   };
 
-  const handleContentEngineClick = () => {
-    // Always go to dashboard for the Content Engine button
-    console.log('Content Engine clicked, navigating to dashboard');
-    handleNavigation('/dashboard');
-  };
-
-  const getTierBadgeColor = (currentTier: string) => {
-    switch (currentTier) {
-      case 'pro': return 'bg-gradient-to-r from-purple-500/20 to-blue-500/20 border-purple-500/30 text-purple-300';
-      case 'enterprise': return 'bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border-yellow-500/30 text-yellow-300';
-      default: return 'bg-gray-100/20 text-gray-300 border-gray-500/30';
-    }
-  };
-
-  const getRoleBasedNavItems = () => {
-    const items = [];
-    
-    // Admin can see everything
-    if (userRole === 'admin') {
-      items.push(
-        { path: '/social-manager/calendar', label: 'Social Media Manager', icon: Calendar },
-        { path: '/client-portal', label: 'Client Portal', icon: Edit },
-        { path: '/user-management', label: 'User Management', icon: Users },
-        { path: '/campaign-builder', label: 'Campaign Builder', icon: Edit }
-      );
-    }
-    
-    // Social Media Manager
-    if (userRole === 'social_media_manager') {
-      items.push(
-        { path: '/social-manager/calendar', label: 'Social Media Manager', icon: Calendar }
-      );
-    }
-    
-    // Editor
-    if (userRole === 'editor') {
-      items.push(
-        { path: '/editor', label: 'Editor Portal', icon: Edit }
-      );
-    }
-    
-    // User/Client
-    if (userRole === 'user') {
-      items.push(
-        { path: '/client-portal', label: 'Client Portal', icon: User }
-      );
-    }
-
-    return items;
-  };
-
-  const roleBasedItems = getRoleBasedNavItems();
+  if (!user) {
+    return null;
+  }
 
   return (
-    <nav className="bg-theme-dark/90 backdrop-blur-md border-b border-theme-beige/20 sticky top-0 z-50">
+    <nav className="bg-black/20 backdrop-blur-lg border-b border-white/10 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <div className="flex items-center">
-            <button
-              onClick={() => navigate('/dashboard')}
-              className="text-theme-light font-bold text-xl hover:text-theme-blue transition-colors"
-            >
-              Content Engine
-            </button>
-          </div>
-
-          {/* Desktop Navigation */}
-          <div className="hidden md:block">
-            <div className="ml-10 flex items-baseline space-x-4">
-              {user && (
-                <>
-                  <Button
-                    variant="ghost"
-                    onClick={() => navigate('/dashboard')}
-                    className="text-theme-beige hover:text-theme-light hover:bg-theme-light/10"
-                  >
-                    Dashboard
-                  </Button>
-                  
-                  {/* Admin Dropdown */}
-                  {userRole === 'admin' && (
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          className="text-theme-beige hover:text-theme-light hover:bg-theme-light/10"
-                        >
-                          Admin Tools
-                          <ChevronDown className="h-4 w-4 ml-2" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent className="bg-theme-dark/95 backdrop-blur-md border border-theme-beige/20">
-                        {roleBasedItems.map((item) => {
-                          const Icon = item.icon;
-                          return (
-                            <DropdownMenuItem
-                              key={item.path}
-                              onClick={() => navigate(item.path)}
-                              className="cursor-pointer text-theme-light hover:bg-theme-light/10"
-                            >
-                              <Icon className="h-4 w-4 mr-2" />
-                              {item.label}
-                            </DropdownMenuItem>
-                          );
-                        })}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  )}
-                  
-                  {/* Non-admin role-based navigation items */}
-                  {userRole !== 'admin' && roleBasedItems.map((item) => {
-                    const Icon = item.icon;
-                    return (
-                      <Button
-                        key={item.path}
-                        variant="ghost"
-                        onClick={() => navigate(item.path)}
-                        className="text-theme-beige hover:text-theme-light hover:bg-theme-light/10"
-                      >
-                        <Icon className="h-4 w-4 mr-2" />
-                        {item.label}
-                      </Button>
-                    );
-                  })}
-                  
-                  <Button
-                    variant="ghost"
-                    onClick={() => navigate('/payment-tiers')}
-                    className="text-theme-beige hover:text-theme-light hover:bg-theme-light/10"
-                  >
-                    <CreditCard className="h-4 w-4 mr-2" />
-                    Plans
-                  </Button>
-                </>
+          <div className="flex items-center gap-3">
+            <ContentEngineLogo />
+            <div className="hidden sm:block">
+              <h1 className="text-xl font-bold text-white">Content Engine</h1>
+              {tier !== 'free' && (
+                <Badge className="text-xs bg-gradient-to-r from-yellow-500/20 to-orange-500/20 text-yellow-400 border-yellow-500/30">
+                  {tier.toUpperCase()}
+                </Badge>
               )}
             </div>
           </div>
 
-          {/* User Menu */}
-          <div className="hidden md:block">
-            <div className="ml-4 flex items-center md:ml-6 space-x-3">
-              {user ? (
-                <>
-                  {/* Subscription Tier Badge */}
-                  <div className={`px-3 py-1 rounded-full text-xs font-medium border ${getTierBadgeColor(tier)} flex items-center gap-1`}>
-                    {tier !== 'free' && <Crown className="h-3 w-3" />}
-                    <span className="capitalize">{tier}</span>
-                  </div>
-                  
-                  <div className="flex items-center space-x-2">
-                    <User className="h-4 w-4 text-theme-beige" />
-                    <span className="text-theme-light text-sm">{user.email}</span>
-                  </div>
-                  
-                  <NotificationButton />
-                  
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={signOut}
-                    className="text-theme-beige hover:text-theme-light hover:bg-theme-light/10"
-                  >
-                    <LogOut className="h-4 w-4 mr-2" />
-                    Sign Out
-                  </Button>
-                </>
-              ) : (
+          {/* Desktop Menu */}
+          <div className="hidden md:flex items-center space-x-1">
+            {menuItems.map((item) => (
+              <RoleBasedAccess key={item.path} allowedRoles={item.allowedRoles}>
                 <Button
-                  onClick={() => navigate('/auth')}
-                  className="bg-theme-blue hover:bg-theme-blue/80 text-white border-theme-blue/30"
+                  variant={isActivePath(item.path) ? "secondary" : "ghost"}
+                  onClick={() => navigate(item.path)}
+                  className={`
+                    text-white/80 hover:text-white hover:bg-white/10
+                    ${isActivePath(item.path) ? 'bg-white/20 text-white' : ''}
+                  `}
                 >
-                  Sign In
+                  <item.icon className="h-4 w-4 mr-2" />
+                  {item.label}
                 </Button>
-              )}
-            </div>
+              </RoleBasedAccess>
+            ))}
           </div>
 
-          {/* Mobile menu button */}
-          <div className="md:hidden">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="text-theme-light hover:bg-theme-light/10"
-            >
-              {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            </Button>
+          {/* Right side - Notifications and User Menu */}
+          <div className="flex items-center space-x-2">
+            {/* Notification Center */}
+            <NotificationCenter />
+
+            {/* User Menu */}
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="ghost"
+                onClick={() => navigate('/payment-tiers')}
+                className="text-white/80 hover:text-white hover:bg-white/10"
+              >
+                <CreditCard className="h-4 w-4 mr-2" />
+                {tier === 'free' ? 'Upgrade' : 'Billing'}
+              </Button>
+
+              <Button
+                variant="ghost"
+                onClick={handleSignOut}
+                className="text-white/80 hover:text-white hover:bg-white/10"
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Sign Out
+              </Button>
+            </div>
+
+            {/* Mobile menu button */}
+            <div className="md:hidden">
+              <Button
+                variant="ghost"
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                className="text-white/80 hover:text-white"
+              >
+                {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              </Button>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Mobile Navigation */}
+      {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className="md:hidden">
-          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-theme-dark/95 backdrop-blur-md">
-            {user && (
-              <>
+        <div className="md:hidden bg-black/30 backdrop-blur-lg border-t border-white/10">
+          <div className="px-2 pt-2 pb-3 space-y-1">
+            {menuItems.map((item) => (
+              <RoleBasedAccess key={item.path} allowedRoles={item.allowedRoles}>
                 <Button
-                  variant="ghost"
+                  variant={isActivePath(item.path) ? "secondary" : "ghost"}
                   onClick={() => {
-                    handleNavigation('/dashboard');
+                    navigate(item.path);
                     setIsMenuOpen(false);
                   }}
-                  className="w-full justify-start text-theme-beige hover:text-theme-light hover:bg-theme-light/10"
+                  className={`
+                    w-full justify-start text-white/80 hover:text-white hover:bg-white/10
+                    ${isActivePath(item.path) ? 'bg-white/20 text-white' : ''}
+                  `}
                 >
-                  Dashboard
+                  <item.icon className="h-4 w-4 mr-2" />
+                  {item.label}
                 </Button>
-                
-                {/* Role-based navigation items for mobile */}
-                {roleBasedItems.map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <Button
-                      key={item.path}
-                      variant="ghost"
-                      onClick={() => {
-                        handleNavigation(item.path);
-                        setIsMenuOpen(false);
-                      }}
-                      className="w-full justify-start text-theme-beige hover:text-theme-light hover:bg-theme-light/10"
-                    >
-                      <Icon className="h-4 w-4 mr-2" />
-                      {item.label}
-                    </Button>
-                  );
-                })}
-                
-                <Button
-                  variant="ghost"
-                  onClick={() => {
-                    handleNavigation('/payment-tiers');
-                    setIsMenuOpen(false);
-                  }}
-                  className="w-full justify-start text-theme-beige hover:text-theme-light hover:bg-theme-light/10"
-                >
-                  <CreditCard className="h-4 w-4 mr-2" />
-                  Plans
-                </Button>
-                <div className="border-t border-theme-beige/20 pt-3 mt-3">
-                  <div className="flex items-center px-3 mb-2">
-                    <div className={`px-3 py-1 rounded-full text-xs font-medium border ${getTierBadgeColor(tier)} flex items-center gap-1`}>
-                      {tier !== 'free' && <Crown className="h-3 w-3" />}
-                      <span className="capitalize">{tier}</span>
-                    </div>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    onClick={() => {
-                      signOut();
-                      setIsMenuOpen(false);
-                    }}
-                    className="w-full justify-start text-theme-beige hover:text-theme-light hover:bg-theme-light/10"
-                  >
-                    <LogOut className="h-4 w-4 mr-2" />
-                    Sign Out
-                  </Button>
-                </div>
-              </>
-            )}
+              </RoleBasedAccess>
+            ))}
           </div>
         </div>
       )}

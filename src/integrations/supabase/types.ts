@@ -9,6 +9,45 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      airtable_sync_log: {
+        Row: {
+          airtable_record_id: string | null
+          created_at: string | null
+          error_message: string | null
+          id: string
+          record_id: string
+          record_type: string
+          retry_count: number | null
+          sync_direction: string
+          sync_status: string | null
+          synced_at: string | null
+        }
+        Insert: {
+          airtable_record_id?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          record_id: string
+          record_type: string
+          retry_count?: number | null
+          sync_direction: string
+          sync_status?: string | null
+          synced_at?: string | null
+        }
+        Update: {
+          airtable_record_id?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          record_id?: string
+          record_type?: string
+          retry_count?: number | null
+          sync_direction?: string
+          sync_status?: string | null
+          synced_at?: string | null
+        }
+        Relationships: []
+      }
       archived_submissions: {
         Row: {
           archived_at: string
@@ -731,6 +770,51 @@ export type Database = {
           },
         ]
       }
+      notification_queue: {
+        Row: {
+          created_at: string | null
+          data: Json | null
+          id: string
+          max_retries: number | null
+          message: string
+          notification_type: string
+          retry_count: number | null
+          scheduled_for: string | null
+          sent_at: string | null
+          status: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          data?: Json | null
+          id?: string
+          max_retries?: number | null
+          message: string
+          notification_type: string
+          retry_count?: number | null
+          scheduled_for?: string | null
+          sent_at?: string | null
+          status?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          data?: Json | null
+          id?: string
+          max_retries?: number | null
+          message?: string
+          notification_type?: string
+          retry_count?: number | null
+          scheduled_for?: string | null
+          sent_at?: string | null
+          status?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
@@ -798,6 +882,53 @@ export type Database = {
             columns: ["scheduled_post_id"]
             isOneToOne: false
             referencedRelation: "scheduled_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      post_templates: {
+        Row: {
+          campaign_id: string | null
+          caption_template: string
+          created_at: string | null
+          hashtags: string | null
+          id: string
+          media_requirements: Json | null
+          platforms: Json | null
+          post_timing_offset: number | null
+          template_name: string
+          updated_at: string | null
+        }
+        Insert: {
+          campaign_id?: string | null
+          caption_template: string
+          created_at?: string | null
+          hashtags?: string | null
+          id?: string
+          media_requirements?: Json | null
+          platforms?: Json | null
+          post_timing_offset?: number | null
+          template_name: string
+          updated_at?: string | null
+        }
+        Update: {
+          campaign_id?: string | null
+          caption_template?: string
+          created_at?: string | null
+          hashtags?: string | null
+          id?: string
+          media_requirements?: Json | null
+          platforms?: Json | null
+          post_timing_offset?: number | null
+          template_name?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_templates_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
             referencedColumns: ["id"]
           },
         ]
@@ -895,6 +1026,8 @@ export type Database = {
       }
       scheduled_posts: {
         Row: {
+          airtable_record_id: string | null
+          auto_generated: boolean | null
           ayrshare_post_id: string | null
           boost_enabled: boolean | null
           campaign_id: string | null
@@ -904,14 +1037,23 @@ export type Database = {
           content_item_id: string | null
           created_at: string
           id: string
+          last_error_message: string | null
+          max_retries: number | null
           media_urls: Json | null
+          notification_sent: boolean | null
           platforms: Json
+          post_type: string | null
+          processing_status: string | null
+          retry_count: number | null
           schedule_time: string
           status: string | null
+          template_used: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          airtable_record_id?: string | null
+          auto_generated?: boolean | null
           ayrshare_post_id?: string | null
           boost_enabled?: boolean | null
           campaign_id?: string | null
@@ -921,14 +1063,23 @@ export type Database = {
           content_item_id?: string | null
           created_at?: string
           id?: string
+          last_error_message?: string | null
+          max_retries?: number | null
           media_urls?: Json | null
+          notification_sent?: boolean | null
           platforms?: Json
+          post_type?: string | null
+          processing_status?: string | null
+          retry_count?: number | null
           schedule_time: string
           status?: string | null
+          template_used?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          airtable_record_id?: string | null
+          auto_generated?: boolean | null
           ayrshare_post_id?: string | null
           boost_enabled?: boolean | null
           campaign_id?: string | null
@@ -938,10 +1089,17 @@ export type Database = {
           content_item_id?: string | null
           created_at?: string
           id?: string
+          last_error_message?: string | null
+          max_retries?: number | null
           media_urls?: Json | null
+          notification_sent?: boolean | null
           platforms?: Json
+          post_type?: string | null
+          processing_status?: string | null
+          retry_count?: number | null
           schedule_time?: string
           status?: string | null
+          template_used?: string | null
           updated_at?: string
           user_id?: string
         }

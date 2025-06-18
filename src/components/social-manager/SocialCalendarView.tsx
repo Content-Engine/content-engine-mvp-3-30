@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,12 +13,16 @@ import {
   MessageSquare,
   Zap,
   Plus,
-  Target
+  Target,
+  AlertCircle,
+  CheckCircle,
+  XCircle
 } from "lucide-react";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { useCampaignData } from "@/hooks/useCampaignData";
+import { useScheduledPosts } from "@/hooks/useScheduledPosts";
 import PostSchedulerModal from "./PostSchedulerModal";
 import BoostPurchaseModal from "@/components/BoostPurchaseModal";
 
@@ -29,7 +34,7 @@ interface CalendarEvent {
   id: string;
   title: string;
   platform: 'TikTok' | 'Instagram' | 'YouTube Shorts' | 'Facebook Reels';
-  status: 'scheduled' | 'missing_caption' | 'needs_comments' | 'published';
+  status: 'scheduled' | 'posted' | 'failed' | 'processing';
   editor: string;
   time: string;
   views?: number;
@@ -37,6 +42,9 @@ interface CalendarEvent {
   boosted?: boolean;
   type: 'post' | 'campaign';
   campaignId?: string;
+  auto_generated?: boolean;
+  retry_count?: number;
+  last_error_message?: string;
 }
 
 const SocialCalendarView = ({ currentCampaign }: SocialCalendarViewProps) => {
@@ -49,39 +57,13 @@ const SocialCalendarView = ({ currentCampaign }: SocialCalendarViewProps) => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { campaigns } = useCampaignData();
+  const { posts: scheduledPosts, loading: postsLoading } = useScheduledPosts();
 
-  // Mock data - replace with real data fetching
-  const [mockEvents, setMockEvents] = useState<Record<string, CalendarEvent[]>>({});
+  const [calendarEvents, setCalendarEvents] = useState<Record<string, CalendarEvent[]>>({});
 
-  // Generate events from campaigns and mock posts
+  // Generate events from campaigns and scheduled posts
   useEffect(() => {
-    const events: Record<string, CalendarEvent[]> = {
-      '2024-01-15': [
-        {
-          id: '1',
-          title: 'Summer Vibes TikTok',
-          platform: 'TikTok',
-          status: 'scheduled',
-          editor: 'Sarah J.',
-          time: '14:00',
-          views: 25400,
-          engagement: 1200,
-          boosted: true,
-          type: 'post'
-        }
-      ],
-      '2024-01-16': [
-        {
-          id: '2',
-          title: 'Product Showcase IG',
-          platform: 'Instagram',
-          status: 'missing_caption',
-          editor: 'Mike C.',
-          time: '18:00',
-          type: 'post'
-        }
-      ]
-    };
+    const events: Record<string, CalendarEvent[]> = {};
 
     // Add campaign launch events
     campaigns.forEach(campaign => {
@@ -96,7 +78,7 @@ const SocialCalendarView = ({ currentCampaign }: SocialCalendarViewProps) => {
         events[date].push({
           id: `campaign-${campaign.id}`,
           title: `📢 ${campaign.name} Launch`,
-          platform: 'TikTok', // This could be dynamic based on campaign platforms
+          platform: 'TikTok',
           status: 'scheduled',
           editor: 'System',
           time: time,
@@ -107,8 +89,42 @@ const SocialCalendarView = ({ currentCampaign }: SocialCalendarViewProps) => {
       }
     });
 
-    setMockEvents(events);
-  }, [campaigns]);
+    // Add scheduled posts
+    scheduledPosts.forEach(post => {
+      const date = format(new Date(post.schedule_time), 'yyyy-MM-dd');
+      const time = format(new Date(post.schedule_time), 'HH:mm');
+      
+      if (!events[date]) {
+        events[date] = [];
+      }
+
+      // Determine platform emoji
+      const primaryPlatform = post.platforms[0] || 'TikTok';
+      const platformMap: Record<string, 'TikTok' | 'Instagram' | 'YouTube Shorts' | 'Facebook Reels'> = {
+        'tiktok': 'TikTok',
+        'instagram': 'Instagram', 
+        'youtube': 'YouTube Shorts',
+        'facebook': 'Facebook Reels'
+      };
+
+      events[date].push({
+        id: post.id,
+        title: post.caption.length > 30 ? `${post.caption.substring(0, 30)}...` : post.caption,
+        platform: platformMap[primaryPlatform] || 'TikTok',
+        status: post.status as 'scheduled' | 'posted' | 'failed' | 'processing',
+        editor: 'Auto-generated',
+        time: time,
+        boosted: post.boost_enabled,
+        type: 'post',
+        campaignId: post.campaign_id || undefined,
+        auto_generated: post.auto_generated || false,
+        retry_count: post.retry_count || 0,
+        last_error_message: post.last_error_message || undefined
+      });
+    });
+
+    setCalendarEvents(events);
+  }, [campaigns, scheduledPosts]);
 
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
@@ -116,11 +132,21 @@ const SocialCalendarView = ({ currentCampaign }: SocialCalendarViewProps) => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'scheduled': return 'bg-purple-500/20 text-purple-400 border-purple-500/30';
-      case 'missing_caption': return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
-      case 'needs_comments': return 'bg-orange-500/20 text-orange-400 border-orange-500/30';
-      case 'published': return 'bg-green-500/20 text-green-400 border-green-500/30';
+      case 'scheduled': return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
+      case 'processing': return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
+      case 'posted': return 'bg-green-500/20 text-green-400 border-green-500/30';
+      case 'failed': return 'bg-red-500/20 text-red-400 border-red-500/30';
       default: return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'scheduled': return <Clock className="h-3 w-3" />;
+      case 'processing': return <AlertCircle className="h-3 w-3" />;
+      case 'posted': return <CheckCircle className="h-3 w-3" />;
+      case 'failed': return <XCircle className="h-3 w-3" />;
+      default: return <Clock className="h-3 w-3" />;
     }
   };
 
@@ -139,12 +165,6 @@ const SocialCalendarView = ({ currentCampaign }: SocialCalendarViewProps) => {
       return <Target className="h-3 w-3" />;
     }
     return getPlatformEmoji(event.platform);
-  };
-
-  const navigateMonth = (direction: 'prev' | 'next') => {
-    const newDate = new Date(currentDate);
-    newDate.setMonth(currentDate.getMonth() + (direction === 'next' ? 1 : -1));
-    setCurrentDate(newDate);
   };
 
   const handleScheduleContent = () => {
@@ -180,7 +200,7 @@ const SocialCalendarView = ({ currentCampaign }: SocialCalendarViewProps) => {
 
   const handleBoostPurchase = (boostData: any) => {
     if (selectedEvent) {
-      const updatedEvents = { ...mockEvents };
+      const updatedEvents = { ...calendarEvents };
       const dateKey = format(selectedDate || new Date(), 'yyyy-MM-dd');
       if (updatedEvents[dateKey]) {
         const eventIndex = updatedEvents[dateKey].findIndex(e => e.id === selectedEvent.id);
@@ -189,7 +209,7 @@ const SocialCalendarView = ({ currentCampaign }: SocialCalendarViewProps) => {
             ...updatedEvents[dateKey][eventIndex],
             boosted: true
           };
-          setMockEvents(updatedEvents);
+          setCalendarEvents(updatedEvents);
         }
       }
       
@@ -209,6 +229,14 @@ const SocialCalendarView = ({ currentCampaign }: SocialCalendarViewProps) => {
       description: "New content has been added to the calendar.",
     });
   };
+
+  if (postsLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -279,7 +307,7 @@ const SocialCalendarView = ({ currentCampaign }: SocialCalendarViewProps) => {
           <div className="grid grid-cols-7 gap-4">
             {calendarDays.map((day) => {
               const dateKey = format(day, 'yyyy-MM-dd');
-              const events = mockEvents[dateKey] || [];
+              const events = calendarEvents[dateKey] || [];
               const isToday = isSameDay(day, new Date());
               const isSelected = selectedDate && isSameDay(day, selectedDate);
 
@@ -305,14 +333,21 @@ const SocialCalendarView = ({ currentCampaign }: SocialCalendarViewProps) => {
                         className={`
                           text-xs p-1 rounded border ${getStatusColor(event.status)}
                           ${event.type === 'campaign' ? 'border-2 border-orange-500/50 bg-orange-500/20' : ''}
+                          ${event.auto_generated ? 'border-l-2 border-l-blue-400' : ''}
                         `}
                       >
                         <div className="flex items-center gap-1">
                           {getEventTypeIcon(event)}
-                          <span className="truncate">{event.title}</span>
+                          {getStatusIcon(event.status)}
+                          <span className="truncate flex-1">{event.title}</span>
                           {event.boosted && <Zap className="h-3 w-3" />}
                         </div>
-                        <div className="text-xs opacity-75">{event.time}</div>
+                        <div className="text-xs opacity-75 flex items-center gap-1">
+                          <span>{event.time}</span>
+                          {event.retry_count && event.retry_count > 0 && (
+                            <span className="text-yellow-400">({event.retry_count} retries)</span>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -334,7 +369,7 @@ const SocialCalendarView = ({ currentCampaign }: SocialCalendarViewProps) => {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {mockEvents[format(selectedDate, 'yyyy-MM-dd')]?.map((event) => (
+              {calendarEvents[format(selectedDate, 'yyyy-MM-dd')]?.map((event) => (
                 <Card key={event.id} className="bg-white/5 border-white/10">
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between mb-3">
@@ -347,8 +382,16 @@ const SocialCalendarView = ({ currentCampaign }: SocialCalendarViewProps) => {
                           <>
                             <span className="text-lg">{getPlatformEmoji(event.platform)}</span>
                             <Badge className={getStatusColor(event.status)}>
-                              {event.status.replace('_', ' ')}
+                              <span className="flex items-center gap-1">
+                                {getStatusIcon(event.status)}
+                                {event.status}
+                              </span>
                             </Badge>
+                            {event.auto_generated && (
+                              <Badge className="bg-blue-500/20 text-blue-400 text-xs">
+                                Auto
+                              </Badge>
+                            )}
                           </>
                         )}
                       </div>
@@ -380,6 +423,11 @@ const SocialCalendarView = ({ currentCampaign }: SocialCalendarViewProps) => {
                         <div className="flex items-center gap-2">
                           <MessageSquare className="h-4 w-4" />
                           <span>{event.engagement.toLocaleString()} engagements</span>
+                        </div>
+                      )}
+                      {event.last_error_message && (
+                        <div className="text-red-400 text-xs">
+                          Error: {event.last_error_message}
                         </div>
                       )}
                     </div>

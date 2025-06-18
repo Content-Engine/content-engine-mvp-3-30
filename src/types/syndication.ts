@@ -20,6 +20,9 @@ export interface Campaign {
   status: 'active' | 'inactive' | 'completed';
   start_date?: string;
   end_date?: string;
+  scheduled_start_date?: string;
+  scheduled_start_time?: string;
+  auto_start?: boolean;
   created_at: string;
   updated_at: string;
   user_id?: string;

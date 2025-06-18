@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { FileMetadata } from '@/utils/fileUtils';
 
@@ -14,6 +13,9 @@ interface CampaignBuilderState {
   schedule: {
     startDate: string;
     autoBoost: boolean;
+    scheduledStartDate: string;
+    scheduledStartTime: string;
+    autoStart: boolean;
   };
   echo_boost_platforms: number;
   auto_fill_lookalike: boolean;
@@ -43,6 +45,9 @@ const initialState: CampaignBuilderState = {
   schedule: {
     startDate: '',
     autoBoost: false,
+    scheduledStartDate: '',
+    scheduledStartTime: '',
+    autoStart: false,
   },
   echo_boost_platforms: 1,
   auto_fill_lookalike: false,

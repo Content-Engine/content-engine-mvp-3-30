@@ -192,6 +192,7 @@ export type Database = {
         Row: {
           assigned_editor_id: string | null
           auto_fill_lookalike: boolean | null
+          auto_start: boolean | null
           boost_settings: Json | null
           budget_allocated: number | null
           budget_spent: number | null
@@ -213,6 +214,8 @@ export type Database = {
           posting_end_date: string | null
           posting_start_date: string | null
           requires_approval: boolean | null
+          scheduled_start_date: string | null
+          scheduled_start_time: string | null
           start_date: string | null
           status: string | null
           syndication_tier: string | null
@@ -223,6 +226,7 @@ export type Database = {
         Insert: {
           assigned_editor_id?: string | null
           auto_fill_lookalike?: boolean | null
+          auto_start?: boolean | null
           boost_settings?: Json | null
           budget_allocated?: number | null
           budget_spent?: number | null
@@ -244,6 +248,8 @@ export type Database = {
           posting_end_date?: string | null
           posting_start_date?: string | null
           requires_approval?: boolean | null
+          scheduled_start_date?: string | null
+          scheduled_start_time?: string | null
           start_date?: string | null
           status?: string | null
           syndication_tier?: string | null
@@ -254,6 +260,7 @@ export type Database = {
         Update: {
           assigned_editor_id?: string | null
           auto_fill_lookalike?: boolean | null
+          auto_start?: boolean | null
           boost_settings?: Json | null
           budget_allocated?: number | null
           budget_spent?: number | null
@@ -275,6 +282,8 @@ export type Database = {
           posting_end_date?: string | null
           posting_start_date?: string | null
           requires_approval?: boolean | null
+          scheduled_start_date?: string | null
+          scheduled_start_time?: string | null
           start_date?: string | null
           status?: string | null
           syndication_tier?: string | null
@@ -889,6 +898,8 @@ export type Database = {
           ayrshare_post_id: string | null
           boost_enabled: boolean | null
           campaign_id: string | null
+          campaign_name: string | null
+          campaign_scheduled_date: string | null
           caption: string
           content_item_id: string | null
           created_at: string
@@ -904,6 +915,8 @@ export type Database = {
           ayrshare_post_id?: string | null
           boost_enabled?: boolean | null
           campaign_id?: string | null
+          campaign_name?: string | null
+          campaign_scheduled_date?: string | null
           caption: string
           content_item_id?: string | null
           created_at?: string
@@ -919,6 +932,8 @@ export type Database = {
           ayrshare_post_id?: string | null
           boost_enabled?: boolean | null
           campaign_id?: string | null
+          campaign_name?: string | null
+          campaign_scheduled_date?: string | null
           caption?: string
           content_item_id?: string | null
           created_at?: string

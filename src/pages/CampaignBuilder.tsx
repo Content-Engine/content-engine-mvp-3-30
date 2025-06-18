@@ -55,6 +55,9 @@ const CampaignBuilder = () => {
         syndication_tier: state.syndicationTier,
         boost_settings: state.boosts,
         start_date: state.schedule.startDate,
+        scheduled_start_date: state.schedule.scheduledStartDate ? new Date(`${state.schedule.scheduledStartDate}T${state.schedule.scheduledStartTime}`).toISOString() : null,
+        scheduled_start_time: state.schedule.scheduledStartTime,
+        auto_start: state.schedule.autoStart,
         echo_boost_enabled: state.boosts.echoClone,
         echo_boost_platforms: state.echo_boost_platforms,
         auto_fill_lookalike: state.auto_fill_lookalike,
@@ -145,12 +148,24 @@ const CampaignBuilder = () => {
               campaignName={state.name}
               startDate={state.schedule.startDate}
               autoBoost={state.schedule.autoBoost}
+              scheduledStartDate={state.schedule.scheduledStartDate}
+              scheduledStartTime={state.schedule.scheduledStartTime}
+              autoStart={state.schedule.autoStart}
               onNameChange={(name) => updateState({ name })}
               onDateChange={(date) => updateState({ 
                 schedule: { ...state.schedule, startDate: date }
               })}
               onAutoBoostToggle={(enabled) => updateState({ 
                 schedule: { ...state.schedule, autoBoost: enabled }
+              })}
+              onScheduledDateChange={(date) => updateState({ 
+                schedule: { ...state.schedule, scheduledStartDate: date }
+              })}
+              onScheduledTimeChange={(time) => updateState({ 
+                schedule: { ...state.schedule, scheduledStartTime: time }
+              })}
+              onAutoStartToggle={(enabled) => updateState({ 
+                schedule: { ...state.schedule, autoStart: enabled }
               })}
               onLaunch={handleLaunchCampaign} 
             />

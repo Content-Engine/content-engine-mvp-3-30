@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,11 +11,13 @@ import {
   TrendingUp,
   MessageSquare,
   Zap,
-  Plus
+  Plus,
+  Target
 } from "lucide-react";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { useCampaignData } from "@/hooks/useCampaignData";
 import PostSchedulerModal from "./PostSchedulerModal";
 import BoostPurchaseModal from "@/components/BoostPurchaseModal";
 
@@ -34,6 +35,8 @@ interface CalendarEvent {
   views?: number;
   engagement?: number;
   boosted?: boolean;
+  type: 'post' | 'campaign';
+  campaignId?: string;
 }
 
 const SocialCalendarView = ({ currentCampaign }: SocialCalendarViewProps) => {
@@ -45,33 +48,67 @@ const SocialCalendarView = ({ currentCampaign }: SocialCalendarViewProps) => {
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { campaigns } = useCampaignData();
 
   // Mock data - replace with real data fetching
-  const [mockEvents, setMockEvents] = useState<Record<string, CalendarEvent[]>>({
-    '2024-01-15': [
-      {
-        id: '1',
-        title: 'Summer Vibes TikTok',
-        platform: 'TikTok',
-        status: 'scheduled',
-        editor: 'Sarah J.',
-        time: '14:00',
-        views: 25400,
-        engagement: 1200,
-        boosted: true
+  const [mockEvents, setMockEvents] = useState<Record<string, CalendarEvent[]>>({});
+
+  // Generate events from campaigns and mock posts
+  useEffect(() => {
+    const events: Record<string, CalendarEvent[]> = {
+      '2024-01-15': [
+        {
+          id: '1',
+          title: 'Summer Vibes TikTok',
+          platform: 'TikTok',
+          status: 'scheduled',
+          editor: 'Sarah J.',
+          time: '14:00',
+          views: 25400,
+          engagement: 1200,
+          boosted: true,
+          type: 'post'
+        }
+      ],
+      '2024-01-16': [
+        {
+          id: '2',
+          title: 'Product Showcase IG',
+          platform: 'Instagram',
+          status: 'missing_caption',
+          editor: 'Mike C.',
+          time: '18:00',
+          type: 'post'
+        }
+      ]
+    };
+
+    // Add campaign launch events
+    campaigns.forEach(campaign => {
+      if (campaign.scheduled_start_date) {
+        const date = format(new Date(campaign.scheduled_start_date), 'yyyy-MM-dd');
+        const time = campaign.scheduled_start_time || '09:00';
+        
+        if (!events[date]) {
+          events[date] = [];
+        }
+        
+        events[date].push({
+          id: `campaign-${campaign.id}`,
+          title: `📢 ${campaign.name} Launch`,
+          platform: 'TikTok', // This could be dynamic based on campaign platforms
+          status: 'scheduled',
+          editor: 'System',
+          time: time,
+          boosted: false,
+          type: 'campaign',
+          campaignId: campaign.id
+        });
       }
-    ],
-    '2024-01-16': [
-      {
-        id: '2',
-        title: 'Product Showcase IG',
-        platform: 'Instagram',
-        status: 'missing_caption',
-        editor: 'Mike C.',
-        time: '18:00'
-      }
-    ]
-  });
+    });
+
+    setMockEvents(events);
+  }, [campaigns]);
 
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
@@ -97,28 +134,52 @@ const SocialCalendarView = ({ currentCampaign }: SocialCalendarViewProps) => {
     }
   };
 
+  const getEventTypeIcon = (event: CalendarEvent) => {
+    if (event.type === 'campaign') {
+      return <Target className="h-3 w-3" />;
+    }
+    return getPlatformEmoji(event.platform);
+  };
+
+  const navigateMonth = (direction: 'prev' | 'next') => {
+    const newDate = new Date(currentDate);
+    newDate.setMonth(currentDate.getMonth() + (direction === 'next' ? 1 : -1));
+    setCurrentDate(newDate);
+  };
+
   const handleScheduleContent = () => {
     setShowScheduleModal(true);
   };
 
   const handleEditEvent = (event: CalendarEvent) => {
+    if (event.type === 'campaign') {
+      navigate(`/campaigns/${event.campaignId}`);
+      return;
+    }
+    
     console.log('Editing event:', event);
     toast({
       title: "Edit Content",
       description: `Opening editor for "${event.title}"`,
     });
-    // Navigate to editor with event details
     navigate('/editor', { state: { eventId: event.id, event } });
   };
 
   const handleBoostEvent = (event: CalendarEvent) => {
+    if (event.type === 'campaign') {
+      toast({
+        title: "Campaign Event",
+        description: "Campaign launch events cannot be boosted individually",
+      });
+      return;
+    }
+    
     setSelectedEvent(event);
     setShowBoostModal(true);
   };
 
   const handleBoostPurchase = (boostData: any) => {
     if (selectedEvent) {
-      // Update the event with boost status
       const updatedEvents = { ...mockEvents };
       const dateKey = format(selectedDate || new Date(), 'yyyy-MM-dd');
       if (updatedEvents[dateKey]) {
@@ -143,7 +204,6 @@ const SocialCalendarView = ({ currentCampaign }: SocialCalendarViewProps) => {
 
   const handleModalClose = () => {
     setShowScheduleModal(false);
-    // Refresh data or handle any necessary updates after modal closes
     toast({
       title: "Content Scheduled",
       description: "New content has been added to the calendar.",
@@ -244,10 +304,11 @@ const SocialCalendarView = ({ currentCampaign }: SocialCalendarViewProps) => {
                         key={event.id}
                         className={`
                           text-xs p-1 rounded border ${getStatusColor(event.status)}
+                          ${event.type === 'campaign' ? 'border-2 border-orange-500/50 bg-orange-500/20' : ''}
                         `}
                       >
                         <div className="flex items-center gap-1">
-                          <span>{getPlatformEmoji(event.platform)}</span>
+                          {getEventTypeIcon(event)}
                           <span className="truncate">{event.title}</span>
                           {event.boosted && <Zap className="h-3 w-3" />}
                         </div>
@@ -278,10 +339,18 @@ const SocialCalendarView = ({ currentCampaign }: SocialCalendarViewProps) => {
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2">
-                        <span className="text-lg">{getPlatformEmoji(event.platform)}</span>
-                        <Badge className={getStatusColor(event.status)}>
-                          {event.status.replace('_', ' ')}
-                        </Badge>
+                        {event.type === 'campaign' ? (
+                          <Badge className="bg-orange-500/20 text-orange-400">
+                            📢 Campaign Launch
+                          </Badge>
+                        ) : (
+                          <>
+                            <span className="text-lg">{getPlatformEmoji(event.platform)}</span>
+                            <Badge className={getStatusColor(event.status)}>
+                              {event.status.replace('_', ' ')}
+                            </Badge>
+                          </>
+                        )}
                       </div>
                       {event.boosted && (
                         <Badge className="bg-orange-500/20 text-orange-400">
@@ -322,16 +391,18 @@ const SocialCalendarView = ({ currentCampaign }: SocialCalendarViewProps) => {
                         className="text-white border-white/20"
                         onClick={() => handleEditEvent(event)}
                       >
-                        Edit
+                        {event.type === 'campaign' ? 'View' : 'Edit'}
                       </Button>
-                      <Button 
-                        size="sm" 
-                        className="bg-purple-600 hover:bg-purple-700"
-                        onClick={() => handleBoostEvent(event)}
-                      >
-                        <Zap className="h-3 w-3 mr-1" />
-                        Boost
-                      </Button>
+                      {event.type !== 'campaign' && (
+                        <Button 
+                          size="sm" 
+                          className="bg-purple-600 hover:bg-purple-700"
+                          onClick={() => handleBoostEvent(event)}
+                        >
+                          <Zap className="h-3 w-3 mr-1" />
+                          Boost
+                        </Button>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -360,13 +431,13 @@ const SocialCalendarView = ({ currentCampaign }: SocialCalendarViewProps) => {
       />
 
       {/* Boost Modal */}
-      {selectedEvent && (
+      {selectedEvent && selectedEvent.type !== 'campaign' && (
         <BoostPurchaseModal
           isOpen={showBoostModal}
           onClose={() => setShowBoostModal(false)}
           content={{
             id: selectedEvent.id,
-            campaignId: currentCampaign,
+            campaignId: selectedEvent.campaignId || currentCampaign,
             title: selectedEvent.title,
             thumbnailUrl: "/placeholder.svg",
             platform: selectedEvent.platform,

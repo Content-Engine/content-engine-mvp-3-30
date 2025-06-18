@@ -11,7 +11,9 @@ import RoleBasedAccess from '@/components/RoleBasedAccess';
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { campaigns, loading: campaignsLoading, error: campaignsError } = useCampaignData();
+  const { campaigns, loading: campaignsLoading, error: campaignsError } = useCampaignData({ 
+    filterByCurrentUser: true 
+  });
   const { loading: authLoading, authError, user, userRole } = useAuth();
   const { tier, hasFeature, canAccessPage } = useSubscriptionTier();
   const [diagnosticInfo, setDiagnosticInfo] = useState<string>('');
@@ -33,7 +35,7 @@ const Dashboard = () => {
     console.log('📊 Dashboard Diagnostic Info:', info);
   }, [authLoading, user, userRole, authError, campaignsLoading, campaignsError, tier]);
 
-  // Demo data for metrics
+  // Demo data for metrics - now based on user's campaigns
   const metrics = {
     totalReach: 125400,
     activeCampaigns: campaigns.filter(c => c.status === 'active').length,
@@ -100,7 +102,7 @@ const Dashboard = () => {
         <div className="flex items-center justify-between">
           <div>
             <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-4xl font-bold text-white">Campaign Dashboard</h1>
+              <h1 className="text-4xl font-bold text-white">My Campaign Dashboard</h1>
               {tier !== 'free' && (
                 <div className="flex items-center gap-1 px-3 py-1 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 rounded-full border border-yellow-500/30">
                   <Crown className="h-4 w-4 text-yellow-400" />
@@ -153,12 +155,12 @@ const Dashboard = () => {
 
           <Card className="glass-card">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-white/90">Active Campaigns</CardTitle>
+              <CardTitle className="text-sm font-medium text-white/90">My Active Campaigns</CardTitle>
               <Users className="h-4 w-4 text-blue-400" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-white">{metrics.activeCampaigns}</div>
-              <p className="text-xs text-white/60">Across all platforms</p>
+              <p className="text-xs text-white/60">Your campaigns only</p>
             </CardContent>
           </Card>
 
@@ -212,11 +214,11 @@ const Dashboard = () => {
           </Card>
         )}
 
-        {/* Campaigns List */}
+        {/* My Campaigns List */}
         {!campaignsError && (
           <Card className="glass-card">
             <CardHeader>
-              <CardTitle className="text-white">Recent Campaigns</CardTitle>
+              <CardTitle className="text-white">My Recent Campaigns</CardTitle>
             </CardHeader>
             <CardContent>
               {campaigns.length === 0 ? (

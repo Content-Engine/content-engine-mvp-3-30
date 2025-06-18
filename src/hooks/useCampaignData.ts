@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -41,11 +40,16 @@ interface Campaign {
   created_by?: string;
 }
 
-export const useCampaignData = () => {
+interface UseCampaignDataOptions {
+  filterByCurrentUser?: boolean;
+}
+
+export const useCampaignData = (options: UseCampaignDataOptions = {}) => {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { user, userRole } = useAuth();
+  const { filterByCurrentUser = false } = options;
 
   const fetchCampaigns = async () => {
     try {
@@ -58,20 +62,25 @@ export const useCampaignData = () => {
         return;
       }
       
-      console.log('🔍 Fetching campaigns for user:', user.id, 'with role:', userRole);
+      console.log('🔍 Fetching campaigns for user:', user.id, 'with role:', userRole, 'filterByCurrentUser:', filterByCurrentUser);
       
-      // RLS policies will automatically filter based on user permissions
-      const { data, error } = await supabase
+      let query = supabase
         .from('campaigns')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .select('*');
+
+      // Apply user filter if requested
+      if (filterByCurrentUser) {
+        query = query.or(`user_id.eq.${user.id},created_by.eq.${user.id}`);
+      }
+
+      const { data, error } = await query.order('created_at', { ascending: false });
 
       if (error) {
         console.error('❌ Error fetching campaigns:', error);
         throw error;
       }
       
-      console.log('✅ Campaigns fetched:', data?.length || 0);
+      console.log('✅ Campaigns fetched:', data?.length || 0, filterByCurrentUser ? '(filtered by current user)' : '(all campaigns)');
       setCampaigns(data || []);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch campaigns';
@@ -165,7 +174,7 @@ export const useCampaignData = () => {
       setLoading(false);
       setCampaigns([]);
     }
-  }, [user, userRole]);
+  }, [user, userRole, filterByCurrentUser]);
 
   return {
     campaigns,

@@ -64,7 +64,7 @@ const TopNavBar = () => {
     if (userRole === 'admin') {
       items.push(
         { path: '/social-manager/calendar', label: 'Social Media Manager', icon: Calendar },
-        { path: '/client portal', label: 'Client Portal', icon: Edit },
+        { path: '/client-portal', label: 'Client Portal', icon: Edit },
         { path: '/user-management', label: 'User Management', icon: Users },
         { path: '/campaign-builder', label: 'Campaign Builder', icon: Edit }
       );

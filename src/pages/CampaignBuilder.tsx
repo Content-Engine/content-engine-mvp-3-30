@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -10,6 +11,8 @@ import { useAuth } from "@/hooks/useAuth";
 // Lazy load step components
 import Step1Goal from "@/components/CampaignBuilder/Step1Goal";
 import Step2Upload from "@/components/CampaignBuilder/Step2Upload";
+import CampaignBuilderStep3 from "@/pages/CampaignBuilderStep3";
+import CampaignBuilderStep4 from "@/pages/CampaignBuilderStep4";
 import Step4Schedule from "@/components/CampaignBuilder/Step4Schedule";
 import Step5Launch from "@/components/CampaignBuilder/Step5Launch";
 import CampaignClientLinker from "@/components/campaign/CampaignClientLinker";
@@ -119,15 +122,21 @@ const CampaignBuilder = () => {
         );
       case 3:
         return (
-          <div>
-            {/* This will use the new CampaignBuilderStep3 page */}
-          </div>
+          <CampaignBuilderStep3
+            campaignData={state}
+            updateCampaignData={updateState}
+            onNext={nextStep}
+            onPrevious={prevStep}
+          />
         );
       case 4:
         return (
-          <div>
-            {/* This will use the new CampaignBuilderStep4 page */}
-          </div>
+          <CampaignBuilderStep4
+            campaignData={state}
+            updateCampaignData={updateState}
+            onNext={nextStep}
+            onPrevious={prevStep}
+          />
         );
       case 5:
         return (

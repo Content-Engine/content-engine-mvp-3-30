@@ -45,7 +45,8 @@ const TopNavBar = ({ onMenuToggle, title = "Dashboard" }: TopNavBarProps) => {
       case 'admin': return 'Administrator';
       case 'social_media_manager': return 'Social Media Manager';
       case 'content_editor': return 'Content Editor';
-      case 'client': return 'Client';
+      case 'editor': return 'Editor';
+      case 'user': return 'User';
       default: return 'User';
     }
   };
@@ -56,8 +57,8 @@ const TopNavBar = ({ onMenuToggle, title = "Dashboard" }: TopNavBarProps) => {
     return allowedRoles.includes(userRole);
   };
 
-  const isClientRole = () => {
-    return userRole === 'client';
+  const isUserRole = () => {
+    return userRole === 'user';
   };
 
   return (

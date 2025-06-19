@@ -118,7 +118,7 @@ const TopNavBar = ({ onMenuToggle, title = "Dashboard" }: TopNavBarProps) => {
                   Client Portal
                 </DropdownMenuItem>
                 <DropdownMenuItem 
-                  onClick={() => navigate('/socialmedia')}
+                  onClick={() => navigate('/social-manager/calendar')}
                   className="cursor-pointer hover:bg-gray-50"
                 >
                   Social Media Calendar

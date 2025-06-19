@@ -17,6 +17,17 @@ interface ScheduledPost {
   boost_enabled: boolean;
   created_at: string;
   updated_at: string;
+  auto_generated?: boolean;
+  retry_count?: number;
+  last_error_message?: string;
+  post_type?: string;
+  processing_status?: string;
+  template_used?: string;
+  notification_sent?: boolean;
+  max_retries?: number;
+  airtable_record_id?: string;
+  campaign_name?: string;
+  campaign_scheduled_date?: string;
 }
 
 export const useScheduledPosts = () => {
@@ -53,7 +64,18 @@ export const useScheduledPosts = () => {
         boost_enabled: post.boost_enabled || false,
         campaign_id: post.campaign_id || undefined,
         content_item_id: post.content_item_id || undefined,
-        ayrshare_post_id: post.ayrshare_post_id || undefined
+        ayrshare_post_id: post.ayrshare_post_id || undefined,
+        auto_generated: post.auto_generated || false,
+        retry_count: post.retry_count || 0,
+        last_error_message: post.last_error_message || undefined,
+        post_type: post.post_type || 'manual',
+        processing_status: post.processing_status || 'pending',
+        template_used: post.template_used || undefined,
+        notification_sent: post.notification_sent || false,
+        max_retries: post.max_retries || 3,
+        airtable_record_id: post.airtable_record_id || undefined,
+        campaign_name: post.campaign_name || undefined,
+        campaign_scheduled_date: post.campaign_scheduled_date || undefined
       }));
       
       setPosts(typedPosts);

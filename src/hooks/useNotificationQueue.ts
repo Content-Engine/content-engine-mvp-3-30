@@ -45,7 +45,16 @@ export const useNotificationQueue = () => {
         throw error;
       }
       
-      setNotifications(data || []);
+      // Convert database response to proper types
+      const typedNotifications: QueuedNotification[] = (data || []).map(notification => ({
+        ...notification,
+        notification_type: notification.notification_type as 'slack' | 'email' | 'in_app',
+        status: notification.status as 'pending' | 'sent' | 'failed',
+        data: (notification.data as any) || {},
+        sent_at: notification.sent_at || undefined
+      }));
+      
+      setNotifications(typedNotifications);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch notifications';
       setError(errorMessage);

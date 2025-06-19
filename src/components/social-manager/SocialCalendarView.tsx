@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -25,6 +24,7 @@ import { useCampaignData } from "@/hooks/useCampaignData";
 import { useScheduledPosts } from "@/hooks/useScheduledPosts";
 import PostSchedulerModal from "./PostSchedulerModal";
 import BoostPurchaseModal from "@/components/BoostPurchaseModal";
+import CampaignDetailsModal from "./CampaignDetailsModal";
 
 interface SocialCalendarViewProps {
   currentCampaign: string;
@@ -53,7 +53,9 @@ const SocialCalendarView = ({ currentCampaign }: SocialCalendarViewProps) => {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [showBoostModal, setShowBoostModal] = useState(false);
+  const [showCampaignModal, setShowCampaignModal] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
+  const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
   const { campaigns } = useCampaignData();
@@ -173,7 +175,8 @@ const SocialCalendarView = ({ currentCampaign }: SocialCalendarViewProps) => {
 
   const handleEditEvent = (event: CalendarEvent) => {
     if (event.type === 'campaign') {
-      navigate(`/campaigns/${event.campaignId}`);
+      setSelectedCampaignId(event.campaignId || null);
+      setShowCampaignModal(true);
       return;
     }
     
@@ -501,6 +504,13 @@ const SocialCalendarView = ({ currentCampaign }: SocialCalendarViewProps) => {
           onPurchase={handleBoostPurchase}
         />
       )}
+
+      {/* Campaign Details Modal */}
+      <CampaignDetailsModal
+        isOpen={showCampaignModal}
+        onClose={() => setShowCampaignModal(false)}
+        campaignId={selectedCampaignId}
+      />
     </div>
   );
 };

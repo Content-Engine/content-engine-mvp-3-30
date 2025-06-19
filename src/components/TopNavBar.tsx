@@ -1,185 +1,164 @@
 
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { 
-  Menu, 
-  X, 
-  Home, 
-  Users, 
-  Calendar, 
-  BarChart3, 
-  Settings,
-  LogOut,
-  User,
-  CreditCard
-} from 'lucide-react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
-import { useSubscriptionTier } from '@/hooks/useSubscriptionTier';
-import NotificationCenter from '@/components/NotificationCenter';
-import ContentEngineLogo from '@/components/ContentEngineLogo';
-import RoleBasedAccess from '@/components/RoleBasedAccess';
+import { useState } from "react";
+import { Bell, Menu, X, User, Settings, LogOut } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
+import NotificationCenter from "./NotificationCenter";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
-const TopNavBar = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const navigate = useNavigate();
-  const location = useLocation();
+interface TopNavBarProps {
+  onMenuToggle?: () => void;
+  title?: string;
+}
+
+const TopNavBar = ({ onMenuToggle, title = "Dashboard" }: TopNavBarProps) => {
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
   const { user, signOut, userRole } = useAuth();
-  const { tier } = useSubscriptionTier();
+  const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleSignOut = async () => {
     try {
       await signOut();
+      toast({
+        title: "Signed out successfully",
+        description: "You have been signed out of your account.",
+      });
       navigate('/auth');
     } catch (error) {
-      console.error('Sign out error:', error);
+      console.error('Error signing out:', error);
+      toast({
+        title: "Error signing out",
+        description: "There was a problem signing you out. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
-  const menuItems = [
-    { 
-      label: 'Dashboard', 
-      path: '/dashboard', 
-      icon: Home,
-      allowedRoles: ['user', 'admin', 'social_media_manager', 'editor']
-    },
-    { 
-      label: 'Social Manager', 
-      path: '/social-manager-dashboard', 
-      icon: Calendar,
-      allowedRoles: ['social_media_manager', 'admin']
-    },
-    { 
-      label: 'Campaigns', 
-      path: '/campaigns', 
-      icon: BarChart3,
-      allowedRoles: ['user', 'admin', 'social_media_manager']
-    },
-    { 
-      label: 'Performance', 
-      path: '/performance', 
-      icon: BarChart3,
-      allowedRoles: ['admin', 'social_media_manager']
-    },
-    { 
-      label: 'User Management', 
-      path: '/user-management', 
-      icon: Users,
-      allowedRoles: ['admin']
-    },
-  ];
-
-  const isActivePath = (path: string) => {
-    return location.pathname === path || location.pathname.startsWith(path + '/');
+  const getRoleDisplayName = (role: string) => {
+    switch (role) {
+      case 'admin': return 'Administrator';
+      case 'social_media_manager': return 'Social Media Manager';
+      case 'content_editor': return 'Content Editor';
+      case 'client': return 'Client';
+      default: return 'User';
+    }
   };
 
-  if (!user) {
-    return null;
-  }
+  const isManagerOrAdmin = () => {
+    if (!userRole) return false;
+    const allowedRoles = ['admin', 'social_media_manager'];
+    return allowedRoles.includes(userRole);
+  };
+
+  const isClientRole = () => {
+    return userRole === 'client';
+  };
 
   return (
-    <nav className="bg-black/20 backdrop-blur-lg border-b border-white/10 sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          {/* Logo */}
-          <div className="flex items-center gap-3">
-            <ContentEngineLogo />
-            <div className="hidden sm:block">
-              <h1 className="text-xl font-bold text-white">Content Engine</h1>
-              {tier !== 'free' && (
-                <Badge className="text-xs bg-gradient-to-r from-yellow-500/20 to-orange-500/20 text-yellow-400 border-yellow-500/30">
-                  {tier.toUpperCase()}
-                </Badge>
-              )}
-            </div>
-          </div>
+    <div className="bg-card-bg border-b border-border-color px-6 py-4">
+      <div className="flex items-center justify-between">
+        {/* Left side - Menu and Title */}
+        <div className="flex items-center gap-4">
+          {onMenuToggle && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onMenuToggle}
+              className="text-text-muted hover:text-text-main"
+            >
+              <Menu className="h-5 w-5" />
+            </Button>
+          )}
+          <h1 className="text-xl font-semibold text-text-main">{title}</h1>
+        </div>
 
-          {/* Desktop Menu */}
-          <div className="hidden md:flex items-center space-x-1">
-            {menuItems.map((item) => (
-              <RoleBasedAccess key={item.path} allowedRoles={item.allowedRoles}>
+        {/* Right side - Notifications and User Menu */}
+        <div className="flex items-center gap-4">
+          {/* Notifications */}
+          {isManagerOrAdmin() && (
+            <Popover open={showNotifications} onOpenChange={setShowNotifications}>
+              <PopoverTrigger asChild>
                 <Button
-                  variant={isActivePath(item.path) ? "secondary" : "ghost"}
-                  onClick={() => navigate(item.path)}
-                  className={`
-                    text-white/80 hover:text-white hover:bg-white/10
-                    ${isActivePath(item.path) ? 'bg-white/20 text-white' : ''}
-                  `}
+                  variant="ghost"
+                  size="sm"
+                  className="relative text-text-muted hover:text-text-main"
                 >
-                  <item.icon className="h-4 w-4 mr-2" />
-                  {item.label}
+                  <Bell className="h-5 w-5" />
+                  <Badge
+                    variant="destructive"
+                    className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 text-xs flex items-center justify-center"
+                  >
+                    3
+                  </Badge>
                 </Button>
-              </RoleBasedAccess>
-            ))}
-          </div>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-80 p-0">
+                <NotificationCenter />
+              </PopoverContent>
+            </Popover>
+          )}
 
-          {/* Right side - Notifications and User Menu */}
-          <div className="flex items-center space-x-2">
-            {/* Notification Center */}
-            <NotificationCenter />
-
-            {/* User Menu */}
-            <div className="flex items-center space-x-2">
+          {/* User Menu */}
+          <Popover open={showUserMenu} onOpenChange={setShowUserMenu}>
+            <PopoverTrigger asChild>
               <Button
                 variant="ghost"
-                onClick={() => navigate('/payment-tiers')}
-                className="text-white/80 hover:text-white hover:bg-white/10"
+                size="sm"
+                className="flex items-center gap-2 text-text-muted hover:text-text-main"
               >
-                <CreditCard className="h-4 w-4 mr-2" />
-                {tier === 'free' ? 'Upgrade' : 'Billing'}
+                <User className="h-5 w-5" />
+                <span className="hidden sm:inline text-sm">
+                  {user?.email?.split('@')[0] || 'User'}
+                </span>
               </Button>
-
-              <Button
-                variant="ghost"
-                onClick={handleSignOut}
-                className="text-white/80 hover:text-white hover:bg-white/10"
-              >
-                <LogOut className="h-4 w-4 mr-2" />
-                Sign Out
-              </Button>
-            </div>
-
-            {/* Mobile menu button */}
-            <div className="md:hidden">
-              <Button
-                variant="ghost"
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="text-white/80 hover:text-white"
-              >
-                {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-              </Button>
-            </div>
-          </div>
+            </PopoverTrigger>
+            <PopoverContent align="end" className="w-64">
+              <div className="space-y-4">
+                <div className="border-b border-border-color pb-3">
+                  <p className="font-medium text-text-main">
+                    {user?.email?.split('@')[0] || 'User'}
+                  </p>
+                  <p className="text-sm text-text-muted">{user?.email}</p>
+                  {userRole && (
+                    <Badge variant="secondary" className="mt-1">
+                      {getRoleDisplayName(userRole)}
+                    </Badge>
+                  )}
+                </div>
+                
+                <div className="space-y-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full justify-start text-text-muted hover:text-text-main"
+                    onClick={() => navigate('/profile')}
+                  >
+                    <Settings className="h-4 w-4 mr-2" />
+                    Settings
+                  </Button>
+                  
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full justify-start text-red-400 hover:text-red-300 hover:bg-red-500/20"
+                    onClick={handleSignOut}
+                  >
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Sign Out
+                  </Button>
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
         </div>
       </div>
-
-      {/* Mobile Menu */}
-      {isMenuOpen && (
-        <div className="md:hidden bg-black/30 backdrop-blur-lg border-t border-white/10">
-          <div className="px-2 pt-2 pb-3 space-y-1">
-            {menuItems.map((item) => (
-              <RoleBasedAccess key={item.path} allowedRoles={item.allowedRoles}>
-                <Button
-                  variant={isActivePath(item.path) ? "secondary" : "ghost"}
-                  onClick={() => {
-                    navigate(item.path);
-                    setIsMenuOpen(false);
-                  }}
-                  className={`
-                    w-full justify-start text-white/80 hover:text-white hover:bg-white/10
-                    ${isActivePath(item.path) ? 'bg-white/20 text-white' : ''}
-                  `}
-                >
-                  <item.icon className="h-4 w-4 mr-2" />
-                  {item.label}
-                </Button>
-              </RoleBasedAccess>
-            ))}
-          </div>
-        </div>
-      )}
-    </nav>
+    </div>
   );
 };
 

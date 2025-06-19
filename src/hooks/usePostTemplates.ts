@@ -54,9 +54,14 @@ export const usePostTemplates = (campaignId?: string) => {
         platforms: Array.isArray(template.platforms) 
           ? template.platforms.filter((p): p is string => typeof p === 'string') 
           : [],
-        media_requirements: template.media_requirements || {},
+        media_requirements: typeof template.media_requirements === 'object' && template.media_requirements !== null 
+          ? template.media_requirements as Record<string, any>
+          : {},
         post_timing_offset: template.post_timing_offset || 0,
-        hashtags: template.hashtags || undefined
+        hashtags: template.hashtags || undefined,
+        campaign_id: template.campaign_id || '',
+        created_at: template.created_at || '',
+        updated_at: template.updated_at || ''
       }));
       
       setTemplates(typedTemplates);

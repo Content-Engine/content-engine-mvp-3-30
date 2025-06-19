@@ -25,6 +25,7 @@ import { useScheduledPosts } from "@/hooks/useScheduledPosts";
 import PostSchedulerModal from "./PostSchedulerModal";
 import BoostPurchaseModal from "@/components/BoostPurchaseModal";
 import CampaignDetailsModal from "./CampaignDetailsModal";
+import CalendarDayDetailsModal from "./CalendarDayDetailsModal";
 
 interface SocialCalendarViewProps {
   currentCampaign: string;
@@ -54,6 +55,7 @@ const SocialCalendarView = ({ currentCampaign }: SocialCalendarViewProps) => {
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [showBoostModal, setShowBoostModal] = useState(false);
   const [showCampaignModal, setShowCampaignModal] = useState(false);
+  const [showDayDetailsModal, setShowDayDetailsModal] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null);
   const { toast } = useToast();
@@ -167,6 +169,11 @@ const SocialCalendarView = ({ currentCampaign }: SocialCalendarViewProps) => {
       return <Target className="h-3 w-3" />;
     }
     return getPlatformEmoji(event.platform);
+  };
+
+  const handleDayClick = (day: Date) => {
+    setSelectedDate(day);
+    setShowDayDetailsModal(true);
   };
 
   const handleScheduleContent = () => {
@@ -323,7 +330,7 @@ const SocialCalendarView = ({ currentCampaign }: SocialCalendarViewProps) => {
                     ${isSelected ? 'ring-2 ring-purple-500' : ''}
                     hover:bg-white/10
                   `}
-                  onClick={() => setSelectedDate(day)}
+                  onClick={() => handleDayClick(day)}
                 >
                   <div className="text-sm text-white/70 mb-2">
                     {format(day, 'd')}
@@ -338,6 +345,10 @@ const SocialCalendarView = ({ currentCampaign }: SocialCalendarViewProps) => {
                           ${event.type === 'campaign' ? 'border-2 border-orange-500/50 bg-orange-500/20' : ''}
                           ${event.auto_generated ? 'border-l-2 border-l-blue-400' : ''}
                         `}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEditEvent(event);
+                        }}
                       >
                         <div className="flex items-center gap-1">
                           {getEventTypeIcon(event)}
@@ -511,6 +522,15 @@ const SocialCalendarView = ({ currentCampaign }: SocialCalendarViewProps) => {
         onClose={() => setShowCampaignModal(false)}
         campaignId={selectedCampaignId}
       />
+
+      {/* Day Details Modal */}
+      {selectedDate && (
+        <CalendarDayDetailsModal
+          isOpen={showDayDetailsModal}
+          onClose={() => setShowDayDetailsModal(false)}
+          selectedDate={selectedDate}
+        />
+      )}
     </div>
   );
 };

@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Bell, Menu, X, User, Settings, LogOut } from "lucide-react";
+import { Bell, Menu, X, User, Settings, LogOut, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
@@ -9,6 +9,12 @@ import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import NotificationCenter from "./NotificationCenter";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface TopNavBarProps {
   onMenuToggle?: () => void;
@@ -61,6 +67,10 @@ const TopNavBar = ({ onMenuToggle, title = "Dashboard" }: TopNavBarProps) => {
     return userRole === 'user';
   };
 
+  const isAdmin = () => {
+    return userRole === 'admin';
+  };
+
   return (
     <div className="bg-card-bg border-b border-border-color px-6 py-4">
       <div className="flex items-center justify-between">
@@ -79,8 +89,44 @@ const TopNavBar = ({ onMenuToggle, title = "Dashboard" }: TopNavBarProps) => {
           <h1 className="text-xl font-semibold text-text-main">{title}</h1>
         </div>
 
-        {/* Right side - Notifications and User Menu */}
+        {/* Right side - Admin Dropdown, Notifications and User Menu */}
         <div className="flex items-center gap-4">
+          {/* Admin Dropdown - Only visible to admins */}
+          {isAdmin() && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="flex items-center gap-2 text-text-muted hover:text-text-main"
+                >
+                  <span className="hidden sm:inline text-sm">Admin</span>
+                  <ChevronDown className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56 bg-white border border-gray-200 shadow-lg">
+                <DropdownMenuItem 
+                  onClick={() => navigate('/editor')}
+                  className="cursor-pointer hover:bg-gray-50"
+                >
+                  Editor Portal
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => navigate('/client-portal')}
+                  className="cursor-pointer hover:bg-gray-50"
+                >
+                  Client Portal
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => navigate('/socialmedia')}
+                  className="cursor-pointer hover:bg-gray-50"
+                >
+                  Social Media Calendar
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+
           {/* Notifications */}
           {isManagerOrAdmin() && (
             <Popover open={showNotifications} onOpenChange={setShowNotifications}>

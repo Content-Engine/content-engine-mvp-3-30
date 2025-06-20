@@ -2,52 +2,44 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock } from "lucide-react";
+import { Calendar } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface CampaignBuilderStep5Props {
   campaignData: any;
   updateCampaignData: (updates: any) => void;
   onNext: () => void;
   onPrevious: () => void;
-  onLaunch: () => void;
-  uploadedFile: File | null; // ✅ New prop to receive the uploaded file
 }
 
-const CampaignBuilderStep5 = ({
-  campaignData,
-  onLaunch,
-  uploadedFile,
-}: CampaignBuilderStep5Props) => {
+const CampaignBuilderStep5 = ({ campaignData, updateCampaignData, onNext, onPrevious }: CampaignBuilderStep5Props) => {
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [selectedTime, setSelectedTime] = useState<string>("");
+  const navigate = useNavigate();
 
   const isFormValid = selectedDate && selectedTime;
 
   const handleLaunch = async () => {
-    if (!isFormValid) {
-      alert("Please set a launch date and time.");
-      return;
-    }
-
-    if (!uploadedFile) {
-      alert("Missing file. Please upload your file before launching.");
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append("file", uploadedFile);
-
     try {
-      await fetch("https://hook.us2.make.com/kkaffrcwq5ldum892qtasszegim2dmqb", {
+      console.log("📡 Sending files to Make.com...");
+
+      await fetch("https://hook.us1.make.com/YOUR-WEBHOOK-KEY", {
         method: "POST",
-        body: formData,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          files: campaignData.contentFiles || [],
+          launchDate: selectedDate,
+          launchTime: selectedTime,
+        }),
       });
 
-      alert("🚀 Campaign launched and file sent to Google Drive!");
-      onLaunch(); // Call original launch logic
-    } catch (err) {
-      console.error("Upload error:", err);
-      alert("Something went wrong uploading the file.");
+      console.log("✅ Files sent to Make.com");
+      navigate("/payment/success"); // Navigate on success
+    } catch (error) {
+      console.error("❌ Error sending to Make.com", error);
+      navigate("/payment/cancel"); // Navigate on failure
     }
   };
 
@@ -146,4 +138,5 @@ const CampaignBuilderStep5 = ({
 };
 
 export default CampaignBuilderStep5;
+
 

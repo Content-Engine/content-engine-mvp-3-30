@@ -23,7 +23,7 @@ const CampaignBuilderStep5 = ({ campaignData, updateCampaignData, onNext, onPrev
     try {
       console.log("📡 Sending files to Make.com...");
 
-      await fetch("https://hook.us1.make.com/YOUR-WEBHOOK-KEY", {
+      await fetch("https://hook.us2.make.com/kkaffrcwq5ldum892qtasszegim2dmqb", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from "react";
 import { FileMetadata, generateFileId, calculateViralityScore } from "@/utils/fileUtils";
 import UploadZone from "@/components/upload/UploadZone";
@@ -47,8 +46,7 @@ const CampaignBuilderStep2 = ({ campaignData, updateCampaignData, onNext, onPrev
 
         uploadedMetadata.push({
           id: generateFileId(),
-          fileName: file.name,
-          url: fileUrl,
+          file: file,
           contentType: '',
           editorNotes: '',
           assignedEditor: 'unassigned',

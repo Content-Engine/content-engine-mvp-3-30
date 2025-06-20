@@ -19,29 +19,47 @@ const CampaignBuilderStep2 = ({ campaignData, updateCampaignData, onNext, onPrev
   const [dragActive, setDragActive] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<FileMetadata[]>(campaignData.contentFiles || []);
 
-  const handleFiles = useCallback((files: FileList | File[]) => {
+  const handleFiles = useCallback(async (files: FileList | File[]) => {
     const fileArray = Array.from(files);
     const bulkUpload = fileArray.length >= 5;
-    
+
     const validFiles = fileArray.filter(file => {
-      const validTypes = [
-        'image/', 'video/', 'audio/'
-      ];
+      const validTypes = ['image/', 'video/', 'audio/'];
       const isValidType = validTypes.some(type => file.type.startsWith(type));
-      const isValidSize = file.size <= 500 * 1024 * 1024; // 500MB limit for enhanced version
+      const isValidSize = file.size <= 500 * 1024 * 1024;
       return isValidType && isValidSize;
     });
 
-    const newFileMetadata: FileMetadata[] = validFiles.map(file => ({
-      id: generateFileId(),
-      file,
-      contentType: '', // Start empty, user must select
-      editorNotes: '',
-      assignedEditor: 'unassigned',
-      viralityScore: calculateViralityScore(file, file.name, bulkUpload)
-    }));
+    const uploadedMetadata: FileMetadata[] = [];
 
-    const updatedFiles = [...uploadedFiles, ...newFileMetadata];
+    for (const file of validFiles) {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      try {
+        const response = await fetch("https://hook.make.com/YOUR_WEBHOOK_URL", {
+          method: "POST",
+          body: formData,
+        });
+
+        const result = await response.json();
+        const fileUrl = result.fileUrl || result.url || "";
+
+        uploadedMetadata.push({
+          id: generateFileId(),
+          fileName: file.name,
+          url: fileUrl,
+          contentType: '',
+          editorNotes: '',
+          assignedEditor: 'unassigned',
+          viralityScore: calculateViralityScore(file, file.name, bulkUpload),
+        });
+      } catch (error) {
+        console.error("File upload failed:", file.name, error);
+      }
+    }
+
+    const updatedFiles = [...uploadedFiles, ...uploadedMetadata];
     setUploadedFiles(updatedFiles);
     updateCampaignData({ contentFiles: updatedFiles });
   }, [uploadedFiles, updateCampaignData]);
@@ -60,57 +78,20 @@ const CampaignBuilderStep2 = ({ campaignData, updateCampaignData, onNext, onPrev
     updateCampaignData({ contentFiles: updatedFiles });
   };
 
-  // Check if we can continue - need at least 1 file and all files must have content type and editor
   const hasFiles = uploadedFiles.length > 0;
   const allFilesValid = uploadedFiles.every(file => {
     const hasContentType = file.contentType && file.contentType !== '' && file.contentType !== 'raw';
     const hasEditor = file.assignedEditor && file.assignedEditor !== 'unassigned';
-    console.log(`File ${file.id} (${file.file.name}): contentType="${file.contentType}", hasContentType=${hasContentType}, assignedEditor="${file.assignedEditor}", hasEditor=${hasEditor}, valid=${hasContentType && hasEditor}`);
     return hasContentType && hasEditor;
   });
 
   const canContinue = hasFiles && allFilesValid;
 
-  console.log('=== STEP 2 VALIDATION DEBUG ===');
-  console.log('Has files:', hasFiles, '- Total files:', uploadedFiles.length);
-  console.log('All files valid:', allFilesValid);
-  console.log('Can continue:', canContinue);
-  console.log('Files summary:', uploadedFiles.map(f => ({
-    id: f.id,
-    name: f.file.name,
-    contentType: f.contentType,
-    assignedEditor: f.assignedEditor,
-    isValid: (f.contentType && f.contentType !== '' && f.contentType !== 'raw') && (f.assignedEditor && f.assignedEditor !== 'unassigned')
-  })));
-
   const handleNext = () => {
-    console.log('=== HANDLE NEXT CALLED ===');
-    console.log('canContinue:', canContinue);
-    console.log('onNext function exists:', !!onNext);
-    
     if (canContinue && onNext) {
-      console.log('✅ Calling onNext() - should navigate to step 3');
       onNext();
     } else {
-      console.log('❌ Cannot continue - validation failed or onNext missing');
-      console.log('Reasons:');
-      console.log('- Has files:', hasFiles);
-      console.log('- All files valid:', allFilesValid);
-      console.log('- onNext exists:', !!onNext);
-      
-      if (!hasFiles) {
-        console.log('❌ No files uploaded');
-      }
-      if (!allFilesValid) {
-        console.log('❌ Some files are invalid:');
-        uploadedFiles.forEach(file => {
-          const hasContentType = file.contentType && file.contentType !== '' && file.contentType !== 'raw';
-          const hasEditor = file.assignedEditor && file.assignedEditor !== 'unassigned';
-          if (!hasContentType || !hasEditor) {
-            console.log(`  - ${file.file.name}: contentType=${file.contentType}, editor=${file.assignedEditor}`);
-          }
-        });
-      }
+      console.warn("Validation failed or onNext missing");
     }
   };
 
@@ -125,7 +106,6 @@ const CampaignBuilderStep2 = ({ campaignData, updateCampaignData, onNext, onPrev
             dragActive={dragActive}
             onDragStateChange={setDragActive}
           />
-          
           <FileGrid 
             files={uploadedFiles}
             onUpdateFile={updateFileMetadata}
@@ -149,31 +129,6 @@ const CampaignBuilderStep2 = ({ campaignData, updateCampaignData, onNext, onPrev
         files={uploadedFiles}
         canContinue={canContinue}
       />
-
-      {/* Enhanced debug info */}
-      {uploadedFiles.length > 0 && (
-        <div className="text-center">
-          <div className="glass-card-strong p-4 inline-block">
-            <p className="text-muted-foreground text-sm mb-2">
-              Debug: {uploadedFiles.length} files uploaded, canContinue: {canContinue.toString()}
-            </p>
-            <p className="text-muted-foreground text-xs mb-2">
-              Files need: Content Type (not Raw/empty) + Assigned Editor (not Unassigned)
-            </p>
-            <div className="text-left text-xs space-y-1">
-              {uploadedFiles.map(file => {
-                const hasContentType = file.contentType && file.contentType !== '' && file.contentType !== 'raw';
-                const hasEditor = file.assignedEditor && file.assignedEditor !== 'unassigned';
-                return (
-                  <div key={file.id} className={`p-1 rounded ${hasContentType && hasEditor ? 'text-green-400' : 'text-red-400'}`}>
-                    {file.file.name}: Type="{file.contentType}" Editor="{file.assignedEditor}" Valid={hasContentType && hasEditor ? '✅' : '❌'}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

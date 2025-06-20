@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,13 +10,46 @@ interface CampaignBuilderStep5Props {
   onNext: () => void;
   onPrevious: () => void;
   onLaunch: () => void;
+  uploadedFile: File | null; // ✅ New prop to receive the uploaded file
 }
 
-const CampaignBuilderStep5 = ({ campaignData, onLaunch }: CampaignBuilderStep5Props) => {
+const CampaignBuilderStep5 = ({
+  campaignData,
+  onLaunch,
+  uploadedFile,
+}: CampaignBuilderStep5Props) => {
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [selectedTime, setSelectedTime] = useState<string>("");
 
   const isFormValid = selectedDate && selectedTime;
+
+  const handleLaunch = async () => {
+    if (!isFormValid) {
+      alert("Please set a launch date and time.");
+      return;
+    }
+
+    if (!uploadedFile) {
+      alert("Missing file. Please upload your file before launching.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", uploadedFile);
+
+    try {
+      await fetch("https://hook.us2.make.com/kkaffrcwq5ldum892qtasszegim2dmqb", {
+        method: "POST",
+        body: formData,
+      });
+
+      alert("🚀 Campaign launched and file sent to Google Drive!");
+      onLaunch(); // Call original launch logic
+    } catch (err) {
+      console.error("Upload error:", err);
+      alert("Something went wrong uploading the file.");
+    }
+  };
 
   return (
     <div className="space-y-8">
@@ -96,7 +128,7 @@ const CampaignBuilderStep5 = ({ campaignData, onLaunch }: CampaignBuilderStep5Pr
       {/* Launch Button */}
       <div className="text-center">
         <Button
-          onClick={onLaunch}
+          onClick={handleLaunch}
           disabled={!isFormValid}
           size="lg"
           className="glass-button-primary px-12 py-4 text-lg font-bold"
@@ -114,3 +146,4 @@ const CampaignBuilderStep5 = ({ campaignData, onLaunch }: CampaignBuilderStep5Pr
 };
 
 export default CampaignBuilderStep5;
+

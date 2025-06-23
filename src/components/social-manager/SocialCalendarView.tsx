@@ -208,8 +208,9 @@ const SocialCalendarView = ({ currentCampaign }: SocialCalendarViewProps) => {
     setShowBoostModal(true);
   };
 
-  const handleBoostPurchase = (boostData: any) => {
+  const handleBoostModalClose = () => {
     if (selectedEvent) {
+      // Update the event to show it's boosted
       const updatedEvents = { ...calendarEvents };
       const dateKey = format(selectedDate || new Date(), 'yyyy-MM-dd');
       if (updatedEvents[dateKey]) {
@@ -222,11 +223,6 @@ const SocialCalendarView = ({ currentCampaign }: SocialCalendarViewProps) => {
           setCalendarEvents(updatedEvents);
         }
       }
-      
-      toast({
-        title: "Boost Applied",
-        description: `"${selectedEvent.title}" has been boosted successfully!`,
-      });
     }
     setShowBoostModal(false);
     setSelectedEvent(null);
@@ -496,7 +492,7 @@ const SocialCalendarView = ({ currentCampaign }: SocialCalendarViewProps) => {
       {selectedEvent && selectedEvent.type !== 'campaign' && (
         <BoostPurchaseModal
           isOpen={showBoostModal}
-          onClose={() => setShowBoostModal(false)}
+          onClose={handleBoostModalClose}
           content={{
             id: selectedEvent.id,
             campaignId: selectedEvent.campaignId || currentCampaign,
@@ -512,7 +508,6 @@ const SocialCalendarView = ({ currentCampaign }: SocialCalendarViewProps) => {
             comments: [],
             boostStatus: selectedEvent.boosted ? "boosted" : "none"
           }}
-          onPurchase={handleBoostPurchase}
         />
       )}
 

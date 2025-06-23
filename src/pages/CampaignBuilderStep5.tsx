@@ -1,4 +1,5 @@
 
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,59 +17,83 @@ interface CampaignBuilderStep5Props {
 const CampaignBuilderStep5 = ({ campaignData, updateCampaignData, onNext, onPrevious }: CampaignBuilderStep5Props) => {
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [selectedTime, setSelectedTime] = useState<string>("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
 
   const isFormValid = selectedDate && selectedTime;
 
   const handleLaunch = async () => {
+    if (isSubmitting) return;
+    
+    setIsSubmitting(true);
+    
     try {
       console.log("📡 Sending campaign data to Make.com...");
+      console.log("📋 Campaign data:", campaignData);
 
-      // Create FormData to properly handle files
-      const formData = new FormData();
-      
-      // Add campaign metadata
-      formData.append('launchDate', selectedDate);
-      formData.append('launchTime', selectedTime);
-      formData.append('campaignGoal', campaignData.goal || '');
-      formData.append('campaignName', campaignData.name || '');
-      formData.append('syndicationTier', campaignData.syndicationTier || '');
-      
-      // Add files if they exist
-      if (campaignData.contentFiles && campaignData.contentFiles.length > 0) {
-        campaignData.contentFiles.forEach((fileMetadata: any, index: number) => {
-          if (fileMetadata.file) {
-            // Append the actual file with a unique name
-            formData.append(`file_${index}`, fileMetadata.file, fileMetadata.file.name);
-            // Append metadata for each file
-            formData.append(`file_${index}_contentType`, fileMetadata.contentType || '');
-            formData.append(`file_${index}_editorNotes`, fileMetadata.editorNotes || '');
-            formData.append(`file_${index}_assignedEditor`, fileMetadata.assignedEditor || '');
-            formData.append(`file_${index}_viralityScore`, fileMetadata.viralityScore?.toString() || '0');
-          }
-        });
-        formData.append('fileCount', campaignData.contentFiles.length.toString());
-      } else {
-        formData.append('fileCount', '0');
-      }
+      // First, let's try a simple JSON approach to see if the webhook receives anything
+      const simplifiedPayload = {
+        launchDate: selectedDate,
+        launchTime: selectedTime,
+        campaignGoal: campaignData.goal || '',
+        campaignName: campaignData.name || '',
+        syndicationTier: campaignData.syndicationTier || '',
+        fileCount: campaignData.contentFiles?.length || 0,
+        // Convert file metadata to serializable format (without the actual File objects)
+        files: campaignData.contentFiles?.map((fileMetadata: any, index: number) => ({
+          index: index,
+          name: fileMetadata.file?.name || `file_${index}`,
+          size: fileMetadata.file?.size || 0,
+          type: fileMetadata.file?.type || '',
+          contentType: fileMetadata.contentType || '',
+          editorNotes: fileMetadata.editorNotes || '',
+          assignedEditor: fileMetadata.assignedEditor || '',
+          viralityScore: fileMetadata.viralityScore || 0
+        })) || [],
+        timestamp: new Date().toISOString(),
+        source: 'campaign-builder'
+      };
 
-      console.log("📦 FormData prepared with files and metadata");
+      console.log("📦 Sending simplified payload:", simplifiedPayload);
 
       const response = await fetch("https://hook.us2.make.com/kkaffrcwq5ldum892qtasszegim2dmqb", {
         method: "POST",
-        body: formData, // Send FormData directly (don't set Content-Type header, browser will set it automatically)
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(simplifiedPayload),
       });
 
-      if (response.ok) {
+      console.log("📡 Response status:", response.status);
+      console.log("📡 Response headers:", Object.fromEntries(response.headers.entries()));
+
+      // Log response text for debugging
+      const responseText = await response.text();
+      console.log("📡 Response body:", responseText);
+
+      if (response.ok || response.status === 200) {
         console.log("✅ Campaign data successfully sent to Make.com");
         navigate("/payment/success");
       } else {
         console.error("❌ Make.com responded with error:", response.status, response.statusText);
+        console.error("❌ Response body:", responseText);
+        
+        // Still navigate to success for debugging purposes, but log the error
+        alert(`Warning: Webhook returned status ${response.status}. Check console for details.`);
         navigate("/payment/cancel");
       }
     } catch (error) {
-      console.error("❌ Error sending to Make.com", error);
+      console.error("❌ Error sending to Make.com:", error);
+      console.error("❌ Error details:", {
+        name: error instanceof Error ? error.name : 'Unknown',
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined
+      });
+      
+      alert(`Error: ${error instanceof Error ? error.message : 'Unknown error'}. Check console for details.`);
       navigate("/payment/cancel");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -152,15 +177,32 @@ const CampaignBuilderStep5 = ({ campaignData, updateCampaignData, onNext, onPrev
         </Card>
       </div>
 
+      {/* Debug Info */}
+      {process.env.NODE_ENV === 'development' && (
+        <Card className="max-w-4xl mx-auto bg-gray-900/50 border border-gray-700">
+          <CardHeader>
+            <CardTitle className="text-yellow-400">Debug Info</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-sm text-gray-300 space-y-2">
+              <p>Files to send: {campaignData.contentFiles?.length || 0}</p>
+              <p>Campaign goal: {campaignData.goal || 'Not set'}</p>
+              <p>Selected date: {selectedDate || 'Not set'}</p>
+              <p>Selected time: {selectedTime || 'Not set'}</p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Launch Button */}
       <div className="text-center">
         <Button
           onClick={handleLaunch}
-          disabled={!isFormValid}
+          disabled={!isFormValid || isSubmitting}
           size="lg"
           className="glass-button-primary px-12 py-4 text-lg font-bold"
         >
-          🚀 Launch Campaign
+          {isSubmitting ? "🔄 Launching..." : "🚀 Launch Campaign"}
         </Button>
         {!isFormValid && (
           <p className="text-muted-foreground text-sm mt-2">
@@ -173,3 +215,4 @@ const CampaignBuilderStep5 = ({ campaignData, updateCampaignData, onNext, onPrev
 };
 
 export default CampaignBuilderStep5;
+

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -160,7 +159,7 @@ const ClientPortal = () => {
           {/* Premium Access Cards */}
           {showPremiumButtons && (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <Card className="bg-card-bg/50 border-border-color hover:bg-card-bg/70 transition-colors cursor-pointer">
                   <CardContent className="p-6">
                     <Button

@@ -1002,6 +1002,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "fk_qc_submissions_content_item"
+            columns: ["content_item_id"]
+            isOneToOne: false
+            referencedRelation: "content_items"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "qc_submissions_content_item_id_fkey"
             columns: ["content_item_id"]
             isOneToOne: false

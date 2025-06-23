@@ -3,21 +3,24 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import QCFilterBar from "@/components/QCFilterBar";
 import QCContentTable from "@/components/QCContentTable";
 import QCContentModal from "@/components/QCContentModal";
 import { QCContent, QCFilters } from "@/types/qc";
 import { fetchQCContent, updateQCSubmissionStatus } from "@/services/qcService";
+import { useAuth } from "@/hooks/useAuth";
 
 const QualityControlPanel = () => {
   const navigate = useNavigate();
+  const { userRole } = useAuth();
   const [content, setContent] = useState<QCContent[]>([]);
   const [filteredContent, setFilteredContent] = useState<QCContent[]>([]);
   const [selectedContent, setSelectedContent] = useState<QCContent | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState<QCFilters>({
     status: 'all',
     dateRange: {
@@ -35,14 +38,27 @@ const QualityControlPanel = () => {
   const loadContent = async () => {
     try {
       setLoading(true);
+      setError(null);
+      console.log('Loading QC content...');
+      
       const data = await fetchQCContent();
+      console.log('Loaded QC content:', data);
+      
       setContent(data);
       setFilteredContent(data);
+      
+      if (data.length === 0) {
+        toast({
+          title: "No Content Found",
+          description: "No QC submissions found. Sample data has been loaded for demonstration.",
+        });
+      }
     } catch (error) {
       console.error('Error loading QC content:', error);
+      setError('Failed to load content for review');
       toast({
         title: "Error",
-        description: "Failed to load content for review",
+        description: "Failed to load content for review. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -76,10 +92,12 @@ const QualityControlPanel = () => {
 
   const handleApproval = async (contentId: string, status: 'approved' | 'rejected' | 'pending', comment?: string) => {
     try {
+      console.log(`Updating content ${contentId} to status: ${status}`, comment ? `with comment: ${comment}` : '');
+      
       const result = await updateQCSubmissionStatus(contentId, status, comment);
       
       if (result.success) {
-        // Update local state
+        // Update local state optimistically
         setContent(prev => prev.map(item => 
           item.id === contentId 
             ? {
@@ -96,25 +114,30 @@ const QualityControlPanel = () => {
             : item
         ));
 
-        if (status !== 'pending') {
-          toast({
-            title: status === 'approved' ? "Content Approved" : "Content Rejected",
-            description: `Content has been ${status} successfully.`,
-          });
-        } else if (comment) {
-          toast({
-            title: "Comment Added",
-            description: "Your comment has been added to the content.",
-          });
-        }
+        const toastMessages = {
+          approved: "Content Approved",
+          rejected: "Content Rejected", 
+          pending: comment ? "Comment Added" : "Status Updated"
+        };
+
+        const toastDescriptions = {
+          approved: "Content has been approved successfully.",
+          rejected: "Content has been rejected and sent back for revision.",
+          pending: comment ? "Your comment has been added to the content." : "Content status updated."
+        };
+
+        toast({
+          title: toastMessages[status],
+          description: toastDescriptions[status],
+        });
       } else {
-        throw new Error('Failed to update submission status');
+        throw new Error(result.error?.message || 'Failed to update submission status');
       }
     } catch (error) {
       console.error('Error updating submission:', error);
       toast({
         title: "Error",
-        description: `Failed to ${status === 'pending' ? 'add comment' : status + ' content'}`,
+        description: `Failed to ${status === 'pending' && comment ? 'add comment' : status + ' content'}. Please try again.`,
         variant: "destructive",
       });
     }
@@ -125,10 +148,40 @@ const QualityControlPanel = () => {
     setIsModalOpen(true);
   };
 
+  const handleRefresh = () => {
+    loadContent();
+  };
+
+  // Check if user has permission to access QC panel
+  const canAccessQC = userRole && ['admin', 'social_media_manager'].includes(userRole);
+
+  if (!canAccessQC) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-black via-gray-950 to-gray-900 flex items-center justify-center">
+        <Card className="max-w-md mx-auto text-center">
+          <CardContent className="p-8">
+            <h2 className="text-xl font-bold text-red-400 mb-4">Access Denied</h2>
+            <p className="text-white/60 mb-6">
+              You don't have permission to access the Quality Control Panel. 
+              This feature is only available to Social Media Managers and Administrators.
+            </p>
+            <Button onClick={() => navigate(-1)} variant="outline">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Go Back
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-black via-gray-950 to-gray-900 flex items-center justify-center">
-        <div className="text-white text-xl">Loading content...</div>
+        <div className="text-center">
+          <RefreshCw className="h-8 w-8 animate-spin text-white mx-auto mb-4" />
+          <div className="text-white text-xl">Loading content...</div>
+        </div>
       </div>
     );
   }
@@ -139,14 +192,25 @@ const QualityControlPanel = () => {
         {/* Header with Back Button */}
         <div className="flex items-center justify-between">
           <div className="flex-1" />
-          <Button
-            variant="ghost"
-            onClick={() => navigate(-1)}
-            className="text-white/90 hover:text-white"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back
-          </Button>
+          <div className="flex items-center gap-4">
+            <Button
+              variant="outline"
+              onClick={handleRefresh}
+              className="text-white/90 hover:text-white"
+              disabled={loading}
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() => navigate(-1)}
+              className="text-white/90 hover:text-white"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back
+            </Button>
+          </div>
         </div>
 
         <Card className="glow">
@@ -160,14 +224,44 @@ const QualityControlPanel = () => {
           </CardContent>
         </Card>
 
+        {error && (
+          <Card className="border-red-500/50 bg-red-500/10">
+            <CardContent className="p-4">
+              <p className="text-red-400 text-center">{error}</p>
+              <div className="text-center mt-4">
+                <Button onClick={handleRefresh} variant="outline">
+                  Try Again
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         <Card className="glow-strong">
           <CardContent className="p-0">
             {filteredContent.length === 0 ? (
               <div className="text-center py-12">
-                <p className="text-white/60 mb-4">No content submissions found</p>
-                <Button onClick={loadContent} variant="outline">
-                  Refresh
-                </Button>
+                <p className="text-white/60 mb-4">
+                  {content.length === 0 
+                    ? "No content submissions found" 
+                    : "No content matches the current filters"
+                  }
+                </p>
+                <div className="flex gap-4 justify-center">
+                  <Button onClick={handleRefresh} variant="outline">
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Refresh
+                  </Button>
+                  {filteredContent.length === 0 && content.length > 0 && (
+                    <Button onClick={() => setFilters({
+                      status: 'all',
+                      dateRange: { start: '', end: '' },
+                      platform: 'all'
+                    })} variant="outline">
+                      Clear Filters
+                    </Button>
+                  )}
+                </div>
               </div>
             ) : (
               <QCContentTable

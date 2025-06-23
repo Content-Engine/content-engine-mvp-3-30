@@ -3,220 +3,174 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
-import { Zap, TrendingUp, Users, Clock } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Zap, DollarSign, TrendingUp, Users } from "lucide-react";
 import { QCContent } from "@/types/qc";
 import { useToast } from "@/hooks/use-toast";
 
 interface BoostPurchaseModalProps {
+  content: QCContent;
   isOpen: boolean;
   onClose: () => void;
-  content: QCContent;
-  onPurchase?: (boostData: any) => void;
 }
 
-const BoostPurchaseModal = ({ isOpen, onClose, content, onPurchase }: BoostPurchaseModalProps) => {
-  const [selectedTier, setSelectedTier] = useState<'micro' | 'standard' | 'premium' | null>(null);
-  const [autoBoost, setAutoBoost] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const { toast } = useToast();
+const BOOST_TIERS = [
+  {
+    id: 'micro',
+    name: 'Micro Boost',
+    price: 15,
+    reach: '5K - 15K',
+    duration: '24 hours',
+    features: ['Basic promotion', 'Standard targeting', 'Basic analytics'],
+    icon: Zap,
+    color: 'text-blue-400'
+  },
+  {
+    id: 'standard',
+    name: 'Standard Boost',
+    price: 25,
+    reach: '15K - 50K',
+    duration: '48 hours',
+    features: ['Enhanced promotion', 'Advanced targeting', 'Detailed analytics', 'Comment seeding'],
+    icon: TrendingUp,
+    color: 'text-orange-400',
+    popular: true
+  },
+  {
+    id: 'premium',
+    name: 'Premium Boost',
+    price: 50,
+    reach: '50K - 150K',
+    duration: '72 hours',
+    features: ['Maximum promotion', 'Premium targeting', 'Full analytics suite', 'Comment seeding', 'Influencer outreach'],
+    icon: Users,
+    color: 'text-purple-400'
+  }
+];
 
-  const boostTiers = [
-    {
-      id: 'micro' as const,
-      name: 'Micro Boost',
-      price: 10,
-      reach: '5k–10k',
-      description: 'Perfect for testing content performance',
-      icon: '⚡',
-      features: ['5k-10k estimated reach', '24-48h delivery', 'Basic analytics']
-    },
-    {
-      id: 'standard' as const,
-      name: 'Standard Boost',
-      price: 25,
-      reach: '10k–25k',
-      description: 'Great for solid engagement and visibility',
-      icon: '🚀',
-      features: ['10k-25k estimated reach', '12-24h delivery', 'Detailed analytics', 'Platform optimization']
-    },
-    {
-      id: 'premium' as const,
-      name: 'Premium Boost',
-      price: 50,
-      reach: '25k–60k',
-      description: 'Maximum reach and premium placement',
-      icon: '🔥',
-      features: ['25k-60k estimated reach', '6-12h delivery', 'Advanced analytics', 'Priority placement', 'Engagement optimization']
-    }
-  ];
+const BoostPurchaseModal = ({ content, isOpen, onClose }: BoostPurchaseModalProps) => {
+  const [selectedTier, setSelectedTier] = useState<string | null>(null);
+  const [processing, setProcessing] = useState(false);
+  const { toast } = useToast();
 
   const handlePurchase = async () => {
     if (!selectedTier) return;
-
-    setIsProcessing(true);
+    
     try {
-      // Simulate Stripe payment processing
+      setProcessing(true);
+      
+      // Simulate boost purchase
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      const boostData = {
-        tier: selectedTier,
-        autoBoost,
-        contentId: content.id
-      };
-
-      if (onPurchase) {
-        onPurchase(boostData);
-      } else {
-        toast({
-          title: "Boost Purchased!",
-          description: `${boostTiers.find(t => t.id === selectedTier)?.name} has been applied to your content.`,
-        });
-        
-        onClose();
-      }
+      const tier = BOOST_TIERS.find(t => t.id === selectedTier);
+      
+      toast({
+        title: "Boost Purchased!",
+        description: `${tier?.name} has been activated for "${content.title}". Your content will start receiving enhanced promotion within 15 minutes.`,
+      });
+      
+      onClose();
     } catch (error) {
       toast({
-        title: "Payment Failed",
-        description: "There was an issue processing your payment. Please try again.",
+        title: "Purchase Failed",
+        description: "Failed to purchase boost. Please try again or contact support.",
         variant: "destructive",
       });
     } finally {
-      setIsProcessing(false);
+      setProcessing(false);
     }
   };
 
-  const selectedTierData = boostTiers.find(t => t.id === selectedTier);
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold flex items-center gap-2">
-            <Zap className="h-6 w-6 text-orange-500" />
-            Boost This Content
+          <DialogTitle className="text-xl font-bold flex items-center gap-2">
+            <Zap className="h-5 w-5 text-orange-400" />
+            Boost Content: {content.title}
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Content Preview */}
-          <div className="p-4 bg-muted/30 rounded-lg">
-            <div className="flex items-center gap-3">
-              <img 
-                src={content.thumbnailUrl} 
-                alt="Content preview"
-                className="w-16 h-16 object-cover rounded-lg"
-              />
-              <div>
-                <h4 className="font-medium">{content.title}</h4>
-                <p className="text-sm text-muted-foreground">{content.accountName} • {content.platform}</p>
-              </div>
-            </div>
+          <div className="text-center">
+            <p className="text-muted-foreground">
+              Amplify your content's reach with our boost packages. Get more views, engagement, and visibility across platforms.
+            </p>
           </div>
 
-          {/* Boost Tier Selection */}
-          <div className="space-y-3">
-            <h3 className="font-semibold text-lg">Choose Your Boost Level</h3>
-            <div className="grid gap-3">
-              {boostTiers.map((tier) => (
-                <div
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {BOOST_TIERS.map((tier) => {
+              const Icon = tier.icon;
+              const isSelected = selectedTier === tier.id;
+              
+              return (
+                <Card 
                   key={tier.id}
-                  className={`p-4 border rounded-lg cursor-pointer transition-all ${
-                    selectedTier === tier.id 
-                      ? 'border-orange-500 bg-orange-50' 
-                      : 'border-gray-200 hover:border-gray-300'
+                  className={`cursor-pointer transition-all duration-200 relative ${
+                    isSelected 
+                      ? 'border-orange-500 bg-orange-500/10' 
+                      : 'hover:border-orange-300 hover:bg-orange-500/5'
                   }`}
                   onClick={() => setSelectedTier(tier.id)}
                 >
-                  <div className="flex justify-between items-start mb-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-2xl">{tier.icon}</span>
-                      <div>
-                        <h4 className="font-semibold">{tier.name}</h4>
-                        <p className="text-sm text-muted-foreground">{tier.description}</p>
+                  {tier.popular && (
+                    <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-orange-500 text-white">
+                      Most Popular
+                    </Badge>
+                  )}
+                  
+                  <CardContent className="p-6 text-center">
+                    <div className="mb-4">
+                      <Icon className={`h-8 w-8 mx-auto mb-2 ${tier.color}`} />
+                      <h3 className="font-bold text-lg">{tier.name}</h3>
+                    </div>
+                    
+                    <div className="mb-4">
+                      <div className="flex items-center justify-center gap-1 mb-2">
+                        <DollarSign className="h-4 w-4" />
+                        <span className="text-2xl font-bold">{tier.price}</span>
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        <p>{tier.reach} reach</p>
+                        <p>{tier.duration}</p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div className="font-bold text-lg">${tier.price}</div>
-                      <div className="text-sm text-muted-foreground">{tier.reach} reach</div>
+                    
+                    <div className="space-y-2">
+                      {tier.features.map((feature, index) => (
+                        <div key={index} className="text-sm flex items-center justify-center gap-2">
+                          <div className="w-1 h-1 bg-current rounded-full" />
+                          {feature}
+                        </div>
+                      ))}
                     </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
-                    {tier.features.map((feature, index) => (
-                      <div key={index} className="flex items-center gap-1">
-                        <div className="w-1 h-1 bg-orange-500 rounded-full"></div>
-                        {feature}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
 
-          {/* Auto Boost Toggle */}
-          <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
-            <div>
-              <h4 className="font-medium">Run boost automatically on publish</h4>
-              <p className="text-sm text-muted-foreground">
-                Automatically apply this boost level when content goes live
+          {selectedTier && (
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground mb-4">
+                Your boost will be processed within 15 minutes of purchase. 
+                You'll receive analytics updates as your content gains traction.
               </p>
-            </div>
-            <Switch
-              checked={autoBoost}
-              onCheckedChange={setAutoBoost}
-            />
-          </div>
-
-          {/* Estimated Results */}
-          {selectedTierData && (
-            <div className="p-4 bg-green-50 rounded-lg">
-              <h4 className="font-medium mb-3 flex items-center gap-2">
-                <TrendingUp className="h-4 w-4" />
-                Estimated Results
-              </h4>
-              <div className="grid grid-cols-3 gap-4 text-center">
-                <div>
-                  <div className="flex items-center justify-center gap-1 text-lg font-bold">
-                    <Users className="h-4 w-4" />
-                    {selectedTierData.reach}
-                  </div>
-                  <div className="text-xs text-muted-foreground">Estimated Reach</div>
-                </div>
-                <div>
-                  <div className="flex items-center justify-center gap-1 text-lg font-bold">
-                    <Clock className="h-4 w-4" />
-                    {selectedTierData.features[1].split(' ')[0]}
-                  </div>
-                  <div className="text-xs text-muted-foreground">Delivery Time</div>
-                </div>
-                <div>
-                  <div className="text-lg font-bold">{content.platform}</div>
-                  <div className="text-xs text-muted-foreground">Platform</div>
-                </div>
+              
+              <div className="flex gap-4 justify-center">
+                <Button variant="outline" onClick={onClose} disabled={processing}>
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handlePurchase} 
+                  disabled={processing}
+                  className="bg-orange-500 hover:bg-orange-600 text-white"
+                >
+                  {processing ? "Processing..." : `Purchase ${BOOST_TIERS.find(t => t.id === selectedTier)?.name}`}
+                </Button>
               </div>
             </div>
           )}
-
-          {/* Purchase Button */}
-          <div className="flex gap-3">
-            <Button variant="outline" onClick={onClose} className="flex-1">
-              Cancel
-            </Button>
-            <Button
-              onClick={handlePurchase}
-              disabled={!selectedTier || isProcessing}
-              className="flex-1 bg-orange-500 hover:bg-orange-600"
-            >
-              {isProcessing ? (
-                "Processing..."
-              ) : selectedTierData ? (
-                `Purchase ${selectedTierData.name} - $${selectedTierData.price}`
-              ) : (
-                "Select a boost level"
-              )}
-            </Button>
-          </div>
         </div>
       </DialogContent>
     </Dialog>

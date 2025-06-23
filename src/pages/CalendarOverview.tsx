@@ -184,7 +184,7 @@ const CalendarOverview = () => {
                 </div>
               </div>
 
-              <Button onClick={() => navigate('/quality-control')} variant="outline">
+              <Button onClick={() => navigate('/quality-control-dashboard')} variant="outline">
                 <Users className="h-4 w-4 mr-2" />
                 QC Panel
               </Button>

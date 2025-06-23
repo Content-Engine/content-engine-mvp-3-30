@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,25 +22,53 @@ const CampaignBuilderStep5 = ({ campaignData, updateCampaignData, onNext, onPrev
 
   const handleLaunch = async () => {
     try {
-      console.log("📡 Sending files to Make.com...");
+      console.log("📡 Sending campaign data to Make.com...");
 
-      await fetch("https://hook.us2.make.com/kkaffrcwq5ldum892qtasszegim2dmqb", {
+      // Create FormData to properly handle files
+      const formData = new FormData();
+      
+      // Add campaign metadata
+      formData.append('launchDate', selectedDate);
+      formData.append('launchTime', selectedTime);
+      formData.append('campaignGoal', campaignData.goal || '');
+      formData.append('campaignName', campaignData.name || '');
+      formData.append('syndicationTier', campaignData.syndicationTier || '');
+      
+      // Add files if they exist
+      if (campaignData.contentFiles && campaignData.contentFiles.length > 0) {
+        campaignData.contentFiles.forEach((fileMetadata: any, index: number) => {
+          if (fileMetadata.file) {
+            // Append the actual file with a unique name
+            formData.append(`file_${index}`, fileMetadata.file, fileMetadata.file.name);
+            // Append metadata for each file
+            formData.append(`file_${index}_contentType`, fileMetadata.contentType || '');
+            formData.append(`file_${index}_editorNotes`, fileMetadata.editorNotes || '');
+            formData.append(`file_${index}_assignedEditor`, fileMetadata.assignedEditor || '');
+            formData.append(`file_${index}_viralityScore`, fileMetadata.viralityScore?.toString() || '0');
+          }
+        });
+        formData.append('fileCount', campaignData.contentFiles.length.toString());
+      } else {
+        formData.append('fileCount', '0');
+      }
+
+      console.log("📦 FormData prepared with files and metadata");
+
+      const response = await fetch("https://hook.us2.make.com/kkaffrcwq5ldum892qtasszegim2dmqb", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          files: campaignData.contentFiles || [],
-          launchDate: selectedDate,
-          launchTime: selectedTime,
-        }),
+        body: formData, // Send FormData directly (don't set Content-Type header, browser will set it automatically)
       });
 
-      console.log("✅ Files sent to Make.com");
-      navigate("/payment/success"); // Navigate on success
+      if (response.ok) {
+        console.log("✅ Campaign data successfully sent to Make.com");
+        navigate("/payment/success");
+      } else {
+        console.error("❌ Make.com responded with error:", response.status, response.statusText);
+        navigate("/payment/cancel");
+      }
     } catch (error) {
       console.error("❌ Error sending to Make.com", error);
-      navigate("/payment/cancel"); // Navigate on failure
+      navigate("/payment/cancel");
     }
   };
 
@@ -108,6 +137,12 @@ const CampaignBuilderStep5 = ({ campaignData, updateCampaignData, onNext, onPrev
               </Badge>
             </div>
             <div className="flex justify-between items-center">
+              <span className="text-foreground/80 text-sm">Files:</span>
+              <span className="text-foreground text-sm">
+                {campaignData.contentFiles?.length || 0} uploaded
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
               <span className="text-foreground/80 text-sm">Boosts:</span>
               <span className="text-foreground text-sm">
                 {Object.values(campaignData.boosts || {}).filter(Boolean).length || 0} active
@@ -138,5 +173,3 @@ const CampaignBuilderStep5 = ({ campaignData, updateCampaignData, onNext, onPrev
 };
 
 export default CampaignBuilderStep5;
-
-

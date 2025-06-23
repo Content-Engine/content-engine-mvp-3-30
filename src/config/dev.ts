@@ -1,6 +1,6 @@
 
 export const DEV_MODE = {
-  DISABLE_AUTH: false,
+  DISABLE_AUTH: true,
   USE_MOCK_AUTH: false,
   MOCK_USER: {
     id: '12345678-1234-5678-9012-123456789012',

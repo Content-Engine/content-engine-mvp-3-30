@@ -61,6 +61,23 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
+    // Map over files to add the public URL for each file
+    const filesWithUrls = campaignData.files?.map(file => ({
+      ...file,
+      url: `https://qpaomtgbpjxvnamtqhtv.supabase.co/storage/v1/object/public/content-files/${file.name}`
+    })) || [];
+
+    // Create the payload with updated files array
+    const payloadToMake = {
+      ...campaignData,
+      files: filesWithUrls
+    };
+
+    console.log('📦 Payload with file URLs:', {
+      filesCount: filesWithUrls.length,
+      sampleFileUrl: filesWithUrls[0]?.url
+    });
+
     // Forward the entire JSON body to Make.com webhook
     console.log('📡 Forwarding to Make.com webhook...');
     
@@ -69,7 +86,7 @@ const handler = async (req: Request): Promise<Response> => {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(campaignData),
+      body: JSON.stringify(payloadToMake),
     });
 
     console.log('📡 Make.com response status:', makeResponse.status);

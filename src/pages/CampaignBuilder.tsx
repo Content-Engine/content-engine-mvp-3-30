@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -47,36 +46,8 @@ const CampaignBuilder = () => {
   };
 
   const handleLaunchCampaign = async () => {
-    try {
-      const campaign = await createCampaign({
-        name: state.name,
-        goal: state.goal,
-        status: 'active',
-        syndication_tier: state.syndicationTier,
-        boost_settings: state.boosts,
-        start_date: state.schedule.startDate,
-        scheduled_start_date: state.schedule.scheduledStartDate ? new Date(`${state.schedule.scheduledStartDate}T${state.schedule.scheduledStartTime}`).toISOString() : null,
-        scheduled_start_time: state.schedule.scheduledStartTime,
-        auto_start: state.schedule.autoStart,
-        echo_boost_enabled: state.boosts.echoClone,
-        echo_boost_platforms: state.echo_boost_platforms,
-        auto_fill_lookalike: state.auto_fill_lookalike,
-        platform_targets: state.platform_targets,
-        hashtags_caption: state.hashtags_caption,
-        syndication_volume: state.syndicationVolume,
-        selected_platforms: state.selectedPlatforms,
-        account_type: state.accountType,
-        local_region: state.localRegion,
-        premium_platforms: state.premiumPlatforms
-      });
-      
-      if (campaign) {
-        setCurrentCampaignId(campaign.id);
-        navigate('/dashboard');
-      }
-    } catch (error) {
-      console.error('Failed to launch campaign:', error);
-    }
+    // Navigate to success page after launch
+    navigate('/payment/success');
   };
 
   const handleClientLinked = (clientId: string) => {
@@ -167,7 +138,8 @@ const CampaignBuilder = () => {
               onAutoStartToggle={(enabled) => updateState({ 
                 schedule: { ...state.schedule, autoStart: enabled }
               })}
-              onLaunch={handleLaunchCampaign} 
+              onLaunch={handleLaunchCampaign}
+              campaignData={state}
             />
             {currentCampaignId && state.contentFiles.length > 0 && (
               <AutoEditorAssignment 

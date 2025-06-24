@@ -5,6 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Calendar, Clock, Zap } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Step5LaunchProps {
   campaignName: string;
@@ -20,6 +22,7 @@ interface Step5LaunchProps {
   onScheduledTimeChange: (time: string) => void;
   onAutoStartToggle: (enabled: boolean) => void;
   onLaunch: () => void;
+  campaignData?: any;
 }
 
 const Step5Launch = ({
@@ -35,12 +38,85 @@ const Step5Launch = ({
   onScheduledDateChange,
   onScheduledTimeChange,
   onAutoStartToggle,
-  onLaunch
+  onLaunch,
+  campaignData
 }: Step5LaunchProps) => {
+  const [isLaunching, setIsLaunching] = useState(false);
+  const { toast } = useToast();
   const today = new Date().toISOString().split('T')[0];
   const now = new Date().toTimeString().slice(0, 5);
 
   const isFormValid = campaignName && scheduledStartDate && scheduledStartTime;
+
+  const handleLaunchClick = async () => {
+    if (!isFormValid || isLaunching) return;
+    
+    setIsLaunching(true);
+    
+    try {
+      console.log('🚀 Launching campaign via edge function...');
+      
+      // Prepare the data for the Make.com webhook
+      const launchData = {
+        files: campaignData?.contentFiles?.map((file: any, index: number) => ({
+          name: file.file?.name || `file_${index}`,
+          contentType: file.contentType || file.file?.type || '',
+          size: file.file?.size || 0,
+          editorNotes: file.editorNotes || '',
+          assignedEditor: file.assignedEditor || '',
+          viralityScore: file.viralityScore || 0
+        })) || [],
+        date: scheduledStartDate,
+        time: scheduledStartTime,
+        goal: campaignData?.goal || 'Not specified',
+        tier: campaignData?.syndicationTier || 'basic',
+        campaignName: campaignName,
+        autoStart: autoStart,
+        autoBoost: autoBoost,
+        platforms: campaignData?.selectedPlatforms || [],
+        syndicationVolume: campaignData?.syndicationVolume || 1,
+        accountType: campaignData?.accountType || '',
+        localRegion: campaignData?.localRegion || 'Auto-Detect'
+      };
+
+      console.log('📦 Sending launch data:', launchData);
+
+      // Call the launch-campaign edge function
+      const { data, error } = await supabase.functions.invoke('launch-campaign', {
+        body: launchData
+      });
+
+      if (error) {
+        console.error('❌ Edge function error:', error);
+        toast({
+          title: "Launch Failed",
+          description: `Failed to launch campaign: ${error.message}`,
+          variant: "destructive"
+        });
+        return;
+      }
+
+      console.log('✅ Campaign launched successfully:', data);
+      
+      toast({
+        title: "Campaign Launched! 🚀",
+        description: "Your campaign has been successfully submitted to Make.com",
+      });
+
+      // Call the parent's onLaunch callback
+      onLaunch();
+
+    } catch (error) {
+      console.error('❌ Launch error:', error);
+      toast({
+        title: "Launch Failed",
+        description: `An error occurred: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        variant: "destructive"
+      });
+    } finally {
+      setIsLaunching(false);
+    }
+  };
 
   return (
     <div className="space-y-8">
@@ -149,16 +225,16 @@ const Step5Launch = ({
       {/* Launch Button */}
       <div className="text-center">
         <Button
-          onClick={onLaunch}
-          disabled={!isFormValid}
+          onClick={handleLaunchClick}
+          disabled={!isFormValid || isLaunching}
           size="lg"
           className={`px-12 py-4 text-lg font-bold rounded-2xl transition-all duration-300 ${
-            isFormValid
+            isFormValid && !isLaunching
               ? "bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-xl" 
               : "bg-gray-600 text-gray-300 cursor-not-allowed"
           }`}
         >
-          🚀 Launch Campaign
+          {isLaunching ? "🔄 Launching..." : "🚀 Launch Campaign"}
         </Button>
         {!isFormValid && (
           <p className="text-gray-400 text-sm mt-2">

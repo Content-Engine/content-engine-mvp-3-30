@@ -1,5 +1,6 @@
 
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -38,6 +39,11 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     console.log('🚀 Launch campaign function called');
     
+    // Initialize Supabase client
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+    
     // Parse the incoming JSON data
     const campaignData: CampaignLaunchRequest = await req.json();
     
@@ -61,21 +67,70 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Map over files to add the public URL for each file
-    const filesWithUrls = campaignData.files?.map(file => ({
-      ...file,
-      url: `https://qpaomtgbpjxvnamtqhtv.supabase.co/storage/v1/object/public/content-files/${file.name}`
-    })) || [];
+    // Check if files are actually stored in Supabase and construct proper URLs
+    const filesWithUrls = await Promise.all(
+      (campaignData.files || []).map(async (file) => {
+        let fileUrl = '';
+        
+        // Check if the file exists in storage
+        if (file.name) {
+          console.log('🔍 Checking file in storage:', file.name);
+          
+          // Try to get the file from storage
+          const { data: fileData, error: fileError } = await supabase.storage
+            .from('content-files')
+            .list('', {
+              search: file.name
+            });
+            
+          if (fileError) {
+            console.error('❌ Error checking file in storage:', fileError);
+            // If storage bucket doesn't exist or file not found, use a placeholder
+            fileUrl = `File not found in storage: ${file.name}`;
+          } else if (fileData && fileData.length > 0) {
+            // File exists in storage, construct public URL
+            const { data: urlData } = supabase.storage
+              .from('content-files')
+              .getPublicUrl(file.name);
+            
+            fileUrl = urlData.publicUrl;
+            console.log('✅ File found in storage, URL:', fileUrl);
+          } else {
+            // File not found in storage
+            console.warn('⚠️ File not found in storage:', file.name);
+            fileUrl = `File not uploaded to storage: ${file.name}`;
+          }
+        }
+        
+        return {
+          ...file,
+          url: fileUrl,
+          storageBucket: 'content-files',
+          fileExists: fileUrl.startsWith('https://'),
+          debugInfo: {
+            originalName: file.name,
+            contentType: file.contentType,
+            checkTime: new Date().toISOString()
+          }
+        };
+      })
+    );
 
     // Create the payload with updated files array
     const payloadToMake = {
       ...campaignData,
-      files: filesWithUrls
+      files: filesWithUrls,
+      debug: {
+        totalFiles: filesWithUrls.length,
+        filesWithValidUrls: filesWithUrls.filter(f => f.fileExists).length,
+        timestamp: new Date().toISOString()
+      }
     };
 
     console.log('📦 Payload with file URLs:', {
       filesCount: filesWithUrls.length,
-      sampleFileUrl: filesWithUrls[0]?.url
+      validUrls: filesWithUrls.filter(f => f.fileExists).length,
+      sampleFile: filesWithUrls[0]
     });
 
     // Forward the entire JSON body to Make.com webhook
@@ -124,7 +179,9 @@ const handler = async (req: Request): Promise<Response> => {
       JSON.stringify({ 
         success: true, 
         message: 'Campaign launched successfully',
-        makeResponse: makeResponseData 
+        makeResponse: makeResponseData,
+        filesProcessed: filesWithUrls.length,
+        validFileUrls: filesWithUrls.filter(f => f.fileExists).length
       }),
       {
         status: 200,

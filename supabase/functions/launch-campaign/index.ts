@@ -67,73 +67,117 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Check if files are actually stored in Supabase and construct proper URLs
+    // Process files and generate proper URLs
     const filesWithUrls = await Promise.all(
       (campaignData.files || []).map(async (file) => {
         let fileUrl = '';
+        let fileExists = false;
         
-        // Check if the file exists in storage
         if (file.name) {
-          console.log('🔍 Checking file in storage:', file.name);
+          console.log('🔍 Processing file:', file.name);
           
-          // Try to get the file from storage
-          const { data: fileData, error: fileError } = await supabase.storage
-            .from('content-files')
-            .list('', {
-              search: file.name
-            });
-            
-          if (fileError) {
-            console.error('❌ Error checking file in storage:', fileError);
-            // If storage bucket doesn't exist or file not found, use a placeholder
-            fileUrl = `File not found in storage: ${file.name}`;
-          } else if (fileData && fileData.length > 0) {
-            // File exists in storage, construct public URL
-            const { data: urlData } = supabase.storage
+          try {
+            // Check if file exists in storage using the list method
+            const { data: fileList, error: listError } = await supabase.storage
               .from('content-files')
-              .getPublicUrl(file.name);
+              .list('', {
+                limit: 1000,
+                search: file.name
+              });
             
-            fileUrl = urlData.publicUrl;
-            console.log('✅ File found in storage, URL:', fileUrl);
-          } else {
-            // File not found in storage
-            console.warn('⚠️ File not found in storage:', file.name);
-            fileUrl = `File not uploaded to storage: ${file.name}`;
+            if (listError) {
+              console.error('❌ Error listing files:', listError);
+              fileUrl = `Error: Could not access storage - ${listError.message}`;
+            } else {
+              // Check if file exists in the list
+              const fileFound = fileList?.find(f => f.name === file.name);
+              
+              if (fileFound) {
+                // File exists, generate public URL
+                const { data: urlData } = supabase.storage
+                  .from('content-files')
+                  .getPublicUrl(file.name);
+                
+                fileUrl = urlData.publicUrl;
+                fileExists = true;
+                console.log('✅ File found, URL generated:', fileUrl);
+                
+                // Validate URL format
+                if (!fileUrl.startsWith('https://')) {
+                  console.warn('⚠️ Generated URL does not start with https:', fileUrl);
+                  fileUrl = `https://qpaomtgbpjxvnamtqhtv.supabase.co/storage/v1/object/public/content-files/${file.name}`;
+                }
+              } else {
+                console.warn('⚠️ File not found in storage:', file.name);
+                fileUrl = `File not found: ${file.name}`;
+              }
+            }
+          } catch (error) {
+            console.error('❌ Error processing file:', file.name, error);
+            fileUrl = `Error processing file: ${file.name}`;
           }
+        } else {
+          console.warn('⚠️ File has no name property');
+          fileUrl = 'Invalid file: no name';
         }
         
         return {
           ...file,
           url: fileUrl,
+          fileExists: fileExists,
+          isValidUrl: fileExists && fileUrl.startsWith('https://'),
           storageBucket: 'content-files',
-          fileExists: fileUrl.startsWith('https://'),
           debugInfo: {
             originalName: file.name,
-            contentType: file.contentType,
-            checkTime: new Date().toISOString()
+            contentType: file.contentType || 'unknown',
+            processed: new Date().toISOString(),
+            urlValid: fileExists && fileUrl.startsWith('https://')
           }
         };
       })
     );
 
-    // Create the payload with updated files array
+    // Filter out invalid files for Make.com webhook
+    const validFiles = filesWithUrls.filter(file => file.isValidUrl);
+    const invalidFiles = filesWithUrls.filter(file => !file.isValidUrl);
+    
+    console.log('📊 File processing summary:', {
+      totalFiles: filesWithUrls.length,
+      validFiles: validFiles.length,
+      invalidFiles: invalidFiles.length,
+      invalidFileNames: invalidFiles.map(f => f.name)
+    });
+
+    // Create the payload with only valid files
     const payloadToMake = {
       ...campaignData,
-      files: filesWithUrls,
-      debug: {
-        totalFiles: filesWithUrls.length,
-        filesWithValidUrls: filesWithUrls.filter(f => f.fileExists).length,
+      files: validFiles, // Only send files with valid URLs
+      invalidFiles: invalidFiles.map(f => ({ 
+        name: f.name, 
+        error: f.url,
+        contentType: f.contentType 
+      })), // Track invalid files for debugging
+      stats: {
+        totalFilesReceived: filesWithUrls.length,
+        validFilesForwarded: validFiles.length,
+        invalidFilesSkipped: invalidFiles.length,
         timestamp: new Date().toISOString()
       }
     };
 
-    console.log('📦 Payload with file URLs:', {
-      filesCount: filesWithUrls.length,
-      validUrls: filesWithUrls.filter(f => f.fileExists).length,
-      sampleFile: filesWithUrls[0]
+    console.log('📦 Sending payload to Make.com:', {
+      validFilesCount: validFiles.length,
+      invalidFilesCount: invalidFiles.length,
+      sampleValidFile: validFiles[0]?.url || 'none',
+      campaignData: {
+        date: campaignData.date,
+        time: campaignData.time,
+        goal: campaignData.goal,
+        tier: campaignData.tier
+      }
     });
 
-    // Forward the entire JSON body to Make.com webhook
+    // Forward to Make.com webhook
     console.log('📡 Forwarding to Make.com webhook...');
     
     const makeResponse = await fetch('https://hook.us2.make.com/kkaffrcwq5ldum892qtasszegim2dmqb', {
@@ -149,7 +193,6 @@ const handler = async (req: Request): Promise<Response> => {
     if (!makeResponse.ok) {
       console.error('❌ Make.com webhook failed:', makeResponse.status, makeResponse.statusText);
       
-      // Try to get error details from Make.com
       let errorText = '';
       try {
         errorText = await makeResponse.text();
@@ -171,7 +214,6 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Get response from Make.com
     const makeResponseData = await makeResponse.text();
     console.log('✅ Make.com response:', makeResponseData);
 
@@ -180,8 +222,13 @@ const handler = async (req: Request): Promise<Response> => {
         success: true, 
         message: 'Campaign launched successfully',
         makeResponse: makeResponseData,
-        filesProcessed: filesWithUrls.length,
-        validFileUrls: filesWithUrls.filter(f => f.fileExists).length
+        filesProcessed: {
+          total: filesWithUrls.length,
+          valid: validFiles.length,
+          invalid: invalidFiles.length,
+          validUrls: validFiles.map(f => f.url),
+          invalidFiles: invalidFiles.map(f => ({ name: f.name, error: f.url }))
+        }
       }),
       {
         status: 200,

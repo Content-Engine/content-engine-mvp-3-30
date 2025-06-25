@@ -218,13 +218,14 @@ const handler = async (req: Request): Promise<Response> => {
         invalidFilesSkipped: invalidFiles.length,
         processingTimestamp: new Date().toISOString()
       },
-      debug: process.env.NODE_ENV === 'development' ? {
+      // Only include debug info in development-like scenarios
+      debug: Deno.env.get('DENO_DEPLOYMENT_ID') ? undefined : {
         invalidFiles: invalidFiles.map(f => ({ 
           name: f.name, 
           error: f.url,
           debugInfo: f.debugInfo 
         }))
-      } : undefined
+      }
     };
 
     console.log('📦 Payload structure for Make.com:');

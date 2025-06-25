@@ -44,12 +44,18 @@ const Step5Launch = ({
   const [isLaunching, setIsLaunching] = useState(false);
   const { toast } = useToast();
   const today = new Date().toISOString().split('T')[0];
-  const now = new Date().toTimeString().slice(0, 5);
 
-  const isFormValid = campaignName && scheduledStartDate && scheduledStartTime;
+  const isFormValid = campaignName.trim() && scheduledStartDate && scheduledStartTime;
 
   const handleLaunchClick = async () => {
-    if (!isFormValid || isLaunching) return;
+    console.log('🚀 Launch button clicked');
+    console.log('Form valid:', isFormValid);
+    console.log('Is launching:', isLaunching);
+    
+    if (!isFormValid || isLaunching) {
+      console.log('❌ Cannot launch - form invalid or already launching');
+      return;
+    }
     
     setIsLaunching(true);
     
@@ -60,22 +66,22 @@ const Step5Launch = ({
       const launchData = {
         files: campaignData?.contentFiles?.map((file: any, index: number) => ({
           name: file.file?.name || `file_${index}`,
-          contentType: file.contentType || file.file?.type || '',
+          contentType: file.contentType || file.file?.type || 'application/octet-stream',
           size: file.file?.size || 0,
           editorNotes: file.editorNotes || '',
-          assignedEditor: file.assignedEditor || '',
-          viralityScore: file.viralityScore || 0
+          assignedEditor: file.assignedEditor || 'unassigned',
+          viralityScore: file.viralityScore || 1
         })) || [],
         date: scheduledStartDate,
         time: scheduledStartTime,
-        goal: campaignData?.goal || 'Not specified',
+        goal: campaignData?.goal || 'awareness',
         tier: campaignData?.syndicationTier || 'basic',
-        campaignName: campaignName,
-        autoStart: autoStart,
-        autoBoost: autoBoost,
+        campaignName: campaignName.trim(),
+        autoStart: autoStart || false,
+        autoBoost: autoBoost || false,
         platforms: campaignData?.selectedPlatforms || [],
         syndicationVolume: campaignData?.syndicationVolume || 1,
-        accountType: campaignData?.accountType || '',
+        accountType: campaignData?.accountType || 'local',
         localRegion: campaignData?.localRegion || 'Auto-Detect'
       };
 
@@ -144,13 +150,14 @@ const Step5Launch = ({
           </CardHeader>
           <CardContent className="space-y-6">
             <div>
-              <label className="block text-gray-300 text-sm font-medium mb-2">Campaign Name</label>
+              <label className="block text-gray-300 text-sm font-medium mb-2">Campaign Name *</label>
               <input
                 type="text"
                 value={campaignName}
                 onChange={(e) => onNameChange(e.target.value)}
                 placeholder="Enter campaign name..."
                 className="w-full bg-gray-800/50 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
               />
             </div>
             
@@ -182,23 +189,25 @@ const Step5Launch = ({
           </CardHeader>
           <CardContent className="space-y-6">
             <div>
-              <label className="block text-gray-300 text-sm font-medium mb-2">Launch Date</label>
+              <label className="block text-gray-300 text-sm font-medium mb-2">Launch Date *</label>
               <input
                 type="date"
                 value={scheduledStartDate}
                 onChange={(e) => onScheduledDateChange(e.target.value)}
                 min={today}
                 className="w-full bg-gray-800/50 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
               />
             </div>
             
             <div>
-              <label className="block text-gray-300 text-sm font-medium mb-2">Launch Time</label>
+              <label className="block text-gray-300 text-sm font-medium mb-2">Launch Time *</label>
               <input
                 type="time"
                 value={scheduledStartTime}
                 onChange={(e) => onScheduledTimeChange(e.target.value)}
                 className="w-full bg-gray-800/50 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
               />
             </div>
 
@@ -222,6 +231,26 @@ const Step5Launch = ({
         </Card>
       </div>
 
+      {/* Debug Info - Development Only */}
+      {process.env.NODE_ENV === 'development' && (
+        <Card className="max-w-4xl mx-auto bg-gray-900/50 border border-gray-700">
+          <CardHeader>
+            <CardTitle className="text-yellow-400">Debug Info</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-sm text-gray-300 space-y-2">
+              <p>Campaign Name: {campaignName || 'Not set'}</p>
+              <p>Files: {campaignData?.contentFiles?.length || 0}</p>
+              <p>Goal: {campaignData?.goal || 'Not set'}</p>
+              <p>Date: {scheduledStartDate || 'Not set'}</p>
+              <p>Time: {scheduledStartTime || 'Not set'}</p>
+              <p>Form Valid: {isFormValid ? 'Yes' : 'No'}</p>
+              <p>Is Launching: {isLaunching ? 'Yes' : 'No'}</p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Launch Button */}
       <div className="text-center">
         <Button
@@ -238,7 +267,7 @@ const Step5Launch = ({
         </Button>
         {!isFormValid && (
           <p className="text-gray-400 text-sm mt-2">
-            Please complete all fields to launch your campaign
+            Please complete all required fields (*) to launch your campaign
           </p>
         )}
       </div>

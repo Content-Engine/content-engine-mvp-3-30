@@ -1,10 +1,9 @@
-
 import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Upload, X, FileVideo, FileImage, FileAudio } from "lucide-react";
+import { Upload, X, FileVideo, FileImage, FileAudio, CheckCircle, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { FileMetadata, generateFileId, calculateViralityScore } from "@/utils/fileUtils";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,6 +19,7 @@ const Step2Upload = ({ contentFiles, onFilesUpdate, onNext, onPrevious }: Step2U
   const [dragActive, setDragActive] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [currentUploadFile, setCurrentUploadFile] = useState<string>('');
   const { toast } = useToast();
 
   const getFileIcon = (file: File) => {
@@ -48,6 +48,7 @@ const Step2Upload = ({ contentFiles, onFilesUpdate, onNext, onPrevious }: Step2U
       const fileName = `${generateFileId()}.${fileExt}`;
       
       console.log(`📤 Uploading ${file.name} as ${fileName} to Supabase storage...`);
+      setCurrentUploadFile(`Saving ${file.name}...`);
       
       const { data, error } = await supabase.storage
         .from('content-files')
@@ -72,6 +73,13 @@ const Step2Upload = ({ contentFiles, onFilesUpdate, onNext, onPrevious }: Step2U
         .getPublicUrl(fileName);
 
       console.log(`✅ File uploaded successfully: ${urlData.publicUrl}`);
+      
+      // Show success toast for individual file
+      toast({
+        title: "File Saved",
+        description: `${file.name} has been saved to storage`,
+      });
+      
       return urlData.publicUrl;
     } catch (error) {
       console.error('❌ Upload exception:', error);
@@ -116,6 +124,7 @@ const Step2Upload = ({ contentFiles, onFilesUpdate, onNext, onPrevious }: Step2U
 
     setIsUploading(true);
     setUploadProgress(0);
+    setCurrentUploadFile('');
 
     const newFileMetadata: FileMetadata[] = [];
     const totalFiles = validFiles.length;
@@ -151,10 +160,11 @@ const Step2Upload = ({ contentFiles, onFilesUpdate, onNext, onPrevious }: Step2U
     
     setIsUploading(false);
     setUploadProgress(0);
+    setCurrentUploadFile('');
     
     toast({
-      title: "Files Uploaded",
-      description: `Successfully uploaded ${newFileMetadata.length} of ${validFiles.length} file(s) to storage`,
+      title: "Upload Complete! 🎉",
+      description: `Successfully saved ${newFileMetadata.length} of ${validFiles.length} file(s) to storage`,
     });
   }, [contentFiles, onFilesUpdate, toast]);
 
@@ -267,10 +277,16 @@ const Step2Upload = ({ contentFiles, onFilesUpdate, onNext, onPrevious }: Step2U
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium">Uploading files to storage...</span>
+              <span className="text-sm font-medium flex items-center gap-2">
+                <Clock className="h-4 w-4" />
+                {currentUploadFile || 'Uploading files to storage...'}
+              </span>
               <span className="text-sm text-gray-500">{uploadProgress}%</span>
             </div>
             <Progress value={uploadProgress} className="w-full" />
+            <p className="text-xs text-gray-500 mt-2">
+              Files are being saved to secure storage...
+            </p>
           </CardContent>
         </Card>
       )}
@@ -298,8 +314,9 @@ const Step2Upload = ({ contentFiles, onFilesUpdate, onNext, onPrevious }: Step2U
                           {formatFileSize(fileData.fileSize || fileData.file?.size || 0)} • {fileData.fileType || fileData.file?.type || 'Unknown type'}
                         </p>
                         {fileData.fileUrl && (
-                          <p className="text-xs text-green-600 truncate max-w-sm">
-                            ✅ Uploaded to storage
+                          <p className="text-xs text-green-600 truncate max-w-sm flex items-center gap-1">
+                            <CheckCircle className="h-3 w-3" />
+                            Saved to storage successfully
                           </p>
                         )}
                       </div>

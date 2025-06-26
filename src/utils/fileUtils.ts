@@ -1,71 +1,100 @@
+
 export interface FileMetadata {
   id: string;
   file: File;
-  fileUrl?: string; // Supabase storage URL
-  fileName?: string; // Store file name separately
-  fileSize?: number; // Store file size separately  
-  fileType?: string; // Store file type separately
   contentType: string;
   editorNotes: string;
   assignedEditor: string;
   viralityScore: number;
+  songId?: string; // Add songId for video files
 }
 
-export const generateFileId = (): string => {
-  return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+export const generateFileId = () => {
+  return Math.random().toString(36).substr(2, 9);
 };
 
-export const calculateViralityScore = (file: File, fileName: string, isBulkUpload: boolean): number => {
-  let score = 1;
+export const calculateViralityScore = (file: File, fileName: string, bulkUpload: boolean): number => {
+  let score = 0;
   
-  // Base score on file type
+  // +25 pts for video files over 30s (mock - assume longer videos are over 30s based on file size)
+  if (file && file.type && file.type.startsWith('video/') && file.size > 50 * 1024 * 1024) { // 50MB+ likely longer
+    score += 25;
+  }
+  
+  // +20 pts for portrait aspect ratio (mock - assume files with 'portrait' or '9:16' in name)
+  if (fileName && (fileName.toLowerCase().includes('portrait') || fileName.toLowerCase().includes('916') || fileName.toLowerCase().includes('vertical'))) {
+    score += 20;
+  }
+  
+  // +10 pts for viral keywords
+  const viralKeywords = ['hook', 'story', 'viral', 'clip', 'trending', 'moment', 'reaction'];
+  const hasViralKeyword = fileName && viralKeywords.some(keyword => 
+    fileName.toLowerCase().includes(keyword)
+  );
+  if (hasViralKeyword) {
+    score += 10;
+  }
+  
+  // +15 pts for bulk upload
+  if (bulkUpload) {
+    score += 15;
+  }
+  
+  // +5 random variation
+  score += Math.floor(Math.random() * 6);
+  
+  return Math.min(100, Math.max(0, score));
+};
+
+export const getViralityScoreColor = (score: number): { color: string; label: string; bgColor: string } => {
+  if (score >= 71) {
+    return { color: 'text-green-400', label: 'High', bgColor: 'bg-green-500/20' };
+  } else if (score >= 41) {
+    return { color: 'text-yellow-400', label: 'Medium', bgColor: 'bg-yellow-500/20' };
+  } else {
+    return { color: 'text-red-400', label: 'Low', bgColor: 'bg-red-500/20' };
+  }
+};
+
+export const getFileTypeIcon = (file: File) => {
+  if (!file || !file.type) {
+    return 'File';
+  }
+  
   if (file.type.startsWith('video/')) {
-    score += 3;
-  } else if (file.type.startsWith('image/')) {
-    score += 2;
+    return 'FileVideo';
   } else if (file.type.startsWith('audio/')) {
-    score += 1;
+    return 'Music';
+  } else if (file.type.startsWith('image/')) {
+    return 'FileImage';
   }
-  
-  // Bonus for bulk uploads
-  if (isBulkUpload) {
-    score += 1;
-  }
-  
-  // Bonus for certain keywords in filename
-  const viralKeywords = ['trending', 'viral', 'challenge', 'dance', 'music', 'funny'];
-  const lowerFileName = fileName.toLowerCase();
-  const keywordMatches = viralKeywords.filter(keyword => lowerFileName.includes(keyword));
-  score += keywordMatches.length;
-  
-  return Math.min(score, 10); // Cap at 10
+  return 'File';
+};
+
+export const formatFileSize = (bytes: number): string => {
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 };
 
 export const calculateTotalRuntime = (files: FileMetadata[]): string => {
-  // For now, return a simple count-based runtime estimate since we don't have actual duration data
-  const totalFiles = files.length;
-  
-  if (totalFiles === 0) return '0m';
-  
-  // Estimate based on file types and count
-  let totalMinutes = 0;
-  
-  files.forEach(file => {
-    if (file.file.type.startsWith('video/')) {
-      totalMinutes += 2; // Assume 2 minutes per video on average
-    } else if (file.file.type.startsWith('audio/')) {
-      totalMinutes += 3; // Assume 3 minutes per audio file on average
-    } else if (file.file.type.startsWith('image/')) {
-      totalMinutes += 0.1; // Images are quick to process
+  // Mock runtime calculation - in real app would extract from media metadata
+  const totalSeconds = files.reduce((acc, fileData) => {
+    if (!fileData.file || !fileData.file.type) {
+      console.warn('File or file.type is undefined for file:', fileData.id);
+      return acc;
     }
-  });
+    
+    if (fileData.file.type.startsWith('video/') || fileData.file.type.startsWith('audio/')) {
+      // Mock: estimate based on file size (rough approximation)
+      return acc + Math.floor(fileData.file.size / (1024 * 1024) * 10); // ~10 seconds per MB
+    }
+    return acc;
+  }, 0);
   
-  if (totalMinutes < 1) return '<1m';
-  if (totalMinutes < 60) return `${Math.round(totalMinutes)}m`;
-  
-  const hours = Math.floor(totalMinutes / 60);
-  const minutes = Math.round(totalMinutes % 60);
-  
-  if (minutes === 0) return `${hours}h`;
-  return `${hours}h ${minutes}m`;
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 };

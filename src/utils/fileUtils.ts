@@ -1,4 +1,3 @@
-
 export interface FileMetadata {
   id: string;
   file: File;
@@ -40,4 +39,33 @@ export const calculateViralityScore = (file: File, fileName: string, isBulkUploa
   score += keywordMatches.length;
   
   return Math.min(score, 10); // Cap at 10
+};
+
+export const calculateTotalRuntime = (files: FileMetadata[]): string => {
+  // For now, return a simple count-based runtime estimate since we don't have actual duration data
+  const totalFiles = files.length;
+  
+  if (totalFiles === 0) return '0m';
+  
+  // Estimate based on file types and count
+  let totalMinutes = 0;
+  
+  files.forEach(file => {
+    if (file.file.type.startsWith('video/')) {
+      totalMinutes += 2; // Assume 2 minutes per video on average
+    } else if (file.file.type.startsWith('audio/')) {
+      totalMinutes += 3; // Assume 3 minutes per audio file on average
+    } else if (file.file.type.startsWith('image/')) {
+      totalMinutes += 0.1; // Images are quick to process
+    }
+  });
+  
+  if (totalMinutes < 1) return '<1m';
+  if (totalMinutes < 60) return `${Math.round(totalMinutes)}m`;
+  
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = Math.round(totalMinutes % 60);
+  
+  if (minutes === 0) return `${hours}h`;
+  return `${hours}h ${minutes}m`;
 };

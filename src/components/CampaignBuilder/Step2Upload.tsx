@@ -23,7 +23,6 @@ const Step2Upload = ({ contentFiles, onFilesUpdate, onNext, onPrevious }: Step2U
   const { toast } = useToast();
 
   const getFileIcon = (file: File) => {
-    // Add null checks to prevent the error
     if (!file || !file.type) {
       return <FileImage className="h-8 w-8" />;
     }
@@ -73,13 +72,6 @@ const Step2Upload = ({ contentFiles, onFilesUpdate, onNext, onPrevious }: Step2U
         .getPublicUrl(fileName);
 
       console.log(`✅ File uploaded successfully: ${urlData.publicUrl}`);
-      
-      // Show success toast for individual file
-      toast({
-        title: "File Saved",
-        description: `${file.name} has been saved to storage`,
-      });
-      
       return urlData.publicUrl;
     } catch (error) {
       console.error('❌ Upload exception:', error);
@@ -139,10 +131,10 @@ const Step2Upload = ({ contentFiles, onFilesUpdate, onNext, onPrevious }: Step2U
       const fileUrl = await uploadFileToSupabase(file);
       
       if (fileUrl) {
-        newFileMetadata.push({
+        const fileMetadata: FileMetadata = {
           id: generateFileId(),
-          file: file, // Keep original file for metadata
-          fileUrl: fileUrl, // Add the Supabase URL
+          file: file,
+          fileUrl: fileUrl,
           fileName: file.name,
           fileSize: file.size,
           fileType: file.type,
@@ -150,11 +142,20 @@ const Step2Upload = ({ contentFiles, onFilesUpdate, onNext, onPrevious }: Step2U
           editorNotes: '',
           assignedEditor: 'unassigned',
           viralityScore: calculateViralityScore(file, file.name, validFiles.length >= 5)
-        });
+        };
+        
+        newFileMetadata.push(fileMetadata);
         console.log(`✅ Added file metadata with URL: ${fileUrl}`);
+        
+        // Show success toast for individual file
+        toast({
+          title: "File Saved",
+          description: `${file.name} has been saved to storage`,
+        });
       }
     }
 
+    // Update the files state immediately
     const updatedFiles = [...contentFiles, ...newFileMetadata];
     onFilesUpdate(updatedFiles);
     
@@ -162,10 +163,15 @@ const Step2Upload = ({ contentFiles, onFilesUpdate, onNext, onPrevious }: Step2U
     setUploadProgress(0);
     setCurrentUploadFile('');
     
-    toast({
-      title: "Upload Complete! 🎉",
-      description: `Successfully saved ${newFileMetadata.length} of ${validFiles.length} file(s) to storage`,
-    });
+    // Final success toast
+    if (newFileMetadata.length > 0) {
+      toast({
+        title: "Upload Complete! 🎉",
+        description: `Successfully saved ${newFileMetadata.length} of ${validFiles.length} file(s) to storage`,
+      });
+    }
+
+    console.log(`✅ Upload process complete. Total files now: ${updatedFiles.length}`);
   }, [contentFiles, onFilesUpdate, toast]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {

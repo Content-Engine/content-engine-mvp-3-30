@@ -7,6 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import { Upload, X, FileVideo, FileImage, FileAudio } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { FileMetadata, generateFileId, calculateViralityScore } from "@/utils/fileUtils";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Step2UploadProps {
   contentFiles: FileMetadata[];
@@ -39,6 +40,48 @@ const Step2Upload = ({ contentFiles, onFilesUpdate, onNext, onPrevious }: Step2U
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  const uploadFileToSupabase = async (file: File): Promise<string | null> => {
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${generateFileId()}.${fileExt}`;
+      
+      console.log(`📤 Uploading ${file.name} as ${fileName} to Supabase storage...`);
+      
+      const { data, error } = await supabase.storage
+        .from('content-files')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (error) {
+        console.error('❌ Upload error:', error);
+        toast({
+          title: "Upload Failed",
+          description: `Failed to upload ${file.name}: ${error.message}`,
+          variant: "destructive",
+        });
+        return null;
+      }
+
+      // Get the public URL
+      const { data: urlData } = supabase.storage
+        .from('content-files')
+        .getPublicUrl(fileName);
+
+      console.log(`✅ File uploaded successfully: ${urlData.publicUrl}`);
+      return urlData.publicUrl;
+    } catch (error) {
+      console.error('❌ Upload exception:', error);
+      toast({
+        title: "Upload Error",
+        description: `Unexpected error uploading ${file.name}`,
+        variant: "destructive",
+      });
+      return null;
+    }
   };
 
   const handleFiles = useCallback(async (files: FileList | File[]) => {
@@ -74,20 +117,34 @@ const Step2Upload = ({ contentFiles, onFilesUpdate, onNext, onPrevious }: Step2U
     setIsUploading(true);
     setUploadProgress(0);
 
-    // Simulate upload progress
-    for (let i = 0; i <= 100; i += 10) {
-      await new Promise(resolve => setTimeout(resolve, 50));
-      setUploadProgress(i);
-    }
+    const newFileMetadata: FileMetadata[] = [];
+    const totalFiles = validFiles.length;
 
-    const newFileMetadata: FileMetadata[] = validFiles.map(file => ({
-      id: generateFileId(),
-      file,
-      contentType: '',
-      editorNotes: '',
-      assignedEditor: 'unassigned',
-      viralityScore: calculateViralityScore(file, file.name, validFiles.length >= 5)
-    }));
+    for (let i = 0; i < validFiles.length; i++) {
+      const file = validFiles[i];
+      const progress = Math.round(((i + 1) / totalFiles) * 100);
+      setUploadProgress(progress);
+
+      console.log(`📤 Processing file ${i + 1}/${totalFiles}: ${file.name}`);
+      
+      const fileUrl = await uploadFileToSupabase(file);
+      
+      if (fileUrl) {
+        newFileMetadata.push({
+          id: generateFileId(),
+          file: file, // Keep original file for metadata
+          fileUrl: fileUrl, // Add the Supabase URL
+          fileName: file.name,
+          fileSize: file.size,
+          fileType: file.type,
+          contentType: '',
+          editorNotes: '',
+          assignedEditor: 'unassigned',
+          viralityScore: calculateViralityScore(file, file.name, validFiles.length >= 5)
+        });
+        console.log(`✅ Added file metadata with URL: ${fileUrl}`);
+      }
+    }
 
     const updatedFiles = [...contentFiles, ...newFileMetadata];
     onFilesUpdate(updatedFiles);
@@ -97,7 +154,7 @@ const Step2Upload = ({ contentFiles, onFilesUpdate, onNext, onPrevious }: Step2U
     
     toast({
       title: "Files Uploaded",
-      description: `Successfully uploaded ${validFiles.length} file(s)`,
+      description: `Successfully uploaded ${newFileMetadata.length} of ${validFiles.length} file(s) to storage`,
     });
   }, [contentFiles, onFilesUpdate, toast]);
 
@@ -121,7 +178,22 @@ const Step2Upload = ({ contentFiles, onFilesUpdate, onNext, onPrevious }: Step2U
     }
   }, []);
 
-  const removeFile = (id: string) => {
+  const removeFile = async (id: string) => {
+    const fileToRemove = contentFiles.find(file => file.id === id);
+    
+    // If the file has a URL, try to delete it from storage
+    if (fileToRemove?.fileUrl) {
+      try {
+        const fileName = fileToRemove.fileUrl.split('/').pop();
+        if (fileName) {
+          await supabase.storage.from('content-files').remove([fileName]);
+          console.log(`🗑️ Deleted file from storage: ${fileName}`);
+        }
+      } catch (error) {
+        console.error('Error deleting file from storage:', error);
+      }
+    }
+    
     const updatedFiles = contentFiles.filter(file => file.id !== id);
     onFilesUpdate(updatedFiles);
     toast({
@@ -175,8 +247,8 @@ const Step2Upload = ({ contentFiles, onFilesUpdate, onNext, onPrevious }: Step2U
           <p className="text-gray-600 mb-4">
             Supports: Images, Videos, Audio • Max file size: 500MB
           </p>
-          <Button className="bg-black text-white hover:bg-gray-800">
-            Choose Files
+          <Button className="bg-black text-white hover:bg-gray-800" disabled={isUploading}>
+            {isUploading ? "Uploading..." : "Choose Files"}
           </Button>
           <input
             id="file-input"
@@ -185,6 +257,7 @@ const Step2Upload = ({ contentFiles, onFilesUpdate, onNext, onPrevious }: Step2U
             className="hidden"
             accept="image/*,video/*,audio/*"
             onChange={(e) => e.target.files && handleFiles(e.target.files)}
+            disabled={isUploading}
           />
         </CardContent>
       </Card>
@@ -194,7 +267,7 @@ const Step2Upload = ({ contentFiles, onFilesUpdate, onNext, onPrevious }: Step2U
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium">Uploading files...</span>
+              <span className="text-sm font-medium">Uploading files to storage...</span>
               <span className="text-sm text-gray-500">{uploadProgress}%</span>
             </div>
             <Progress value={uploadProgress} className="w-full" />
@@ -218,10 +291,17 @@ const Step2Upload = ({ contentFiles, onFilesUpdate, onNext, onPrevious }: Step2U
                         {getFileIcon(fileData.file)}
                       </div>
                       <div>
-                        <h4 className="font-medium text-gray-900">{fileData.file?.name || 'Unknown file'}</h4>
+                        <h4 className="font-medium text-gray-900">
+                          {fileData.fileName || fileData.file?.name || 'Unknown file'}
+                        </h4>
                         <p className="text-sm text-gray-500">
-                          {formatFileSize(fileData.file?.size || 0)} • {fileData.file?.type || 'Unknown type'}
+                          {formatFileSize(fileData.fileSize || fileData.file?.size || 0)} • {fileData.fileType || fileData.file?.type || 'Unknown type'}
                         </p>
+                        {fileData.fileUrl && (
+                          <p className="text-xs text-green-600 truncate max-w-sm">
+                            ✅ Uploaded to storage
+                          </p>
+                        )}
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -251,6 +331,7 @@ const Step2Upload = ({ contentFiles, onFilesUpdate, onNext, onPrevious }: Step2U
           variant="outline"
           onClick={onPrevious}
           className="px-6 py-2"
+          disabled={isUploading}
         >
           ← Back
         </Button>
@@ -259,11 +340,11 @@ const Step2Upload = ({ contentFiles, onFilesUpdate, onNext, onPrevious }: Step2U
           onClick={handleContinue}
           size="lg" 
           className={`px-8 py-3 text-lg font-semibold rounded-2xl transition-all duration-300 ${
-            contentFiles.length > 0
+            contentFiles.length > 0 && !isUploading
               ? "bg-black text-white hover:bg-gray-800 shadow-lg hover:shadow-xl" 
               : "bg-gray-300 text-gray-500 cursor-not-allowed"
           }`}
-          disabled={contentFiles.length === 0}
+          disabled={contentFiles.length === 0 || isUploading}
         >
           Continue to Boost Settings →
         </Button>

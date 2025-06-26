@@ -62,16 +62,25 @@ const Step5Launch = ({
     try {
       console.log('🚀 Launching campaign via edge function...');
       
-      // Prepare the data for the Make.com webhook
+      // Prepare the data for the Make.com webhook with actual file URLs
       const launchData = {
-        files: campaignData?.contentFiles?.map((file: any, index: number) => ({
-          name: file.file?.name || `file_${index}`,
-          contentType: file.contentType || file.file?.type || 'application/octet-stream',
-          size: file.file?.size || 0,
-          editorNotes: file.editorNotes || '',
-          assignedEditor: file.assignedEditor || 'unassigned',
-          viralityScore: file.viralityScore || 1
-        })) || [],
+        files: campaignData?.contentFiles?.map((fileData: any, index: number) => {
+          console.log(`📋 Processing file ${index + 1}:`, {
+            name: fileData.fileName || fileData.file?.name,
+            hasFileUrl: !!fileData.fileUrl,
+            fileUrl: fileData.fileUrl
+          });
+          
+          return {
+            name: fileData.fileName || fileData.file?.name || `file_${index}`,
+            url: fileData.fileUrl || '', // Use the Supabase storage URL
+            contentType: fileData.fileType || fileData.file?.type || 'application/octet-stream',
+            size: fileData.fileSize || fileData.file?.size || 0,
+            editorNotes: fileData.editorNotes || '',
+            assignedEditor: fileData.assignedEditor || 'unassigned',
+            viralityScore: fileData.viralityScore || 1
+          };
+        }) || [],
         date: scheduledStartDate,
         time: scheduledStartTime,
         goal: campaignData?.goal || 'awareness',
@@ -85,7 +94,11 @@ const Step5Launch = ({
         localRegion: campaignData?.localRegion || 'Auto-Detect'
       };
 
-      console.log('📦 Sending launch data:', launchData);
+      console.log('📦 Sending launch data with file URLs:', {
+        filesCount: launchData.files.length,
+        filesWithUrls: launchData.files.filter(f => f.url).length,
+        sampleFileUrl: launchData.files[0]?.url || 'No files'
+      });
 
       // Call the launch-campaign edge function
       const { data, error } = await supabase.functions.invoke('launch-campaign', {
@@ -241,11 +254,22 @@ const Step5Launch = ({
             <div className="text-sm text-gray-300 space-y-2">
               <p>Campaign Name: {campaignName || 'Not set'}</p>
               <p>Files: {campaignData?.contentFiles?.length || 0}</p>
+              <p>Files with URLs: {campaignData?.contentFiles?.filter((f: any) => f.fileUrl).length || 0}</p>
               <p>Goal: {campaignData?.goal || 'Not set'}</p>
               <p>Date: {scheduledStartDate || 'Not set'}</p>
               <p>Time: {scheduledStartTime || 'Not set'}</p>
               <p>Form Valid: {isFormValid ? 'Yes' : 'No'}</p>
               <p>Is Launching: {isLaunching ? 'Yes' : 'No'}</p>
+              {campaignData?.contentFiles?.length > 0 && (
+                <div>
+                  <p className="font-medium">Sample File URLs:</p>
+                  {campaignData.contentFiles.slice(0, 3).map((file: any, i: number) => (
+                    <p key={i} className="text-xs truncate">
+                      {i + 1}. {file.fileName || file.file?.name}: {file.fileUrl ? '✅ Has URL' : '❌ No URL'}
+                    </p>
+                  ))}
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>

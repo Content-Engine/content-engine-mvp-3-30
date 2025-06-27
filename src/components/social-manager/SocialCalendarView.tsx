@@ -67,6 +67,8 @@ const SocialCalendarView = ({ currentCampaign }: SocialCalendarViewProps) => {
 
   // Generate events from campaigns and scheduled posts
   useEffect(() => {
+    console.log('🗓️ Generating calendar events from campaigns:', campaigns.length, 'and posts:', scheduledPosts.length);
+    
     const events: Record<string, CalendarEvent[]> = {};
 
     // Add campaign launch events
@@ -90,6 +92,8 @@ const SocialCalendarView = ({ currentCampaign }: SocialCalendarViewProps) => {
           type: 'campaign',
           campaignId: campaign.id
         });
+        
+        console.log('📅 Added campaign event:', campaign.name, 'for', date);
       }
     });
 
@@ -125,14 +129,13 @@ const SocialCalendarView = ({ currentCampaign }: SocialCalendarViewProps) => {
         retry_count: post.retry_count || 0,
         last_error_message: post.last_error_message || undefined
       });
+      
+      console.log('📝 Added post event:', post.caption.substring(0, 20), 'for', date);
     });
 
+    console.log('🎯 Total calendar events generated:', Object.keys(events).length, 'days with events');
     setCalendarEvents(events);
   }, [campaigns, scheduledPosts]);
-
-  const monthStart = startOfMonth(currentDate);
-  const monthEnd = endOfMonth(currentDate);
-  const calendarDays = eachDayOfInterval({ start: monthStart, end: monthEnd });
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -236,6 +239,10 @@ const SocialCalendarView = ({ currentCampaign }: SocialCalendarViewProps) => {
     });
   };
 
+  const monthStart = startOfMonth(currentDate);
+  const monthEnd = endOfMonth(currentDate);
+  const calendarDays = eachDayOfInterval({ start: monthStart, end: monthEnd });
+
   if (postsLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -295,6 +302,11 @@ const SocialCalendarView = ({ currentCampaign }: SocialCalendarViewProps) => {
             Schedule Content
           </Button>
         </div>
+      </div>
+
+      {/* Debug Info */}
+      <div className="bg-slate-800/50 border border-slate-600/30 rounded-lg p-4 text-sm text-slate-300">
+        <p>📊 Debug: {campaigns.length} campaigns, {scheduledPosts.length} posts, {Object.keys(calendarEvents).length} event days</p>
       </div>
 
       {/* Calendar Grid */}

@@ -35,13 +35,17 @@ const Campaigns = () => {
 
   const handleCreateCampaign = async (campaignData: any) => {
     try {
+      console.log('🚀 Creating new campaign:', campaignData);
       await createCampaign(campaignData);
       setIsNewCampaignModalOpen(false);
+      console.log('✅ Campaign created, refreshing list...');
       refetch();
     } catch (error) {
-      console.error('Failed to create campaign:', error);
+      console.error('❌ Failed to create campaign:', error);
     }
   };
+
+  console.log('📋 Campaigns page - Total campaigns:', campaigns.length, 'Filtered:', filteredCampaigns.length);
 
   return (
     <div className="min-h-screen bg-bg-main text-text-main">

@@ -56,7 +56,7 @@ const CampaignBuilderStep5 = ({ campaignData, updateCampaignData, onNext, onPrev
 
       console.log("📦 Sending simplified payload:", simplifiedPayload);
 
-      const response = await fetch("https://tyler-rottmann.app.n8n.cloud/webhook-test/183b4819-77d8-40bb-a593-6cc8740b7337", {
+      const response = await fetch("https://tyler-rottmann.app.n8n.cloud/webhook/183b4819-77d8-40bb-a593-6cc8740b7337", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

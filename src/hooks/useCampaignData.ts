@@ -81,12 +81,13 @@ export const useCampaignData = (options: UseCampaignDataOptions = {}) => {
         throw error;
       }
       
-      console.log('✅ Campaigns fetched:', data?.length || 0, filterByCurrentUser ? '(filtered by current user)' : '(all campaigns)');
+      console.log('✅ Campaigns fetched successfully:', data?.length || 0, 'campaigns');
+      console.log('📊 Campaign data:', data);
       setCampaigns(data || []);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch campaigns';
       setError(errorMessage);
-      console.error('Campaign fetch error:', err);
+      console.error('❌ Campaign fetch error:', err);
     } finally {
       setLoading(false);
     }
@@ -144,34 +145,44 @@ export const useCampaignData = (options: UseCampaignDataOptions = {}) => {
       }
       
       console.log('✅ Campaign created successfully:', data);
+      
+      // Refresh campaigns list
       await fetchCampaigns();
       return data;
     } catch (err) {
-      console.error('Error creating campaign:', err);
+      console.error('❌ Error creating campaign:', err);
       throw err;
     }
   };
 
   const updateCampaign = async (id: string, updates: Partial<Campaign>) => {
     try {
+      console.log('📝 Updating campaign:', id, 'with:', updates);
+      
       const { error } = await supabase
         .from('campaigns')
         .update(updates)
         .eq('id', id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Error updating campaign:', error);
+        throw error;
+      }
       
+      console.log('✅ Campaign updated successfully');
       await fetchCampaigns();
     } catch (err) {
-      console.error('Error updating campaign:', err);
+      console.error('❌ Error updating campaign:', err);
       throw err;
     }
   };
 
   useEffect(() => {
     if (user) {
+      console.log('🔄 User changed, fetching campaigns...');
       fetchCampaigns();
     } else {
+      console.log('🚫 No user, clearing campaigns');
       setLoading(false);
       setCampaigns([]);
     }

@@ -60,10 +60,12 @@ const SocialCalendarView = ({ currentCampaign }: SocialCalendarViewProps) => {
   const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { campaigns } = useCampaignData();
+  const { campaigns, loading: campaignsLoading } = useCampaignData();
   const { posts: scheduledPosts, loading: postsLoading } = useScheduledPosts();
 
   const [calendarEvents, setCalendarEvents] = useState<Record<string, CalendarEvent[]>>({});
+
+  console.log('📅 SocialCalendarView - Campaigns:', campaigns.length, 'Posts:', scheduledPosts.length);
 
   // Generate events from campaigns and scheduled posts
   useEffect(() => {
@@ -73,6 +75,8 @@ const SocialCalendarView = ({ currentCampaign }: SocialCalendarViewProps) => {
 
     // Add campaign launch events
     campaigns.forEach(campaign => {
+      console.log('🔍 Processing campaign:', campaign.name, 'scheduled_start_date:', campaign.scheduled_start_date);
+      
       if (campaign.scheduled_start_date) {
         const date = format(new Date(campaign.scheduled_start_date), 'yyyy-MM-dd');
         const time = campaign.scheduled_start_time || '09:00';
@@ -99,6 +103,8 @@ const SocialCalendarView = ({ currentCampaign }: SocialCalendarViewProps) => {
 
     // Add scheduled posts
     scheduledPosts.forEach(post => {
+      console.log('🔍 Processing post:', post.caption.substring(0, 30), 'schedule_time:', post.schedule_time);
+      
       const date = format(new Date(post.schedule_time), 'yyyy-MM-dd');
       const time = format(new Date(post.schedule_time), 'HH:mm');
       
@@ -134,6 +140,7 @@ const SocialCalendarView = ({ currentCampaign }: SocialCalendarViewProps) => {
     });
 
     console.log('🎯 Total calendar events generated:', Object.keys(events).length, 'days with events');
+    console.log('📊 Events breakdown:', events);
     setCalendarEvents(events);
   }, [campaigns, scheduledPosts]);
 
@@ -243,7 +250,7 @@ const SocialCalendarView = ({ currentCampaign }: SocialCalendarViewProps) => {
   const monthEnd = endOfMonth(currentDate);
   const calendarDays = eachDayOfInterval({ start: monthStart, end: monthEnd });
 
-  if (postsLoading) {
+  if (campaignsLoading || postsLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
@@ -307,6 +314,7 @@ const SocialCalendarView = ({ currentCampaign }: SocialCalendarViewProps) => {
       {/* Debug Info */}
       <div className="bg-slate-800/50 border border-slate-600/30 rounded-lg p-4 text-sm text-slate-300">
         <p>📊 Debug: {campaigns.length} campaigns, {scheduledPosts.length} posts, {Object.keys(calendarEvents).length} event days</p>
+        <p>🔍 Loading: Campaigns: {campaignsLoading ? 'Yes' : 'No'}, Posts: {postsLoading ? 'Yes' : 'No'}</p>
       </div>
 
       {/* Calendar Grid */}

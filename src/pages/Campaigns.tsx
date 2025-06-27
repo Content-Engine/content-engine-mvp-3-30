@@ -38,14 +38,13 @@ const Campaigns = () => {
       console.log('🚀 Creating new campaign:', campaignData);
       await createCampaign(campaignData);
       setIsNewCampaignModalOpen(false);
-      console.log('✅ Campaign created, refreshing list...');
-      refetch();
+      console.log('✅ Campaign created, modal closed');
     } catch (error) {
       console.error('❌ Failed to create campaign:', error);
     }
   };
 
-  console.log('📋 Campaigns page - Total campaigns:', campaigns.length, 'Filtered:', filteredCampaigns.length);
+  console.log('📋 Campaigns page rendering - Total campaigns:', campaigns.length, 'Filtered:', filteredCampaigns.length);
 
   return (
     <div className="min-h-screen bg-bg-main text-text-main">
@@ -65,6 +64,16 @@ const Campaigns = () => {
               New Campaign
             </Button>
           )}
+        </div>
+
+        {/* Debug Information */}
+        <div className="mb-4 p-4 bg-slate-800/50 rounded-lg border border-slate-600/30">
+          <p className="text-sm text-slate-300">
+            📊 Debug: {campaigns.length} campaigns loaded, {filteredCampaigns.length} after filtering
+          </p>
+          <p className="text-sm text-slate-300">
+            🔍 Loading: {loading ? 'Yes' : 'No'} | User Role: {userRole || 'None'}
+          </p>
         </div>
 
         {/* Search and Filter Bar */}

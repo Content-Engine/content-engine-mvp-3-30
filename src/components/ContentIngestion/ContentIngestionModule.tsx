@@ -4,7 +4,7 @@ import { Link, Youtube, Video, FileImage, ExternalLink, Plus, Search } from 'luc
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { useCampaignData } from '@/hooks/useCampaignData';
-import { supabase } from '@/integrations/supabase/client';
+import { useContentLinks } from '@/hooks/useContentLinks';
 import { useToast } from '@/hooks/use-toast';
 import PasteLinkInput from './PasteLinkInput';
 import ContentPreviewCard from './ContentPreviewCard';
@@ -27,6 +27,7 @@ const ContentIngestionModule = () => {
   const [selectedCampaign, setSelectedCampaign] = useState<string | null>(null);
   const { user } = useAuth();
   const { campaigns } = useCampaignData();
+  const { createContentLink } = useContentLinks();
   const { toast } = useToast();
 
   const supportedPlatforms = [
@@ -87,22 +88,16 @@ const ContentIngestionModule = () => {
     if (!metadata || !user) return;
 
     try {
-      const { error } = await supabase
-        .from('content_links')
-        .insert({
-          user_id: user.id,
-          campaign_id: campaignId,
-          original_url: metadata.original_url,
-          title: metadata.title,
-          description: metadata.description,
-          thumbnail_url: metadata.thumbnail_url,
-          provider_name: metadata.provider_name,
-          duration: metadata.duration,
-          metadata: metadata,
-          status: 'processed'
-        });
-
-      if (error) throw error;
+      await createContentLink({
+        campaign_id: campaignId,
+        original_url: metadata.original_url,
+        title: metadata.title,
+        description: metadata.description,
+        thumbnail_url: metadata.thumbnail_url,
+        provider_name: metadata.provider_name,
+        duration: metadata.duration,
+        metadata: metadata
+      });
 
       toast({
         title: "Content Added Successfully",

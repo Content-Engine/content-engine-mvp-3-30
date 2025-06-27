@@ -19,6 +19,17 @@ interface ContentLink {
   updated_at: string;
 }
 
+interface CreateContentLinkData {
+  campaign_id?: string;
+  original_url: string;
+  title?: string;
+  description?: string;
+  thumbnail_url?: string;
+  provider_name?: string;
+  duration?: number;
+  metadata?: any;
+}
+
 export const useContentLinks = (campaignId?: string) => {
   const [contentLinks, setContentLinks] = useState<ContentLink[]>([]);
   const [loading, setLoading] = useState(true);
@@ -58,7 +69,7 @@ export const useContentLinks = (campaignId?: string) => {
     }
   };
 
-  const createContentLink = async (contentData: Partial<ContentLink>) => {
+  const createContentLink = async (contentData: CreateContentLinkData) => {
     if (!user) {
       throw new Error('User must be authenticated to create content links');
     }
@@ -68,7 +79,15 @@ export const useContentLinks = (campaignId?: string) => {
         .from('content_links')
         .insert({
           user_id: user.id,
-          ...contentData
+          original_url: contentData.original_url,
+          campaign_id: contentData.campaign_id,
+          title: contentData.title,
+          description: contentData.description,
+          thumbnail_url: contentData.thumbnail_url,
+          provider_name: contentData.provider_name,
+          duration: contentData.duration,
+          metadata: contentData.metadata ? JSON.stringify(contentData.metadata) : null,
+          status: 'processed'
         })
         .select()
         .single();
@@ -83,11 +102,16 @@ export const useContentLinks = (campaignId?: string) => {
     }
   };
 
-  const updateContentLink = async (id: string, updates: Partial<ContentLink>) => {
+  const updateContentLink = async (id: string, updates: Partial<CreateContentLinkData>) => {
     try {
+      const updateData: any = { ...updates };
+      if (updateData.metadata) {
+        updateData.metadata = JSON.stringify(updateData.metadata);
+      }
+
       const { error } = await supabase
         .from('content_links')
-        .update(updates)
+        .update(updateData)
         .eq('id', id);
 
       if (error) throw error;

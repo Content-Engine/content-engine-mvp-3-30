@@ -562,6 +562,62 @@ export type Database = {
           },
         ]
       }
+      content_links: {
+        Row: {
+          campaign_id: string | null
+          created_at: string | null
+          description: string | null
+          duration: number | null
+          id: string
+          metadata: Json | null
+          original_url: string
+          provider_name: string | null
+          status: string | null
+          thumbnail_url: string | null
+          title: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          campaign_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          duration?: number | null
+          id?: string
+          metadata?: Json | null
+          original_url: string
+          provider_name?: string | null
+          status?: string | null
+          thumbnail_url?: string | null
+          title?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          campaign_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          duration?: number | null
+          id?: string
+          metadata?: Json | null
+          original_url?: string
+          provider_name?: string | null
+          status?: string | null
+          thumbnail_url?: string | null
+          title?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_links_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       editor_assignments: {
         Row: {
           assigned_at: string | null

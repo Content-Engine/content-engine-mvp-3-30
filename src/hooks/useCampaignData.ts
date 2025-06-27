@@ -60,6 +60,7 @@ export const useCampaignData = (options: UseCampaignDataOptions = {}) => {
       if (!user) {
         console.log('🔍 No user, skipping campaign fetch');
         setCampaigns([]);
+        setLoading(false);
         return;
       }
       
@@ -74,20 +75,31 @@ export const useCampaignData = (options: UseCampaignDataOptions = {}) => {
         query = query.or(`user_id.eq.${user.id},created_by.eq.${user.id}`);
       }
 
+      console.log('🔍 Executing query...');
       const { data, error } = await query.order('created_at', { ascending: false });
 
       if (error) {
-        console.error('❌ Error fetching campaigns:', error);
+        console.error('❌ Supabase error details:', {
+          message: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint
+        });
         throw error;
       }
       
       console.log('✅ Campaigns fetched successfully:', data?.length || 0, 'campaigns');
-      console.log('📊 Campaign data:', data);
+      console.log('📊 Campaign data sample:', data?.slice(0, 2));
       setCampaigns(data || []);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch campaigns';
+    } catch (err: any) {
+      const errorMessage = err?.message || 'Failed to fetch campaigns';
       setError(errorMessage);
-      console.error('❌ Campaign fetch error:', err);
+      console.error('❌ Campaign fetch error details:', {
+        error: err,
+        message: errorMessage,
+        stack: err?.stack
+      });
+      setCampaigns([]);
     } finally {
       setLoading(false);
     }
@@ -179,12 +191,13 @@ export const useCampaignData = (options: UseCampaignDataOptions = {}) => {
 
   useEffect(() => {
     if (user) {
-      console.log('🔄 User changed, fetching campaigns...');
+      console.log('🔄 User effect triggered, fetching campaigns...');
       fetchCampaigns();
     } else {
       console.log('🚫 No user, clearing campaigns');
       setLoading(false);
       setCampaigns([]);
+      setError(null);
     }
   }, [user, userRole, filterByCurrentUser]);
 
